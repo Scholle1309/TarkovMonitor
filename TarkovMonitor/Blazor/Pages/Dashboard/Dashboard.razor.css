@@ -349,7 +349,7 @@
 /* ---- bars, tables, chips ---- */
 .dash-hbar {
     display: grid;
-    grid-template-columns: 96px 1fr 36px;
+    grid-template-columns: 124px 1fr 36px;
     gap: 8px;
     align-items: center;
     margin: 5px 0;
