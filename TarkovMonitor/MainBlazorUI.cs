@@ -808,6 +808,8 @@ namespace TarkovMonitor
         {
             var profileSnapshot = e.Profile.Snapshot();
             mapsService.SetGameMode(profileSnapshot.SessionMode);
+            // The map filters tasks only for a recognised session; reload it so the filter follows the profile.
+            mapsService.NotifyQuestStateChanged(inRaid);
             if (profileSnapshot.HasTarkovDevPlayerRoute && eft.IsGameRunning)
             {
                 MarkEftSessionRecognized();
@@ -869,6 +871,7 @@ namespace TarkovMonitor
         private void Eft_GameStopped(object? sender, EventArgs e)
         {
             PublishNoActiveEftSessionNotice();
+            mapsService.NotifyQuestStateChanged(false);
             TarkovTracker.DeactivateProfile();
             TarkovDev.StopAutoUpdates();
             InvalidateTarkovDevData();
@@ -1440,6 +1443,8 @@ namespace TarkovMonitor
         // The answer passes through here so quests the game logs prove were
         // never accepted can be marked failed: Tarkov.dev then treats them as
         // inactive and "only show markers for active tasks" matches the game.
+        private bool SessionRecognised => eft.IsGameRunning && GameWatcher.CurrentProfile.Snapshot().SessionMode != EftSessionMode.Unknown;
+
         private async Task HandleTrackerProgressRequest(CoreWebView2 core, CoreWebView2WebResourceRequestedEventArgs e, Uri uri)
         {
             var deferral = e.GetDeferral();
@@ -1465,7 +1470,8 @@ namespace TarkovMonitor
                 var body = new MemoryStream();
                 await response.Content.CopyToAsync(body);
                 body.Position = 0;
-                if (response.IsSuccessStatusCode && Properties.Settings.Default.mapHideUnacceptedTasks)
+                // Which tasks are available depends on the profile and its mode; nothing is hidden before the game announced them.
+                if (response.IsSuccessStatusCode && Properties.Settings.Default.mapHideUnacceptedTasks && SessionRecognised)
                 {
                     body = HideUnacceptedTasks(body);
                 }
