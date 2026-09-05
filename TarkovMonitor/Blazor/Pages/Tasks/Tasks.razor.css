@@ -346,7 +346,7 @@
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 140px;
+    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 170px;
     justify-content: start;
     gap: 12px;
     align-items: center;

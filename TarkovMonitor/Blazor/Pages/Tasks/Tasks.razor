@@ -231,6 +231,8 @@
                             <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")" OnClick="@(() => SetOverride(item, QuestOverride.Hidden))" />
                         }
                     }
+                    <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenWiki")"
+                                   Disabled="@string.IsNullOrEmpty(item.Task.wikiLink)" OnClick="@(() => OpenUrl(item.Task.wikiLink))" />
                     <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev" OnClick="@(() => OpenTask(item.Task))" />
                 </div>
                 @if (isOpen)
@@ -643,11 +645,17 @@
         _ => LocalizationService.GetString("ModeUnlocksHint"),
     };
 
-    private void OpenTask(TarkovDev.Task task)
+    private void OpenTask(TarkovDev.Task task) => OpenUrl($"https://tarkov.dev/task/{task.normalizedName}");
+
+    private void OpenUrl(string? url)
     {
+        if (string.IsNullOrEmpty(url))
+        {
+            return;
+        }
         try
         {
-            Process.Start(new ProcessStartInfo($"https://tarkov.dev/task/{task.normalizedName}") { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
         catch (Exception exception)
         {

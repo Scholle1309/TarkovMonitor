@@ -587,4 +587,7 @@
   <data name="ColumnTrader" xml:space="preserve">
     <value>Händler</value>
   </data>
+  <data name="OpenWiki" xml:space="preserve">
+    <value>Im Tarkov-Wiki öffnen</value>
+  </data>
 </root>
