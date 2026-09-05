@@ -42,17 +42,6 @@
                 </select>
                 <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="tasks-pick__arrow" />
             </label>
-            <label class="tasks-ctl tasks-pick">
-                <span class="tasks-pick__caption">@LocalizationService.GetString("SortBy")</span>
-                <select value="@sort" @onchange="e => OnSortChanged(Enum.TryParse<TaskSort>(e.Value?.ToString(), out var parsed) ? parsed : TaskSort.Default)">
-                    <option value="@TaskSort.Default">@LocalizationService.GetString("SortDefault")</option>
-                    <option value="@TaskSort.Name">@LocalizationService.GetString("SortName")</option>
-                    <option value="@TaskSort.Trader">@LocalizationService.GetString("SortTrader")</option>
-                    <option value="@TaskSort.Experience">@LocalizationService.GetString("SortExperience")</option>
-                    <option value="@TaskSort.Level">@LocalizationService.GetString("SortLevel")</option>
-                </select>
-                <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="tasks-pick__arrow" />
-            </label>
         </div>
         <div class="tasks-stats">
             <span><b>@accepted.Count</b> @LocalizationService.GetString("StatAccepted")</span>
@@ -153,14 +142,16 @@
                 <span class="tasks-group__count">@group.Count()</span>
             </div>
         }
+        @* Clickable column headers: first click sorts, second click flips the direction. *@
         <div class="tasks-cols">
             <span></span>
-            <span>@LocalizationService.GetString("ColumnTask")</span>
-            <span>@LocalizationService.GetString("ColumnMaps")</span>
-            <span class="tasks-cols__num">XP</span>
-            <span class="tasks-cols__num">@LocalizationService.GetString("ColumnObjectives")</span>
-            <span>@LocalizationService.GetString("ColumnStatus")</span>
-            <span class="tasks-cols__actions">@LocalizationService.GetString("ColumnActions")</span>
+            @SortHeader(TaskSort.Name, LocalizationService.GetString("ColumnTask"), false)
+            @SortHeader(TaskSort.Trader, LocalizationService.GetString("ColumnTrader"), false)
+            @SortHeader(TaskSort.Maps, LocalizationService.GetString("ColumnMaps"), false)
+            @SortHeader(TaskSort.Experience, "XP", true)
+            @SortHeader(TaskSort.Objectives, LocalizationService.GetString("ColumnObjectives"), true)
+            <span class="tasks-col">@LocalizationService.GetString("ColumnStatus")</span>
+            <span class="tasks-col tasks-col--right">@LocalizationService.GetString("ColumnActions")</span>
         </div>
         @foreach (var item in group)
         {
@@ -177,8 +168,12 @@
                         }
                         @item.Task.name
                     </div>
-                    <div class="task-row__sub">@item.TraderName@(item.AcceptedAt != null ? " · " + string.Format(LocalizationService.GetString("TaskAcceptedOn"), item.AcceptedAt.Value.ToString("d")) : "")</div>
+                    @if (item.AcceptedAt != null)
+                    {
+                        <div class="task-row__sub">@string.Format(LocalizationService.GetString("TaskAcceptedOn"), item.AcceptedAt.Value.ToString("d"))</div>
+                    }
                 </div>
+                <div class="task-row__trader">@item.TraderName</div>
                 <div class="tasks-maps">
                     @if (item.Maps.Count == 0)
                     {
@@ -323,7 +318,34 @@
     public AppLayout AppLayout { get; set; } = default!;
 
     private enum TaskListView { Accepted, Available, Hidden, Completed }
-    private enum TaskSort { Default, Name, Trader, Experience, Level }
+    private enum TaskSort { Name, Trader, Maps, Experience, Objectives }
+    private bool sortDescending;
+
+    // Header cell: label plus an arrow on the active column.
+    private RenderFragment SortHeader(TaskSort column, string label, bool alignRight) => __builder =>
+    {
+        var active = sort == column;
+        <button type="button" class="@("tasks-col tasks-col--sortable" + (active ? " tasks-col--active" : "") + (alignRight ? " tasks-col--right" : ""))"
+                title="@LocalizationService.GetString("SortBy")" @onclick="() => SortBy(column)">
+            <span>@label</span>
+            <MudIcon Icon="@(active && sortDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)" Size="Size.Small" Class="@("tasks-col__arrow" + (active ? "" : " tasks-col__arrow--idle"))" />
+        </button>
+    };
+
+    private void SortBy(TaskSort column)
+    {
+        if (sort == column)
+        {
+            sortDescending = !sortDescending;
+        }
+        else
+        {
+            sort = column;
+            // Numbers start high to low, text low to high.
+            sortDescending = column is TaskSort.Experience or TaskSort.Objectives;
+        }
+        ApplyFilter();
+    }
 
     private static readonly TaskListView[] ViewOptions = { TaskListView.Accepted, TaskListView.Available, TaskListView.Hidden, TaskListView.Completed };
 
@@ -338,7 +360,7 @@
     private string? traderFilter;
     private bool kappaOnly;
     private TaskListView view = TaskListView.Accepted;
-    private TaskSort sort = TaskSort.Default;
+    private TaskSort sort = TaskSort.Name;
     private RecommendationMode recommendationMode = RecommendationMode.Unlocks;
     private readonly HashSet<string> expanded = new();
 
@@ -477,16 +499,19 @@
                 || item.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
         }
 
-        var ordered = query.OrderByDescending(item => currentMap != null && item.OnCurrentMap)
+        // The current-map group always stays on top; the chosen column orders inside it.
+        var grouped = query.OrderByDescending(item => currentMap != null && item.OnCurrentMap)
             .ThenBy(item => currentMap != null && item.OnCurrentMap && item.Maps.Count == 0 ? 1 : 0);
-        visible = (sort switch
+        Func<TaskView, IComparable> key = sort switch
         {
-            TaskSort.Name => ordered.ThenBy(item => item.Task.name),
-            TaskSort.Trader => ordered.ThenBy(item => item.TraderName).ThenBy(item => item.Task.name),
-            TaskSort.Experience => ordered.ThenByDescending(item => item.Task.experience).ThenBy(item => item.Task.name),
-            TaskSort.Level => ordered.ThenBy(item => item.Task.minPlayerLevel).ThenBy(item => item.Task.name),
-            _ => ordered.ThenBy(item => item.TraderName).ThenBy(item => item.Task.name),
-        }).ToList();
+            TaskSort.Trader => item => item.TraderName,
+            TaskSort.Maps => item => item.Maps.Count == 0 ? "￿" : item.Maps[0].name,
+            TaskSort.Experience => item => item.Task.experience,
+            TaskSort.Objectives => item => TaskStateService.ObjectiveSummary(item.Task).Total,
+            _ => item => item.Task.name,
+        };
+        var sorted = sortDescending ? grouped.ThenByDescending(key) : grouped.ThenBy(key);
+        visible = sorted.ThenBy(item => item.Task.name).ToList();
     }
 
     private List<TarkovDev.Task> UnlocksOf(TaskView item) => dependents.TryGetValue(item.Task.id, out var list) ? list : new List<TarkovDev.Task>();
@@ -496,7 +521,6 @@
     private void ToggleKappa() { kappaOnly = !kappaOnly; ApplyFilter(); }
     private void OnSearchChanged(string value) { search = value ?? ""; ApplyFilter(); }
     private void OnMapFilterChanged(string value) { mapFilter = value ?? ""; ApplyFilter(); }
-    private void OnSortChanged(TaskSort value) { sort = value; ApplyFilter(); }
 
     private void SetMode(RecommendationMode mode)
     {

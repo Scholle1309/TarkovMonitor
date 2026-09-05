@@ -346,10 +346,76 @@
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 28px minmax(200px, 320px) minmax(200px, 540px) 80px 80px 110px 140px;
+    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 140px;
     justify-content: start;
     gap: 12px;
     align-items: center;
+}
+
+/* header strip with sortable columns */
+.tasks-cols {
+    margin-top: 6px;
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    min-height: 34px;
+}
+
+.tasks-col {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    width: 100%;
+    gap: 4px;
+    height: 34px;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.55);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+.tasks-col--right {
+    justify-content: flex-end;
+}
+
+.tasks-col--sortable {
+    cursor: pointer;
+}
+
+.tasks-col--sortable:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.tasks-col--active {
+    color: #ffe082;
+}
+
+::deep .tasks-col__arrow {
+    font-size: 1rem;
+}
+
+::deep .tasks-col__arrow--idle {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.tasks-col--sortable:hover ::deep .tasks-col__arrow--idle {
+    opacity: 0.4;
+}
+
+.task-row__trader {
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .task-row .tasks-maps {
@@ -472,22 +538,6 @@
 
 .task-objective--done .task-objective__count {
     color: #a5d6a7;
-}
-
-.tasks-cols {
-    padding: 2px 12px;
-    color: rgba(255, 255, 255, 0.4);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.tasks-cols__num {
-    text-align: right;
-}
-
-.tasks-cols__actions {
-    text-align: right;
 }
 
 .task-row {

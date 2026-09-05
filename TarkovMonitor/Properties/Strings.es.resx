@@ -569,4 +569,7 @@
   <data name="TasksNeedGame" xml:space="preserve">
     <value>Start Escape from Tarkov to load your Tarkov Tracker progress. The task list fills in once the game session is recognised.</value>
   </data>
+  <data name="ColumnTrader" xml:space="preserve">
+    <value>Trader</value>
+  </data>
 </root>

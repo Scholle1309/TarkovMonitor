@@ -584,4 +584,7 @@
   <data name="TasksNeedGame" xml:space="preserve">
     <value>Starte Escape from Tarkov, damit dein Tarkov-Tracker-Fortschritt geladen wird. Die Aufgabenliste füllt sich, sobald die Spielsitzung erkannt ist.</value>
   </data>
+  <data name="ColumnTrader" xml:space="preserve">
+    <value>Händler</value>
+  </data>
 </root>
