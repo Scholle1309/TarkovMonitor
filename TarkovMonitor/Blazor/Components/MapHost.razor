@@ -69,7 +69,16 @@
                                     {
                                         <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="map-task__pin" />
                                     }
-                                    @view.Task.name
+                                    @if (!string.IsNullOrEmpty(view.Task.wikiLink))
+                                    {
+                                        @* The title opens the wiki; the click must not select the row. *@
+                                        <a class="map-task__link" href="@view.Task.wikiLink" title="@LocalizationService.GetString("OpenWiki")"
+                                           @onclick="() => OpenUrl(view.Task.wikiLink)" @onclick:preventDefault @onclick:stopPropagation>@view.Task.name</a>
+                                    }
+                                    else
+                                    {
+                                        @view.Task.name
+                                    }
                                 </span>
                                 <span class="map-task__trader">@view.TraderName</span>
                             </div>
@@ -374,9 +383,18 @@
 
     private void OpenExternal()
     {
+        OpenUrl(MapsService.ExternalUrl);
+    }
+
+    private void OpenUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            return;
+        }
         try
         {
-            Process.Start(new ProcessStartInfo(MapsService.ExternalUrl)
+            Process.Start(new ProcessStartInfo(url)
             {
                 UseShellExecute = true,
             });
@@ -384,7 +402,7 @@
         catch (Exception exception)
         {
             MessageLog.Diagnostics.Capture(
-                new DiagnosticContext("TM-MAPS-002", "OpenMapInBrowser", "Maps", "Navigation", "The Tarkov.dev map could not be opened in the browser."),
+                new DiagnosticContext("TM-MAPS-002", "OpenInBrowser", "Maps", "Navigation", "The page could not be opened in the browser."),
                 exception);
         }
     }
