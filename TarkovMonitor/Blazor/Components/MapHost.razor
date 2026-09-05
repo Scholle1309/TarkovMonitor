@@ -1,4 +1,5 @@
 @using System.Diagnostics
+@inject IJSRuntime JSRuntime
 @inject MapsService MapsService
 @inject TaskStateService TaskStateService
 @inject QuestLogStore QuestLogStore
@@ -38,8 +39,13 @@
                 <div class="map-tasks__header">
                     <MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("TasksOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText>
                     <span class="map-tasks__count">@mapTasks.Count</span>
+                    @if (highlightedTaskId != null)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.HighlightOff" Size="Size.Small" Color="Color.Warning" Title="@LocalizationService.GetString("ClearHighlight")" OnClick="ClearHighlight" />
+                    }
                     <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Inherit" OnClick="ToggleTasksPanel" />
                 </div>
+                <div class="map-tasks__hint">@LocalizationService.GetString("ClickTaskToLocate")</div>
                 <div class="map-tasks__list">
                     @if (mapTasks.Count == 0)
                     {
@@ -51,7 +57,7 @@
                         {
                             <div class="map-tasks__section">@LocalizationService.GetString("AnyLocation")</div>
                         }
-                        <div class="map-task">
+                        <div class="@("map-task" + (highlightedTaskId == view.Task.id ? " map-task--highlighted" : ""))" @onclick="() => HighlightTask(view)">
                             <div class="map-task__title">
                                 <span class="map-task__name">@view.Task.name</span>
                                 <span class="map-task__trader">@view.TraderName</span>
@@ -74,7 +80,7 @@
         }
         @if (frameUrl != null)
         {
-            <iframe @key="frameGeneration" src="@frameUrl" title="Tarkov.dev map" @onload="OnFrameLoaded" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+            <iframe id="@FrameElementId" @key="frameGeneration" src="@frameUrl" title="Tarkov.dev map" @onload="OnFrameLoaded" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
         }
         else
         {
@@ -188,6 +194,43 @@
         tasksPanelOpen = !tasksPanelOpen;
     }
 
+    private const string FrameElementId = "tarkov-map-frame";
+    private string? highlightedTaskId;
+
+    // Clicking a task runs the Tarkov.dev marker search inside the frame: the
+    // task's markers pulse and all other markers are hidden. Clicking the
+    // same task again clears it.
+    private async Task HighlightTask(TaskView view)
+    {
+        if (highlightedTaskId == view.Task.id)
+        {
+            await ClearHighlight();
+            return;
+        }
+        highlightedTaskId = view.Task.id;
+        await SendSearch(view.Task.name);
+    }
+
+    private async Task ClearHighlight()
+    {
+        highlightedTaskId = null;
+        await SendSearch("");
+    }
+
+    private async Task SendSearch(string text)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("mapHost.search", FrameElementId, text);
+        }
+        catch (Exception exception)
+        {
+            MessageLog.Diagnostics.Capture(
+                new DiagnosticContext("TM-MAPS-005", "HighlightTask", "Maps", "Frame", "The task could not be highlighted on the map."),
+                exception);
+        }
+    }
+
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -211,6 +254,8 @@
         {
             frameGeneration = MapsService.FrameGeneration;
             frameUrl = MapsService.FrameUrl;
+            // A reload drops the marker search inside the page.
+            highlightedTaskId = null;
         }
     }
 

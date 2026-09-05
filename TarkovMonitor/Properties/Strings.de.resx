@@ -455,4 +455,10 @@
   <data name="AcceptedReasonUser" xml:space="preserve">
     <value>von dir als angenommen markiert</value>
   </data>
+  <data name="ClickTaskToLocate" xml:space="preserve">
+    <value>Aufgabe anklicken, dann blinken ihre Marker auf der Karte; erneut klicken hebt es auf.</value>
+  </data>
+  <data name="ClearHighlight" xml:space="preserve">
+    <value>Hervorhebung aufheben</value>
+  </data>
 </root>

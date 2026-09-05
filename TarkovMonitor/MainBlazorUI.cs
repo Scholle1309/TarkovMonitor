@@ -100,7 +100,22 @@ namespace TarkovMonitor
             + "html body div.leaflet-pane.leaflet-marker-pane > .off-level.active-quest-marker {"
             + " opacity: 0.95 !important; z-index: 600 !important;"
             + " filter: sepia(1) saturate(5) hue-rotate(165deg) brightness(1.15) drop-shadow(0 0 2px #4fc3f7); }"
+            // Markers found by the site's search carry the class "pulse"; make them blink
+            // without touching transform (Leaflet positions markers with it).
+            + "@keyframes tarkov-monitor-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.95), 0 0 6px 4px rgba(255, 235, 59, 0.5); }"
+            + " 50% { box-shadow: 0 0 0 8px rgba(255, 235, 59, 0.15), 0 0 18px 10px rgba(255, 235, 59, 0.6); } }"
+            + "html body div.leaflet-pane.leaflet-marker-pane > .pulse { animation: tarkov-monitor-pulse 1s ease-in-out infinite;"
+            + " border-radius: 50%; z-index: 900 !important; opacity: 1 !important; }"
             + "</style>"
+            // The Maps tab talks to the page with postMessage: a search request runs the
+            // site's own marker search (task markers pulse, the rest are hidden).
+            + "<script id=\"tarkov-monitor-frame-bridge\">window.addEventListener('message', function (event) {"
+            + " if (event.source !== window.parent || !event.data || event.data.type !== 'tarkov-monitor-search') { return; }"
+            + " var bar = document.querySelector('input.maps-search-wrapper-search-bar');"
+            + " if (!bar) { return; }"
+            + " bar.value = event.data.text || '';"
+            + " bar.dispatchEvent(new Event('input', { bubbles: true }));"
+            + "});</script>"
             + "<script id=\"tarkov-monitor-frame-script\">(function () {"
             + "  var patched = false;"
             + "  function patch(L) {"

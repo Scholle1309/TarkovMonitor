@@ -519,4 +519,10 @@
   <data name="AcceptedReasonUser" xml:space="preserve">
     <value>marked accepted by you</value>
   </data>
+  <data name="ClickTaskToLocate" xml:space="preserve">
+    <value>Click a task to make its markers blink on the map; click again to clear.</value>
+  </data>
+  <data name="ClearHighlight" xml:space="preserve">
+    <value>Clear highlight</value>
+  </data>
 </root>

@@ -115,10 +115,27 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+.map-tasks__hint {
+    padding: 4px 12px 0;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
 .map-task {
     padding: 6px 8px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.map-task:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.map-task--highlighted {
+    border-color: #ffb300;
+    background: rgba(255, 179, 0, 0.15);
 }
 
 .map-task__title {
