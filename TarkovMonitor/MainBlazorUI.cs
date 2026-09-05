@@ -75,6 +75,10 @@ namespace TarkovMonitor
         private readonly TimersManager timersManager;
         private readonly MapsService mapsService;
         private const string MapFrameHost = "tarkov.dev";
+        // Injected into the embedded Tarkov.dev document: the site header and the
+        // cookie banner only take space inside the Maps tab. The map page sizes
+        // itself from the header height, so hiding it lets the map fill the frame.
+        private const string MapFrameStyle = "<style id=\"tarkov-monitor-frame\">nav.navigation, .CookieConsent { display: none !important; }</style>";
         private static readonly HttpClient mapFrameClient = new(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
@@ -1111,6 +1115,10 @@ namespace TarkovMonitor
                 var body = new MemoryStream();
                 await response.Content.CopyToAsync(body);
                 body.Position = 0;
+                if (string.Equals(response.Content.Headers.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase))
+                {
+                    body = InjectMapFrameStyle(body);
+                }
 
                 var headers = new StringBuilder();
                 foreach (var header in response.Headers.Concat(response.Content.Headers))
@@ -1139,6 +1147,18 @@ namespace TarkovMonitor
             {
                 deferral.Complete();
             }
+        }
+
+        private static MemoryStream InjectMapFrameStyle(MemoryStream html)
+        {
+            var text = Encoding.UTF8.GetString(html.GetBuffer(), 0, (int)html.Length);
+            var headEnd = text.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+            if (headEnd < 0)
+            {
+                return html;
+            }
+            text = text.Insert(headEnd, MapFrameStyle);
+            return new MemoryStream(Encoding.UTF8.GetBytes(text));
         }
 
         private static bool IsHopByHopHeader(string name)
