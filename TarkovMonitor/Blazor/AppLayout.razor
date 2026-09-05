@@ -228,6 +228,12 @@
 					return;
 				}
 
+				// Position updates are shown on the map itself; no popup needed.
+				if (e.Message.Type == "position")
+				{
+					return;
+				}
+
 				var severity = e.Message.Type switch
 				{
 					"exception" => Severity.Error,

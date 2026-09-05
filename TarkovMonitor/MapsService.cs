@@ -290,6 +290,9 @@ namespace TarkovMonitor
             }
         }
 
+        /// <summary>Raised after a new player position was sent to the map.</summary>
+        public event EventHandler? PositionUpdated;
+
         /// <summary>Keep the newest position so it can be replayed after a (re)load.</summary>
         public void RememberPosition(JsonObject positionMessage)
         {
@@ -297,6 +300,12 @@ namespace TarkovMonitor
             {
                 lastPositionMessage = positionMessage;
             }
+        }
+
+        /// <summary>Tell the view that the position marker is about to move.</summary>
+        public void NotifyPositionUpdated()
+        {
+            PositionUpdated?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>

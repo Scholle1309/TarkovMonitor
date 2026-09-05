@@ -140,8 +140,28 @@
         TarkovDev.ApiDataLoaded += OnApiDataLoaded;
         QuestLogStore.Changed += OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        MapsService.PositionUpdated += OnPositionUpdated;
         SyncFrame();
         RefreshMapTasks();
+    }
+
+    // A screenshot moved the player marker: let it pulse for a few seconds so
+    // the new position is easy to spot.
+    private void OnPositionUpdated(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("mapHost.pulsePosition", FrameElementId, 5000);
+            }
+            catch (Exception exception)
+            {
+                MessageLog.Diagnostics.Capture(
+                    new DiagnosticContext("TM-MAPS-006", "PulsePosition", "Maps", "Frame", "The position marker could not be highlighted."),
+                    exception);
+            }
+        });
     }
 
     private void OnApiDataLoaded(object? sender, EventArgs e)
@@ -343,5 +363,6 @@
         TarkovDev.ApiDataLoaded -= OnApiDataLoaded;
         QuestLogStore.Changed -= OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        MapsService.PositionUpdated -= OnPositionUpdated;
     }
 }

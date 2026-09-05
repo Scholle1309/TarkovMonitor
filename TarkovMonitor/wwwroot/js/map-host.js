@@ -17,6 +17,10 @@ window.mapHost = (() => {
         // Highlight the markers of a task on the map (empty text clears the highlight).
         search(frameId, text) {
             return post(frameId, { type: "tarkov-monitor-search", text: text || "" });
+        },
+        // Let the player position marker pulse for the given time.
+        pulsePosition(frameId, durationMs) {
+            return post(frameId, { type: "tarkov-monitor-position", duration: durationMs || 5000 });
         }
     };
 })();

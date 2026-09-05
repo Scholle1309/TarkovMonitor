@@ -104,18 +104,41 @@ namespace TarkovMonitor
             // without touching transform (Leaflet positions markers with it).
             + "@keyframes tarkov-monitor-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(255, 235, 59, 0.95), 0 0 6px 4px rgba(255, 235, 59, 0.5); }"
             + " 50% { box-shadow: 0 0 0 8px rgba(255, 235, 59, 0.15), 0 0 18px 10px rgba(255, 235, 59, 0.6); } }"
+            + "@keyframes tarkov-monitor-position-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.95), 0 0 6px 4px rgba(76, 175, 80, 0.5); }"
+            + " 50% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0.15), 0 0 22px 12px rgba(76, 175, 80, 0.65); } }"
+            + "html body div.leaflet-pane.leaflet-marker-pane > .tarkov-monitor-position-pulse { animation: tarkov-monitor-position-pulse 0.8s ease-in-out infinite;"
+            + " border-radius: 50%; z-index: 1000 !important; }"
             + "html body div.leaflet-pane.leaflet-marker-pane > .pulse { animation: tarkov-monitor-pulse 1s ease-in-out infinite;"
             + " border-radius: 50%; z-index: 900 !important; opacity: 1 !important; }"
             + "</style>"
             // The Maps tab talks to the page with postMessage: a search request runs the
             // site's own marker search (task markers pulse, the rest are hidden).
-            + "<script id=\"tarkov-monitor-frame-bridge\">window.addEventListener('message', function (event) {"
-            + " if (event.source !== window.parent || !event.data || event.data.type !== 'tarkov-monitor-search') { return; }"
-            + " var bar = document.querySelector('input.maps-search-wrapper-search-bar');"
-            + " if (!bar) { return; }"
-            + " bar.value = event.data.text || '';"
-            + " bar.dispatchEvent(new Event('input', { bubbles: true }));"
-            + "});</script>"
+            + "<script id=\"tarkov-monitor-frame-bridge\">(function () {"
+            + " var pulseTimer = null, pulseUntil = 0;"
+            + " function positionMarker() { var img = document.querySelector('.leaflet-marker-pane img[src*=\"player-position\"]'); return img && img.closest('.leaflet-marker-icon'); }"
+            // The site re-creates the marker when the position arrives, so the class is
+            // re-applied while the pulse is running and removed afterwards.
+            + " function pulsePosition(duration) {"
+            + "  pulseUntil = Date.now() + duration;"
+            + "  if (pulseTimer) { return; }"
+            + "  pulseTimer = setInterval(function () {"
+            + "   var marker = positionMarker();"
+            + "   if (Date.now() >= pulseUntil) { clearInterval(pulseTimer); pulseTimer = null; if (marker) { marker.classList.remove('tarkov-monitor-position-pulse'); } return; }"
+            + "   if (marker) { marker.classList.add('tarkov-monitor-position-pulse'); }"
+            + "  }, 150);"
+            + " }"
+            + " window.addEventListener('message', function (event) {"
+            + "  if (event.source !== window.parent || !event.data) { return; }"
+            + "  if (event.data.type === 'tarkov-monitor-search') {"
+            + "   var bar = document.querySelector('input.maps-search-wrapper-search-bar');"
+            + "   if (!bar) { return; }"
+            + "   bar.value = event.data.text || '';"
+            + "   bar.dispatchEvent(new Event('input', { bubbles: true }));"
+            + "  } else if (event.data.type === 'tarkov-monitor-position') {"
+            + "   pulsePosition(event.data.duration || 5000);"
+            + "  }"
+            + " });"
+            + "})();</script>"
             + "<script id=\"tarkov-monitor-frame-script\">(function () {"
             + "  var patched = false;"
             + "  function patch(L) {"
@@ -915,7 +938,8 @@ namespace TarkovMonitor
             {
                 return;
             }
-            messageLog.AddMessage($"Current position on {e.RaidInfo.Map.name}: x={e.Position.X}, y={e.Position.Y}, z={e.Position.Z}.");
+            // "position" messages stay in the log but do not pop up over the map.
+            messageLog.AddMessage($"Current position on {e.RaidInfo.Map.name}: x={e.Position.X}, y={e.Position.Y}, z={e.Position.Z}.", "position");
             var positionMessage = SocketClient.GetPlayerPositionMessage(e);
             var navigateMessage = SocketClient.GetNavigateToMapMessage(e.RaidInfo.Map);
 
@@ -924,6 +948,7 @@ namespace TarkovMonitor
             mapsService.SetMap(e.RaidInfo.Map);
             mapsService.RememberPosition(positionMessage);
             await SendPlayerPositionAsync(new List<JsonObject> { navigateMessage, positionMessage }, SocketTargets.MapView);
+            mapsService.NotifyPositionUpdated();
 
             List<JsonObject> remoteMessages = new() { positionMessage };
             if (Properties.Settings.Default.navigateMapOnPositionUpdate)
