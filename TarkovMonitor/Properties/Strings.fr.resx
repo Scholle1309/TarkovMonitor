@@ -344,4 +344,7 @@
   <data name="RetrievedDataFromTarkovTracker" xml:space="preserve">
     <value>Récupéré la progression {0} niveau {1} {2} depuis Tarkov Tracker pour {3}</value>
   </data>
+  <data name="Maps" xml:space="preserve">
+    <value>Cartes</value>
+  </data>
 </root>

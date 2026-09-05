@@ -1,0 +1,19 @@
+@page "/maps"
+@inject LocalizationService LocalizationService
+@layout AppLayout
+
+@* The map itself is rendered by MapHost inside AppLayout so it survives tab changes. *@
+
+@code {
+    [CascadingParameter(Name = "AppLayout")]
+    public AppLayout AppLayout { get; set; } = default!;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            AppLayout.SetTitle(LocalizationService.GetString("Maps"));
+        }
+    }
+}

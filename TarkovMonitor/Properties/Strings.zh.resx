@@ -374,4 +374,7 @@
   <data name="RetrievedDataFromTarkovTracker" xml:space="preserve">
     <value>从 Tarkov Tracker 获取了 {0} 等级 {1} {2}（{3}）进度</value>
   </data>
+  <data name="Maps" xml:space="preserve">
+    <value>地图</value>
+  </data>
 </root>

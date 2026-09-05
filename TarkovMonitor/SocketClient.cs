@@ -5,8 +5,23 @@ using System.Text.Json.Nodes;
 
 namespace TarkovMonitor
 {
+    [Flags]
+    internal enum SocketTargets
+    {
+        /// <summary>The Tarkov.dev website session configured by the user (remote id setting).</summary>
+        Remote = 1,
+        /// <summary>The Tarkov.dev map embedded in the Maps tab.</summary>
+        MapView = 2,
+        All = Remote | MapView,
+    }
+
     internal static class SocketClient
     {
+        /// <summary>
+        /// Session id of the embedded map view, or null while it is not loaded.
+        /// Set by <see cref="MapsService"/>.
+        /// </summary>
+        public static string? MapViewSessionId { get; set; }
         // Background transport interruptions are telemetry only. The UI is
         // notified when a user-required send cannot complete, not when an
         // otherwise recoverable receive loop loses its peer.
@@ -61,21 +76,27 @@ namespace TarkovMonitor
                 stopping = false;
             }
 
-            await EnsureConnectedAsync(Properties.Settings.Default.remoteId ?? "");
+            await EnsureConnectedAsync(GetConnectionIdentity());
         }
 
         public static Task VerifyClient()
         {
-            return EnsureConnectedAsync(Properties.Settings.Default.remoteId ?? "");
+            return EnsureConnectedAsync(GetConnectionIdentity());
         }
 
-        public static async Task Send(List<JsonObject> messages)
+        public static Task Send(List<JsonObject> messages)
         {
-            var remoteId = Properties.Settings.Default.remoteId;
-            if (string.IsNullOrWhiteSpace(remoteId) || messages.Count == 0)
+            return Send(messages, SocketTargets.All);
+        }
+
+        public static async Task Send(List<JsonObject> messages, SocketTargets targets)
+        {
+            var targetIds = GetTargetIds(targets);
+            if (targetIds.Count == 0 || messages.Count == 0)
             {
                 return;
             }
+            var remoteId = targetIds[0];
 
             await sendBatchGate.WaitAsync().ConfigureAwait(false);
             ConnectionState? sendState = null;
@@ -86,10 +107,15 @@ namespace TarkovMonitor
                 // Each item is sent once. There is deliberately no pending
                 // queue or replay after a partial batch failure: replaying an
                 // item already accepted by the server could duplicate data.
-                foreach (var message in messages)
+                foreach (var targetId in targetIds)
                 {
-                    message["sessionID"] = remoteId;
-                    await SendSocketMessageAsync(sendState, message).ConfigureAwait(false);
+                    foreach (var message in messages)
+                    {
+                        // Each target gets its own copy so the caller's object is never mutated.
+                        var copy = (JsonObject)message.DeepClone();
+                        copy["sessionID"] = targetId;
+                        await SendSocketMessageAsync(sendState, copy).ConfigureAwait(false);
+                    }
                 }
 
                 ResetIdleTimer();
@@ -113,6 +139,34 @@ namespace TarkovMonitor
         public static Task Send(JsonObject message)
         {
             return Send(new List<JsonObject> { message });
+        }
+
+        /// <summary>Session ids that should receive messages for the given targets.</summary>
+        private static List<string> GetTargetIds(SocketTargets targets)
+        {
+            var ids = new List<string>();
+            var remoteId = Properties.Settings.Default.remoteId;
+            if (targets.HasFlag(SocketTargets.Remote) && !string.IsNullOrWhiteSpace(remoteId))
+            {
+                ids.Add(remoteId.Trim());
+            }
+            var mapViewId = MapViewSessionId;
+            if (targets.HasFlag(SocketTargets.MapView) && !string.IsNullOrWhiteSpace(mapViewId) && !ids.Contains(mapViewId))
+            {
+                ids.Add(mapViewId);
+            }
+            return ids;
+        }
+
+        /// <summary>Id this client identifies itself with when connecting (a "-tm" suffix is added).</summary>
+        private static string GetConnectionIdentity()
+        {
+            var remoteId = Properties.Settings.Default.remoteId;
+            if (!string.IsNullOrWhiteSpace(remoteId))
+            {
+                return remoteId.Trim();
+            }
+            return MapViewSessionId ?? "";
         }
 
         public static Task UpdatePlayerPosition(PlayerPositionEventArgs e)

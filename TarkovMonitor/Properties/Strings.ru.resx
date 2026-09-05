@@ -399,4 +399,7 @@
   <data name="UsingProfile" xml:space="preserve">
     <value>Используется {0} профиль</value>
   </data>
+  <data name="Maps" xml:space="preserve">
+    <value>Карты</value>
+  </data>
 </root>

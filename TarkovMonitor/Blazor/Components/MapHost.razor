@@ -1,0 +1,168 @@
+@using System.Diagnostics
+@inject MapsService MapsService
+@inject LocalizationService LocalizationService
+@inject MessageLog MessageLog
+@implements IDisposable
+
+@* Lives in the layout so the Tarkov.dev page stays loaded (and connected) while other tabs are shown. *@
+<div class="map-host @(Visible ? "map-host--visible" : "map-host--hidden")" aria-hidden="@(!Visible)">
+    <div class="map-host__toolbar">
+        <MudIcon Icon="@Icons.Material.Filled.Map" Size="Size.Small" Class="map-host__icon" />
+        @* Keyed on the map count so the select is rebuilt once Tarkov.dev map data arrives. *@
+        <MudSelect @key="TarkovDev.Maps.Count" T="string" Value="@SelectedMap" ValueChanged="OnMapSelected" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                   RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="320"
+                   Class="tm-select map-host__select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+            @foreach (var map in MapChoices)
+            {
+                <MudSelectItem T="string" Value="@map.normalizedName">@map.name</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSpacer />
+        <MudText Typo="Typo.caption" Class="map-host__status">@LocalizationService.GetString("MapSessionId"): @MapsService.SessionId</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("ReloadMap")" OnClick="Reload" />
+        <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
+    </div>
+    <div class="map-host__frame">
+        @if (frameUrl != null)
+        {
+            <iframe @key="frameGeneration" src="@frameUrl" title="Tarkov.dev map" @onload="OnFrameLoaded" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+        }
+        else
+        {
+            <div class="map-host__placeholder">
+                <MudProgressCircular Indeterminate="true" Color="Color.Info" />
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+
+    private string? frameUrl;
+    private int frameGeneration = -1;
+
+    private string SelectedMap => MapsService.CurrentMapName;
+
+    private IEnumerable<TarkovDev.Map> MapChoices
+    {
+        get
+        {
+            var maps = TarkovDev.Maps
+                .Where(map => !string.IsNullOrEmpty(map.normalizedName))
+                .GroupBy(map => map.normalizedName)
+                .Select(group => group.First())
+                .OrderBy(map => map.name)
+                .ToList();
+            if (!maps.Any(map => map.normalizedName == SelectedMap))
+            {
+                // Map data has not been retrieved yet; still show the default entry.
+                maps.Add(new TarkovDev.Map { normalizedName = SelectedMap, name = SelectedMap });
+            }
+            return maps;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        MapsService.Changed += OnMapsChanged;
+        LocalizationService.LanguageChanged += OnLanguageChanged;
+        TarkovDev.ApiDataLoaded += OnApiDataLoaded;
+        SyncFrame();
+    }
+
+    private void OnApiDataLoaded(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Visible)
+        {
+            MapsService.RequestFrame();
+            SyncFrame();
+        }
+    }
+
+    // The iframe src is only (re)assigned when a full reload is wanted. Map
+    // changes while the page is loaded are done through socket commands so
+    // the Tarkov.dev page navigates internally without reloading.
+    private void SyncFrame()
+    {
+        if (!MapsService.FrameRequested)
+        {
+            return;
+        }
+        if (frameUrl == null || frameGeneration != MapsService.FrameGeneration)
+        {
+            frameGeneration = MapsService.FrameGeneration;
+            frameUrl = MapsService.FrameUrl;
+        }
+    }
+
+    private void OnMapsChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            SyncFrame();
+            StateHasChanged();
+        });
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnFrameLoaded(ProgressEventArgs args)
+    {
+        return MapsService.FrameLoadedAsync();
+    }
+
+    private async Task OnMapSelected(string normalizedName)
+    {
+        if (string.IsNullOrEmpty(normalizedName) || normalizedName == SelectedMap)
+        {
+            return;
+        }
+        var map = TarkovDev.Maps.Find(candidate => candidate.normalizedName == normalizedName);
+        if (map == null)
+        {
+            return;
+        }
+        await MapsService.NavigateAsync(map);
+    }
+
+    private void Reload()
+    {
+        MapsService.ReloadFrame();
+    }
+
+    private void OpenExternal()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(MapsService.ExternalUrl)
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception exception)
+        {
+            MessageLog.Diagnostics.Capture(
+                new DiagnosticContext("TM-MAPS-002", "OpenMapInBrowser", "Maps", "Navigation", "The Tarkov.dev map could not be opened in the browser."),
+                exception);
+        }
+    }
+
+    public void Dispose()
+    {
+        MapsService.Changed -= OnMapsChanged;
+        LocalizationService.LanguageChanged -= OnLanguageChanged;
+        TarkovDev.ApiDataLoaded -= OnApiDataLoaded;
+    }
+}

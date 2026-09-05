@@ -1,0 +1,59 @@
+.map-host {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    background: #1e1e1e;
+}
+
+.map-host--hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.map-host__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 4px 12px;
+    background: #2f2f2d;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.map-host__icon {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+::deep .map-host__select {
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.map-host__status {
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+.map-host__frame {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.map-host__frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #1e1e1e;
+}
+
+.map-host__placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+}

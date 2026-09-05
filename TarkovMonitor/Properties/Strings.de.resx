@@ -344,4 +344,16 @@
   <data name="RetrievedDataFromTarkovTracker" xml:space="preserve">
     <value>Fortschritt von {0} Level {1} {2} aus Tarkov Tracker für {3} abgerufen</value>
   </data>
+  <data name="Maps" xml:space="preserve">
+    <value>Karten</value>
+  </data>
+  <data name="ReloadMap" xml:space="preserve">
+    <value>Karte neu laden</value>
+  </data>
+  <data name="OpenMapInBrowser" xml:space="preserve">
+    <value>Karte im Browser öffnen</value>
+  </data>
+  <data name="MapSessionId" xml:space="preserve">
+    <value>Karten-ID</value>
+  </data>
 </root>

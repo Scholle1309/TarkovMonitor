@@ -10,6 +10,8 @@ using MudBlazor;
 using Microsoft.Extensions.Localization;
 using System.Text.Json.Nodes;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Text;
 
 namespace TarkovMonitor
 {
@@ -71,6 +73,14 @@ namespace TarkovMonitor
         private readonly LogRepository logRepository;
         private readonly GroupManager groupManager;
         private readonly TimersManager timersManager;
+        private readonly MapsService mapsService;
+        private const string MapFrameHost = "tarkov.dev";
+        private static readonly HttpClient mapFrameClient = new(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            UseCookies = false,
+            AllowAutoRedirect = false,
+        });
         private readonly System.Timers.Timer runthroughTimer;
         private readonly System.Timers.Timer scavCooldownTimer;
         private LocalizationService localizationService;
@@ -132,6 +142,9 @@ namespace TarkovMonitor
 
             timersManager = new TimersManager(eft, messageLog);
 
+            // State of the embedded Tarkov.dev map (Maps tab)
+            mapsService = new MapsService();
+
             // Creates the dependency injection services which are the in-betweens for the Blazor interface and the rest of the C# application.
             var services = new ServiceCollection();
             services.AddWindowsFormsBlazorWebView();
@@ -149,6 +162,7 @@ namespace TarkovMonitor
             services.AddSingleton<LogRepository>(logRepository);
             services.AddSingleton<GroupManager>(groupManager);
             services.AddSingleton<TimersManager>(timersManager);
+            services.AddSingleton<MapsService>(mapsService);
             services.AddSingleton<MainBlazorUI>(this);
 
             blazorWebView1.HostPage = "wwwroot\\index.html";
@@ -827,18 +841,29 @@ namespace TarkovMonitor
                 return;
             }
             messageLog.AddMessage($"Current position on {e.RaidInfo.Map.name}: x={e.Position.X}, y={e.Position.Y}, z={e.Position.Z}.");
-            List<JsonObject> socketMessages = new();
-            socketMessages.Add(SocketClient.GetPlayerPositionMessage(e));
-            //await SocketClient.UpdatePlayerPosition(e);
+            var positionMessage = SocketClient.GetPlayerPositionMessage(e);
+            var navigateMessage = SocketClient.GetNavigateToMapMessage(e.RaidInfo.Map);
+
+            // The embedded map always follows the game and gets the position
+            // replayed after a reload; the user's remote follows the settings.
+            mapsService.SetMap(e.RaidInfo.Map);
+            mapsService.RememberPosition(positionMessage);
+            await SendPlayerPositionAsync(new List<JsonObject> { navigateMessage, positionMessage }, SocketTargets.MapView);
+
+            List<JsonObject> remoteMessages = new() { positionMessage };
             if (Properties.Settings.Default.navigateMapOnPositionUpdate)
             {
-                //SocketClient.NavigateToMap(map);
-                socketMessages.Add(SocketClient.GetNavigateToMapMessage(e.RaidInfo.Map));
+                remoteMessages.Add(navigateMessage);
             }
+            await SendPlayerPositionAsync(remoteMessages, SocketTargets.Remote);
+        }
+
+        private async Task SendPlayerPositionAsync(List<JsonObject> messages, SocketTargets targets)
+        {
             var startedUtc = DateTime.UtcNow;
             try
             {
-                await SocketClient.Send(socketMessages);
+                await SocketClient.Send(messages, targets);
             }
             catch (Exception ex)
             {
@@ -928,23 +953,28 @@ namespace TarkovMonitor
 
         private async void Eft_MapLoading_NavigateToMap(object? sender, RaidInfoEventArgs e)
         {
-            if (!Properties.Settings.Default.autoNavigateMap)
-            {
-                return;
-            }
             if (e.RaidInfo.Map == null)
             {
                 return;
             }
-            await NavigateToMapWithDiagnostics(e.RaidInfo.Map);
+            await FollowMapAsync(e.RaidInfo.Map);
         }
 
-        private async Task NavigateToMapWithDiagnostics(TarkovDev.Map map)
+        // The embedded map (Maps tab) always switches to the map being loaded.
+        // The Tarkov.dev website remote only does so when the setting is on.
+        private async Task FollowMapAsync(TarkovDev.Map map)
+        {
+            mapsService.SetMap(map);
+            var targets = Properties.Settings.Default.autoNavigateMap ? SocketTargets.All : SocketTargets.MapView;
+            await NavigateToMapWithDiagnostics(map, targets);
+        }
+
+        private async Task NavigateToMapWithDiagnostics(TarkovDev.Map map, SocketTargets targets = SocketTargets.All)
         {
             var startedUtc = DateTime.UtcNow;
             try
             {
-                await SocketClient.NavigateToMap(map);
+                await SocketClient.Send(new List<JsonObject> { SocketClient.GetNavigateToMapMessage(map) }, targets);
             }
             catch (Exception exception)
             {
@@ -1017,6 +1047,11 @@ namespace TarkovMonitor
         {
             if (Debugger.IsAttached) blazorWebView1.WebView.CoreWebView2.OpenDevToolsWindow();
 
+            if (e.IsSuccess)
+            {
+                ConfigureMapFrameHost(blazorWebView1.WebView.CoreWebView2);
+            }
+
             if (!e.IsSuccess)
             {
                 // Do not leave the native host invisible if WebView2 cannot
@@ -1024,6 +1059,101 @@ namespace TarkovMonitor
                 // reachable for diagnosis.
                 MarkUiReady();
             }
+        }
+
+        private void ConfigureMapFrameHost(CoreWebView2 core)
+        {
+            try
+            {
+                core.AddWebResourceRequestedFilter($"https://{MapFrameHost}/*", CoreWebView2WebResourceContext.Document);
+                core.WebResourceRequested += CoreWebView2_WebResourceRequested;
+            }
+            catch (Exception exception)
+            {
+                RecordException("The Maps tab could not be prepared; the embedded map will not load.", "TM-MAPS-001", "ConfigureMapFrameHost", exception, "Maps", "Startup");
+            }
+        }
+
+        // Tarkov.dev answers with "X-Frame-Options: DENY", which would block the
+        // iframe used by the Maps tab. Document requests to tarkov.dev are
+        // therefore fetched here and handed to WebView2 without that header.
+        // Scripts, styles, images and API calls are not touched.
+        private async void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+        {
+            if (sender is not CoreWebView2 core || e.ResourceContext != CoreWebView2WebResourceContext.Document)
+            {
+                return;
+            }
+            if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri)
+                || !uri.Host.Equals(MapFrameHost, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(e.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var deferral = e.GetDeferral();
+            var startedUtc = DateTime.UtcNow;
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                foreach (var header in e.Request.Headers)
+                {
+                    if (IsHopByHopHeader(header.Key))
+                    {
+                        continue;
+                    }
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
+                using var response = await mapFrameClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                var body = new MemoryStream();
+                await response.Content.CopyToAsync(body);
+                body.Position = 0;
+
+                var headers = new StringBuilder();
+                foreach (var header in response.Headers.Concat(response.Content.Headers))
+                {
+                    if (IsStrippedResponseHeader(header.Key))
+                    {
+                        continue;
+                    }
+                    foreach (var value in header.Value)
+                    {
+                        headers.Append(header.Key).Append(": ").Append(value).Append("\r\n");
+                    }
+                }
+
+                // Continuations of the awaits above run on the UI thread, which is
+                // where the WebView2 event arguments must be completed.
+                e.Response = core.Environment.CreateWebResourceResponse(body, (int)response.StatusCode, response.ReasonPhrase ?? "OK", headers.ToString());
+            }
+            catch (Exception exception)
+            {
+                // Without a response WebView2 performs the normal request, which
+                // shows the site's own error inside the frame.
+                RecordException("The embedded Tarkov.dev map could not be loaded.", "TM-MAPS-001", "MapFrameRequest", exception, "Maps", "Frame", endpoint: uri.ToString(), durationMilliseconds: DiagnosticsService.ElapsedMilliseconds(startedUtc));
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        }
+
+        private static bool IsHopByHopHeader(string name)
+        {
+            return name.Equals("Host", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Connection", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Accept-Encoding", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsStrippedResponseHeader(string name)
+        {
+            return name.Equals("X-Frame-Options", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Content-Length", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)
+                || name.Equals("Connection", StringComparison.OrdinalIgnoreCase);
         }
 
         private void MainBlazorUI_Shown(object? sender, EventArgs e)
@@ -1618,13 +1748,9 @@ namespace TarkovMonitor
                         monMessage.Buttons.Clear();
                         monMessage.Selects.Clear();
                         //AddGoonsButton(monMessage, e.RaidInfo); // offline raids have goons on all goons maps
-                        if (Properties.Settings.Default.autoNavigateMap)
+                        if (e.RaidInfo.Map != null)
                         {
-                            if (e.RaidInfo.Map == null)
-                            {
-                                return;
-                            }
-                            await NavigateToMapWithDiagnostics(e.RaidInfo.Map);
+                            await FollowMapAsync(e.RaidInfo.Map);
                         }
                     };
                     monMessage.Buttons.Add(mapButton);
