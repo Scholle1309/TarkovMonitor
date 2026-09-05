@@ -1,1 +1,477 @@
-﻿
+.dash {
+    padding: 12px 16px 24px;
+    max-width: 1560px;
+    color: rgba(255, 255, 255, 0.87);
+}
+
+/* ---- status line ---- */
+.dash__status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.dash-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.dash-pill b {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+.dash-pill__sub {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e0533f;
+    flex: none;
+}
+
+.dash-dot--ok {
+    background: #43a047;
+}
+
+.dash-dot--warn {
+    background: #ffb300;
+}
+
+/* ---- key figures ---- */
+.dash__kpis {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 1400px) {
+    .dash__kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.dash-kpi {
+    position: relative;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    min-width: 0;
+}
+
+.dash-kpi__label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-kpi__value {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 4px 0 2px;
+    white-space: nowrap;
+}
+
+.dash-kpi__value small {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-kpi__value--muted {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.dash-kpi__hint {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-bar {
+    height: 5px;
+    margin-top: 8px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.dash-bar i {
+    display: block;
+    height: 100%;
+    background: #c7b485;
+}
+
+.dash-bar--green {
+    background: #43a047 !important;
+}
+
+.dash-bar--blue {
+    background: #29b6f6 !important;
+}
+
+.dash-bar--purple {
+    background: #ab7cd9 !important;
+}
+
+.dash-src {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    padding: 0 5px;
+    line-height: 1.5;
+}
+
+/* ---- columns ---- */
+.dash__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr 0.85fr;
+    gap: 10px;
+    align-items: start;
+}
+
+@media (max-width: 1400px) {
+    .dash__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .dash__col--main {
+        grid-column: 1 / -1;
+    }
+}
+
+.dash__col {
+    min-width: 0;
+}
+
+.dash-card {
+    position: relative;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dash-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #c7b485;
+}
+
+.dash-card__sub {
+    font-size: 0.72rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-card__more {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+}
+
+.dash-card__more:hover {
+    color: #ffd54f;
+}
+
+.dash-empty {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 4px 0;
+}
+
+/* The message board keeps its own layout; here it is boxed into the column. */
+.dash-card--messages {
+    padding-bottom: 6px;
+}
+
+.dash__messages {
+    max-height: 460px;
+    overflow-y: auto;
+}
+
+.dash__messages ::deep .dashboard-notification-surface {
+    margin: 0 !important;
+    min-height: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.dash__messages ::deep .dashboard-message-stack {
+    padding: 0 !important;
+    align-items: stretch !important;
+}
+
+.dash__messages ::deep .dashboard-message {
+    width: 100%;
+}
+
+/* ---- recommendations ---- */
+.dash-reco {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.dash-reco__card {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    min-width: 0;
+}
+
+.dash-reco__card b {
+    display: block;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-reco__card small {
+    display: block;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-reco__card em {
+    display: block;
+    margin-top: 3px;
+    font-style: normal;
+    font-size: 0.75rem;
+    color: #ffb300;
+}
+
+/* ---- bars, tables, chips ---- */
+.dash-hbar {
+    display: grid;
+    grid-template-columns: 96px 1fr 36px;
+    gap: 8px;
+    align-items: center;
+    margin: 5px 0;
+    font-size: 0.78rem;
+}
+
+.dash-hbar__name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-hbar__track {
+    display: flex;
+    height: 12px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.dash-hbar__track i {
+    display: block;
+    height: 100%;
+}
+
+.dash-hbar__count {
+    text-align: right;
+    color: rgba(255, 255, 255, 0.55);
+    font-variant-numeric: tabular-nums;
+}
+
+.pmc, .pve {
+    background: #29b6f6;
+}
+
+.scav {
+    background: #ffb300;
+}
+
+.unknown {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.dash-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.dash-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 2px;
+    vertical-align: -1px;
+}
+
+.dash-legend__period {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.dash-chip {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: default;
+    white-space: nowrap;
+}
+
+button.dash-chip {
+    cursor: pointer;
+}
+
+.dash-chip--on {
+    border-color: #c7b485;
+    color: #c7b485;
+}
+
+.dash-chip--pmc, .dash-chip--pve {
+    border-color: rgba(41, 182, 246, 0.5);
+    color: #29b6f6;
+    background: transparent;
+}
+
+.dash-chip--scav {
+    border-color: rgba(255, 179, 0, 0.5);
+    color: #ffb300;
+    background: transparent;
+}
+
+.dash-chip--unknown {
+    background: transparent;
+}
+
+.dash-chip--finished {
+    border-color: rgba(67, 160, 71, 0.6);
+    color: #7ed181;
+}
+
+.dash-chip--started {
+    border-color: rgba(41, 182, 246, 0.5);
+    color: #29b6f6;
+}
+
+.dash-chip--failed {
+    border-color: rgba(224, 83, 63, 0.6);
+    color: #ff8a75;
+}
+
+.dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+
+.dash-table th,
+.dash-table td {
+    padding: 4px 6px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.dash-table th {
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.dash-table .r {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.dash-table__item {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- raids per day ---- */
+.dash-spark {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 46px;
+    margin-top: 4px;
+}
+
+.dash-spark i {
+    flex: 1;
+    display: block;
+    border-radius: 2px 2px 0 0;
+    background: #9a8866;
+}
+
+.dash-spark--hi {
+    background: #c7b485 !important;
+}
+
+.dash-spark__days {
+    display: flex;
+    gap: 3px;
+    margin-top: 3px;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.dash-spark__days span {
+    flex: 1;
+    text-align: center;
+}

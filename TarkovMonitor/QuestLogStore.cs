@@ -376,6 +376,30 @@ namespace TarkovMonitor
             return history;
         }
 
+        /// <summary>Quest events of the profile since a point in time, newest first.</summary>
+        internal List<QuestLogEntry> GetRecentEvents(string profileId, EftSessionMode sessionMode, DateTime sinceLocal)
+        {
+            var result = new List<QuestLogEntry>();
+            if (string.IsNullOrEmpty(profileId))
+            {
+                return result;
+            }
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT task_id, status, event_time FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode AND event_time >= @since ORDER BY event_time DESC;";
+                command.Parameters.AddWithValue("@profile", profileId);
+                command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                command.Parameters.AddWithValue("@since", sinceLocal.ToString("yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(new QuestLogEntry(reader.GetString(0), (TaskStatus)reader.GetInt32(1), ParseIso(reader.GetString(2))));
+                }
+            }
+            return result;
+        }
+
         /// <summary>
         /// Tasks that should not be shown as active on the map because the logs
         /// prove they were never accepted:
@@ -516,6 +540,8 @@ namespace TarkovMonitor
             && (Finished == null || Finished < Started)
             && (Failed == null || Failed < Started);
     }
+
+    public record QuestLogEntry(string TaskId, TaskStatus Status, DateTime Time);
 
     public class QuestHistory
     {

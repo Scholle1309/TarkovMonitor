@@ -590,4 +590,172 @@
   <data name="OpenWiki" xml:space="preserve">
     <value>Im Tarkov-Wiki öffnen</value>
   </data>
+  <data name="GameRunning" xml:space="preserve">
+    <value>Spiel läuft</value>
+  </data>
+  <data name="GameNotRunning" xml:space="preserve">
+    <value>Spiel läuft nicht</value>
+  </data>
+  <data name="TrackerLinked" xml:space="preserve">
+    <value>Tarkov Tracker verbunden</value>
+  </data>
+  <data name="TrackerNotLinked" xml:space="preserve">
+    <value>Tarkov Tracker nicht verbunden</value>
+  </data>
+  <data name="LastSync" xml:space="preserve">
+    <value>letzter Abgleich {0}</value>
+  </data>
+  <data name="TarkovDevData" xml:space="preserve">
+    <value>Tarkov.dev-Daten</value>
+  </data>
+  <data name="NoApiData" xml:space="preserve">
+    <value>Tarkov.dev-Daten nicht geladen</value>
+  </data>
+  <data name="DataCounts" xml:space="preserve">
+    <value>{0} Tasks, {1} Maps</value>
+  </data>
+  <data name="MapConnected" xml:space="preserve">
+    <value>Karte verbunden</value>
+  </data>
+  <data name="MapNotConnected" xml:space="preserve">
+    <value>Karte nicht geladen</value>
+  </data>
+  <data name="LastRaid" xml:space="preserve">
+    <value>Letzter Raid</value>
+  </data>
+  <data name="NoRaidsYet" xml:space="preserve">
+    <value>Noch keine Raids aufgezeichnet.</value>
+  </data>
+  <data name="AcceptedAndDone" xml:space="preserve">
+    <value>{0} angenommen · {1} % erledigt</value>
+  </data>
+  <data name="KappaLeft" xml:space="preserve">
+    <value>{0} nötige Tasks offen</value>
+  </data>
+  <data name="Hideout" xml:space="preserve">
+    <value>Hideout</value>
+  </data>
+  <data name="HideoutStarted" xml:space="preserve">
+    <value>{0} von {1} Stationen begonnen</value>
+  </data>
+  <data name="AvgQueue" xml:space="preserve">
+    <value>Ø Warteschlange {0}</value>
+  </data>
+  <data name="FleaSales" xml:space="preserve">
+    <value>Flohmarkt-Umsatz</value>
+  </data>
+  <data name="FleaWeekHint" xml:space="preserve">
+    <value>{0} diese Woche · {1} Verkäufe</value>
+  </data>
+  <data name="StartGameForProgress" xml:space="preserve">
+    <value>Starte das Spiel, um den Fortschritt zu laden.</value>
+  </data>
+  <data name="OpenTasks" xml:space="preserve">
+    <value>Tasks öffnen</value>
+  </data>
+  <data name="RaidsPerMap" xml:space="preserve">
+    <value>Raids pro Map</value>
+  </data>
+  <data name="QueueTime" xml:space="preserve">
+    <value>Wartezeit</value>
+  </data>
+  <data name="QueuePerMapHint" xml:space="preserve">
+    <value>pro Map</value>
+  </data>
+  <data name="Average" xml:space="preserve">
+    <value>Ø</value>
+  </data>
+  <data name="Best" xml:space="preserve">
+    <value>Beste</value>
+  </data>
+  <data name="Worst" xml:space="preserve">
+    <value>Schlechteste</value>
+  </data>
+  <data name="RaidsPerDay" xml:space="preserve">
+    <value>Raids pro Tag</value>
+  </data>
+  <data name="Last14Days" xml:space="preserve">
+    <value>14 Tage · {0} Raids</value>
+  </data>
+  <data name="RecentRaids" xml:space="preserve">
+    <value>Letzte Raids</value>
+  </data>
+  <data name="Queue" xml:space="preserve">
+    <value>Warteschlange</value>
+  </data>
+  <data name="When" xml:space="preserve">
+    <value>Wann</value>
+  </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Dauer</value>
+  </data>
+  <data name="RecentFleaSales" xml:space="preserve">
+    <value>Letzte Flohmarkt-Verkäufe</value>
+  </data>
+  <data name="ThisWeek" xml:space="preserve">
+    <value>{0} diese Woche</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>Gegenstand</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Anz.</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Preis</value>
+  </data>
+  <data name="NoSalesYet" xml:space="preserve">
+    <value>Noch keine Flohmarkt-Verkäufe aufgezeichnet.</value>
+  </data>
+  <data name="QuestActivity" xml:space="preserve">
+    <value>Quest-Aktivität</value>
+  </data>
+  <data name="QuestActivityHint" xml:space="preserve">
+    <value>7 Tage: {0} erledigt · {1} gestartet · {2} fehlgeschlagen</value>
+  </data>
+  <data name="NoQuestEventsYet" xml:space="preserve">
+    <value>Keine Quest-Ereignisse in den letzten 7 Tagen.</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Erledigt</value>
+  </data>
+  <data name="Started" xml:space="preserve">
+    <value>Gestartet</value>
+  </data>
+  <data name="Failed" xml:space="preserve">
+    <value>Fehlgeschlagen</value>
+  </data>
+  <data name="AllTime" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="Last30Days" xml:space="preserve">
+    <value>30 Tage</value>
+  </data>
+  <data name="ShowMapBosses" xml:space="preserve">
+    <value>Bosse auf dieser Map</value>
+  </data>
+  <data name="BossesOnMap" xml:space="preserve">
+    <value>Bosse auf {0}</value>
+  </data>
+  <data name="BossChanceHint" xml:space="preserve">
+    <value>Spawn-Chance pro Raid und die wahrscheinlichsten Spawn-Zonen (Tarkov.dev).</value>
+  </data>
+  <data name="NoBossData" xml:space="preserve">
+    <value>Keine Bossdaten für diese Map.</value>
+  </data>
+  <data name="GoonsLastSeen" xml:space="preserve">
+    <value>Goons zuletzt gesehen auf {0}, {1}</value>
+  </data>
+  <data name="LocalData" xml:space="preserve">
+    <value>Lokale Daten</value>
+  </data>
+  <data name="LocalDataHint" xml:space="preserve">
+    <value>Aus den Spiel-Logs aufgezeichnete Raids, Flohmarkt-Verkäufe und Quest-Historie. Das Löschen entfernt die Statistiken auf dem Dashboard.</value>
+  </data>
+  <data name="UnknownMap" xml:space="preserve">
+    <value>Unbekannte Map</value>
+  </data>
+  <data name="UnknownTask" xml:space="preserve">
+    <value>Unbekannte Aufgabe</value>
+  </data>
 </root>

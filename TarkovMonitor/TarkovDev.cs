@@ -142,6 +142,31 @@ namespace TarkovMonitor
         public static List<HideoutStation> Stations => CurrentApiData.Stations;
         public static List<PlayerLevel> PlayerLevels => CurrentApiData.PlayerLevels;
         public static ProfileType LoadedProfileType => CurrentApiData.ProfileType;
+        /// <summary>Boss and follower descriptions keyed by mob id (from the maps payload).</summary>
+        public static Dictionary<string, Mob> Mobs => Volatile.Read(ref mobs);
+        /// <summary>Recent goons sightings reported to Tarkov.dev, newest first.</summary>
+        public static List<GoonReport> GoonReports => Volatile.Read(ref goonReports);
+        /// <summary>When the current api data was published.</summary>
+        public static DateTime? LastLoadedUtc { get; private set; }
+        private static Dictionary<string, Mob> mobs = new();
+        private static List<GoonReport> goonReports = new();
+
+        /// <summary>Readable boss name for a spawn's mob id.</summary>
+        public static string MobName(string mobId)
+        {
+            if (Mobs.TryGetValue(mobId, out var mob))
+            {
+                if (!string.IsNullOrEmpty(mob.name) && mob.name != mobId)
+                {
+                    return mob.name;
+                }
+                if (!string.IsNullOrEmpty(mob.normalizedName))
+                {
+                    return string.Join(" ", mob.normalizedName.Split('-').Select(part => part.Length > 0 ? char.ToUpperInvariant(part[0]) + part[1..] : part));
+                }
+            }
+            return mobId;
+        }
         public static Profile? LastLoadedProfile => Volatile.Read(ref lastLoadedProfile)?.Snapshot();
         public static DateTime ScavAvailableTime { get; set; } = DateTime.Now;
         public static DateTime LastActivity { get; set; } = DateTime.MinValue;
@@ -260,6 +285,8 @@ namespace TarkovMonitor
         public async static Task<List<Map>> GetMaps(ProfileType profileType, CancellationToken cancellationToken = default)
         {
             var response = await JsonApiRequest<MapsResponse>($"{profileType.ToApiString()}/maps", Properties.Settings.Default.language, cancellationToken);
+            Volatile.Write(ref mobs, response.mobs);
+            Volatile.Write(ref goonReports, response.goonReports.OrderByDescending(report => report.timestamp).ToList());
             return response.maps.Values.ToList();
         }
 
@@ -350,6 +377,7 @@ namespace TarkovMonitor
         internal static void PublishApiData(ApiDataSnapshot snapshot, Profile? loadedProfile = null)
         {
             Volatile.Write(ref apiData, snapshot);
+            LastLoadedUtc = DateTime.UtcNow;
             if (loadedProfile != null)
             {
                 Volatile.Write(ref lastLoadedProfile, loadedProfile.Snapshot());
@@ -734,6 +762,23 @@ namespace TarkovMonitor
         public class MapsResponse
         {
             public Dictionary<string, Map> maps { get; set; } = new();
+            public Dictionary<string, Mob> mobs { get; set; } = new();
+            public List<GoonReport> goonReports { get; set; } = new();
+        }
+
+        public class Mob
+        {
+            public string id { get; set; } = "";
+            public string name { get; set; } = "";
+            public string normalizedName { get; set; } = "";
+            public string? imagePortraitLink { get; set; }
+        }
+
+        public class GoonReport
+        {
+            public string map { get; set; } = "";
+            public long timestamp { get; set; }
+            public DateTime Time => DateTimeOffset.FromUnixTimeMilliseconds(timestamp).LocalDateTime;
         }
 
         public class Map
@@ -743,6 +788,8 @@ namespace TarkovMonitor
             public string nameId { get; set; }
             public string normalizedName { get; set; }
             public string scenePath { get; set; }
+            public int raidDuration { get; set; }
+            public string? players { get; set; }
             public List<BossSpawn> bosses { get; set; } = new();
             public bool HasGoons()
             {
@@ -758,7 +805,15 @@ namespace TarkovMonitor
         public class BossSpawn
         {
             public string mob { get; set; }
+            public double spawnChance { get; set; }
+            public List<BossSpawnLocation> spawnLocations { get; set; } = new();
             public List<BossEscort> escorts { get; set; } = new();
+        }
+
+        public class BossSpawnLocation
+        {
+            public string name { get; set; } = "";
+            public double chance { get; set; }
         }
         public class ItemsResponse
         {

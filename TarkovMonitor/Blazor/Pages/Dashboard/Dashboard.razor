@@ -1,31 +1,369 @@
-﻿@page "/"
+@page "/"
 @page "/app"
 @using System.Diagnostics
+@using System.Globalization
+@using Humanizer
 @inject GameWatcher eft
 @inject MessageLog messageLog
 @inject LocalizationService LocalizationService
+@inject MapsService MapsService
+@inject TaskStateService TaskStateService
+@inject QuestLogStore QuestLogStore
+@inject NavigationManager NavManager
 @layout AppLayout
 @implements IDisposable
 
-<MudGrid Class="dashboard-page-grid pa-0" Spacing="0">
-	<MudItem Class="dashboard-page-item" xs="12">
-        <MessageBoard>
-        </MessageBoard>
-	</MudItem>
-</MudGrid>
+<div class="dash">
+    @* Status line: what the monitor is connected to right now. *@
+    <div class="dash__status">
+        <span class="dash-pill"><span class="@("dash-dot" + (gameRunning ? " dash-dot--ok" : ""))"></span>@(gameRunning ? LocalizationService.GetString("GameRunning") : LocalizationService.GetString("GameNotRunning"))</span>
+        <span class="dash-pill">
+            <span class="@("dash-dot" + (trackerLinked ? " dash-dot--ok" : ""))"></span>
+            @(trackerLinked ? LocalizationService.GetString("TrackerLinked") : LocalizationService.GetString("TrackerNotLinked"))
+            @if (trackerLinked && TarkovTracker.LastProgressRetrievedUtc != null)
+            {
+                <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("LastSync"), Ago(TarkovTracker.LastProgressRetrievedUtc.Value))</span>
+            }
+        </span>
+        <span class="dash-pill">
+            <span class="@("dash-dot" + (apiLoaded ? " dash-dot--ok" : ""))"></span>
+            @if (apiLoaded)
+            {
+                <b>@LocalizationService.GetString("TarkovDevData") @TarkovDev.LoadedProfileType.ToApiString().ToUpperInvariant()</b>
+                <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("DataCounts"), TarkovDev.Tasks.Count, TarkovDev.Maps.Count)@(TarkovDev.LastLoadedUtc != null ? " · " + Ago(TarkovDev.LastLoadedUtc.Value) : "")</span>
+            }
+            else
+            {
+                @LocalizationService.GetString("NoApiData")
+            }
+        </span>
+        <span class="dash-pill">
+            <span class="@("dash-dot" + (MapsService.FrameLoaded ? " dash-dot--ok" : " dash-dot--warn"))"></span>
+            @LocalizationService.GetString("RemoteID") <b>@MapsService.SessionId</b>
+            <span class="dash-pill__sub">· @(MapsService.FrameLoaded ? LocalizationService.GetString("MapConnected") : LocalizationService.GetString("MapNotConnected"))</span>
+        </span>
+        <span class="dash-pill">
+            @LocalizationService.GetString("LastRaid")
+            @if (stats.LastRaid != null)
+            {
+                <b>@MapName(stats.LastRaid.MapNameId) · @TypeLabel(stats.LastRaid.Type)</b>
+                <span class="dash-pill__sub">· @Ago(stats.LastRaid.TimeUtc)@(stats.LastRaid.Duration != null ? ", " + FormatDuration(stats.LastRaid.Duration.Value) : "")</span>
+            }
+            else
+            {
+                <span class="dash-pill__sub">· @LocalizationService.GetString("NoRaidsYet")</span>
+            }
+        </span>
+    </div>
+
+    @* Key figures: tracker progress (only while the game runs) and the local raid/flea history. *@
+    <div class="dash__kpis">
+        <div class="dash-kpi">
+            <span class="dash-src">Tracker</span>
+            <div class="dash-kpi__label">@LocalizationService.GetString("Level")</div>
+            @if (hasProgress)
+            {
+                <div class="dash-kpi__value">@progress!.playerLevel</div>
+                <div class="dash-kpi__hint">@ProfileSummary()</div>
+            }
+            else
+            {
+                <div class="dash-kpi__value dash-kpi__value--muted">—</div>
+                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+            }
+        </div>
+        <div class="dash-kpi">
+            <span class="dash-src">Tracker</span>
+            <div class="dash-kpi__label">@LocalizationService.GetString("Tasks")</div>
+            @if (hasProgress)
+            {
+                <div class="dash-kpi__value">@tasksDone <small>/ @tasksTotal</small></div>
+                <div class="dash-kpi__hint">@string.Format(LocalizationService.GetString("AcceptedAndDone"), tasksAccepted, Percent(tasksDone, tasksTotal))</div>
+                <div class="dash-bar"><i style="@Width(tasksDone, tasksTotal)"></i></div>
+            }
+            else
+            {
+                <div class="dash-kpi__value dash-kpi__value--muted">—</div>
+                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+            }
+        </div>
+        <div class="dash-kpi">
+            <span class="dash-src">Tracker</span>
+            <div class="dash-kpi__label">Kappa</div>
+            @if (hasProgress)
+            {
+                <div class="dash-kpi__value">@kappaDone <small>/ @kappaTotal</small></div>
+                <div class="dash-kpi__hint">@string.Format(LocalizationService.GetString("KappaLeft"), kappaTotal - kappaDone)</div>
+                <div class="dash-bar"><i class="dash-bar--green" style="@Width(kappaDone, kappaTotal)"></i></div>
+            }
+            else
+            {
+                <div class="dash-kpi__value dash-kpi__value--muted">—</div>
+                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+            }
+        </div>
+        <div class="dash-kpi">
+            <span class="dash-src">Tracker</span>
+            <div class="dash-kpi__label">@LocalizationService.GetString("Hideout")</div>
+            @if (hasProgress)
+            {
+                <div class="dash-kpi__value">@hideoutDone <small>/ @hideoutTotal</small></div>
+                <div class="dash-kpi__hint">@string.Format(LocalizationService.GetString("HideoutStarted"), hideoutStationsStarted, TarkovDev.Stations.Count)</div>
+                <div class="dash-bar"><i class="dash-bar--purple" style="@Width(hideoutDone, hideoutTotal)"></i></div>
+            }
+            else
+            {
+                <div class="dash-kpi__value dash-kpi__value--muted">—</div>
+                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+            }
+        </div>
+        <div class="dash-kpi">
+            <span class="dash-src">Logs</span>
+            <div class="dash-kpi__label">@LocalizationService.GetString("Raids")</div>
+            <div class="dash-kpi__value">@stats.TotalRaids</div>
+            <div class="dash-kpi__hint">@RaidTypeSummary()@(stats.AverageQueueSeconds > 0 ? " · " + string.Format(LocalizationService.GetString("AvgQueue"), FormatQueue(stats.AverageQueueSeconds)) : "")</div>
+        </div>
+        <div class="dash-kpi">
+            <span class="dash-src">Logs</span>
+            <div class="dash-kpi__label">@LocalizationService.GetString("FleaSales")</div>
+            <div class="dash-kpi__value">@FormatRoubles(stats.RoublesAllTime)</div>
+            <div class="dash-kpi__hint">@string.Format(LocalizationService.GetString("FleaWeekHint"), FormatRoubles(stats.RoublesLastWeek), stats.SalesCount)</div>
+            <div class="dash-bar"><i class="dash-bar--blue" style="@Width(stats.RoublesLastWeek, Math.Max(stats.RoublesAllTime, 1))"></i></div>
+        </div>
+    </div>
+
+    <div class="dash__grid">
+        <div class="dash__col dash__col--main">
+            <div class="dash-card dash-card--messages">
+                <h2>@LocalizationService.GetString("Messages")</h2>
+                <div class="dash__messages">
+                    <MessageBoard></MessageBoard>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <h2>
+                    <MudIcon Icon="@Icons.Material.Filled.Recommend" Size="Size.Small" Color="Color.Warning" />
+                    @LocalizationService.GetString("RecommendedTasks")
+                    <a class="dash-card__more" href="/tasks">@LocalizationService.GetString("OpenTasks") →</a>
+                </h2>
+                @if (!hasProgress)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("StartGameForProgress")</div>
+                }
+                else if (recommendations.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoRecommendations")</div>
+                }
+                else
+                {
+                    <div class="dash-reco">
+                        @foreach (var item in recommendations)
+                        {
+                            <div class="dash-reco__card">
+                                <b>@item.View.Task.name</b>
+                                <small>@item.View.TraderName · @(item.View.Maps.Count == 0 ? LocalizationService.GetString("AnyLocation") : string.Join(", ", item.View.Maps.Select(map => map.name))) · @LocalizationService.GetString("Level") @item.View.Task.minPlayerLevel</small>
+                                <em>@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</em>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="dash__col">
+            <div class="dash-card">
+                <span class="dash-src">Logs</span>
+                <h2>@LocalizationService.GetString("RaidsPerMap")</h2>
+                @if (stats.RaidsPerMap.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoRaidsYet")</div>
+                }
+                @{
+                    var maxRaids = stats.RaidsPerMap.Count > 0 ? stats.RaidsPerMap.Max(entry => entry.Total) : 1;
+                }
+                @foreach (var entry in stats.RaidsPerMap.Take(10))
+                {
+                    <div class="dash-hbar">
+                        <span class="dash-hbar__name">@MapName(entry.MapNameId)</span>
+                        <div class="dash-hbar__track">
+                            @foreach (var type in TypeOrder.Where(type => entry.ByType.ContainsKey(type)))
+                            {
+                                <i class="@TypeBarClass(type)" style="@($"width: {100.0 * entry.ByType[type] / maxRaids:F1}%")"></i>
+                            }
+                        </div>
+                        <span class="dash-hbar__count">@entry.Total</span>
+                    </div>
+                }
+                <div class="dash-legend">
+                    @foreach (var type in TypeOrder.Where(type => stats.RaidsByType.ContainsKey(type)))
+                    {
+                        <span><i class="@TypeBarClass(type)"></i>@TypeLabel(type) @stats.RaidsByType[type]</span>
+                    }
+                    <span class="dash-legend__period">
+                        <button type="button" class="@("dash-chip" + (mapsPeriodDays == 30 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(30)">@LocalizationService.GetString("Last30Days")</button>
+                        <button type="button" class="@("dash-chip" + (mapsPeriodDays == 0 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(0)">@LocalizationService.GetString("AllTime")</button>
+                    </span>
+                </div>
+            </div>
+
+            <div class="dash-card">
+                <span class="dash-src">Logs</span>
+                <h2>@LocalizationService.GetString("QueueTime") <span class="dash-card__sub">@LocalizationService.GetString("QueuePerMapHint")</span></h2>
+                @if (stats.QueuePerMap.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoRaidsYet")</div>
+                }
+                else
+                {
+                    <table class="dash-table">
+                        <thead><tr><th>@LocalizationService.GetString("Map")</th><th class="r">@LocalizationService.GetString("Average")</th><th class="r">@LocalizationService.GetString("Best")</th><th class="r">@LocalizationService.GetString("Worst")</th></tr></thead>
+                        <tbody>
+                            @foreach (var entry in stats.QueuePerMap.Take(8))
+                            {
+                                <tr><td>@MapName(entry.MapNameId)</td><td class="r">@FormatQueue(entry.AverageSeconds)</td><td class="r">@FormatQueue(entry.BestSeconds)</td><td class="r">@FormatQueue(entry.WorstSeconds)</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div class="dash-card">
+                <span class="dash-src">Logs</span>
+                <h2>@LocalizationService.GetString("RaidsPerDay") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("Last14Days"), stats.RaidsPerDay.Sum(day => day.Count))</span></h2>
+                @{
+                    var maxPerDay = Math.Max(1, stats.RaidsPerDay.Count > 0 ? stats.RaidsPerDay.Max(day => day.Count) : 1);
+                }
+                <div class="dash-spark">
+                    @foreach (var day in stats.RaidsPerDay)
+                    {
+                        <i class="@(day.Count == maxPerDay && day.Count > 0 ? "dash-spark--hi" : "")" style="@($"height: {Math.Max(4, 100.0 * day.Count / maxPerDay):F0}%")" title="@($"{day.Day:d}: {day.Count}")"></i>
+                    }
+                </div>
+                <div class="dash-spark__days">
+                    @foreach (var day in stats.RaidsPerDay)
+                    {
+                        <span>@day.Day.Day</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="dash__col">
+            <div class="dash-card">
+                <span class="dash-src">Logs</span>
+                <h2>@LocalizationService.GetString("RecentRaids")</h2>
+                @if (stats.RecentRaids.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoRaidsYet")</div>
+                }
+                else
+                {
+                    <table class="dash-table">
+                        <thead><tr><th>@LocalizationService.GetString("Map")</th><th></th><th class="r">@LocalizationService.GetString("Queue")</th><th class="r">@LocalizationService.GetString("Duration")</th><th class="r">@LocalizationService.GetString("When")</th></tr></thead>
+                        <tbody>
+                            @foreach (var raid in stats.RecentRaids)
+                            {
+                                <tr>
+                                    <td>@MapName(raid.MapNameId)</td>
+                                    <td><span class="@("dash-chip dash-chip--" + TypeBarClass(raid.Type))">@TypeLabel(raid.Type)</span></td>
+                                    <td class="r">@(raid.QueueSeconds > 0 ? FormatQueue(raid.QueueSeconds) : "–")</td>
+                                    <td class="r">@(raid.Duration != null ? FormatDuration(raid.Duration.Value) : "–")</td>
+                                    <td class="r">@ShortTime(raid.TimeUtc)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div class="dash-card">
+                <span class="dash-src">Logs + tarkov.dev</span>
+                <h2>@LocalizationService.GetString("RecentFleaSales") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("ThisWeek"), FormatRoubles(stats.RoublesLastWeek))</span></h2>
+                @if (stats.RecentSales.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoSalesYet")</div>
+                }
+                else
+                {
+                    <table class="dash-table">
+                        <thead><tr><th>@LocalizationService.GetString("Item")</th><th class="r">@LocalizationService.GetString("Quantity")</th><th class="r">@LocalizationService.GetString("Price")</th><th class="r">@LocalizationService.GetString("When")</th></tr></thead>
+                        <tbody>
+                            @foreach (var sale in stats.RecentSales)
+                            {
+                                <tr>
+                                    <td class="dash-table__item" title="@ItemName(sale.ItemId)">@ItemName(sale.ItemId)</td>
+                                    <td class="r">@sale.Count</td>
+                                    <td class="r">@FormatPrice(sale.Price, sale.Currency)</td>
+                                    <td class="r">@ShortTime(sale.TimeUtc)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div class="dash-card">
+                <span class="dash-src">Logs</span>
+                <h2>@LocalizationService.GetString("QuestActivity") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("QuestActivityHint"), questDone, questStarted, questFailed)</span></h2>
+                @if (questEvents.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoQuestEventsYet")</div>
+                }
+                else
+                {
+                    <table class="dash-table">
+                        <tbody>
+                            @foreach (var questEvent in questEvents.Take(6))
+                            {
+                                <tr>
+                                    <td><span class="@("dash-chip dash-chip--" + questEvent.Status.ToString().ToLowerInvariant())">@StatusLabel(questEvent.Status)</span></td>
+                                    <td class="dash-table__item">@TaskName(questEvent.TaskId)</td>
+                                    <td class="r">@ShortTime(questEvent.Time.ToUniversalTime())</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    [CascadingParameter(Name="AppLayout")]
-    public AppLayout AppLayout { get; set; }
+    [CascadingParameter(Name = "AppLayout")]
+    public AppLayout AppLayout { get; set; } = default!;
+
+    private static readonly RaidType[] TypeOrder = { RaidType.PMC, RaidType.PVE, RaidType.Scav, RaidType.Unknown };
+
+    private DashboardStats stats = new();
+    private List<QuestLogEntry> questEvents = new();
+    private List<TaskRecommendation> recommendations = new();
+    private TarkovTracker.ProgressResponseData? progress;
+    private bool hasProgress;
+    private bool gameRunning;
+    private bool trackerLinked;
+    private bool apiLoaded;
+    private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
+    private int questDone, questStarted, questFailed;
+    private int mapsPeriodDays = 30;
+    private System.Threading.Timer? clock;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-    }
-
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
+        Stats.Changed += OnDataChanged;
+        TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        TarkovDev.ApiDataLoaded += OnDataChanged;
+        QuestLogStore.Changed += OnDataChanged;
+        MapsService.Changed += OnDataChanged;
+        LocalizationService.LanguageChanged += OnDataChanged;
+        eft.GameStarted += OnDataChanged;
+        eft.GameStopped += OnDataChanged;
+        eft.ProfileChanged += OnProfileChanged;
+        // Relative times ("5 minutes ago") and the game state are refreshed on a slow clock.
+        clock = new System.Threading.Timer(_ => OnDataChanged(null, EventArgs.Empty), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        Refresh();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -37,8 +375,236 @@
         }
     }
 
-	public void Dispose()
-	{
-	}
+    public void Dispose()
+    {
+        clock?.Dispose();
+        Stats.Changed -= OnDataChanged;
+        TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        TarkovDev.ApiDataLoaded -= OnDataChanged;
+        QuestLogStore.Changed -= OnDataChanged;
+        MapsService.Changed -= OnDataChanged;
+        LocalizationService.LanguageChanged -= OnDataChanged;
+        eft.GameStarted -= OnDataChanged;
+        eft.GameStopped -= OnDataChanged;
+        eft.ProfileChanged -= OnProfileChanged;
+    }
 
+    private void OnProgressRetrieved(object? sender, TarkovTracker.ProgressRetrievedEventArgs e) => OnDataChanged(sender, EventArgs.Empty);
+    private void OnProfileChanged(object? sender, ProfileEventArgs e) => OnDataChanged(sender, EventArgs.Empty);
+
+    private void OnDataChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            Refresh();
+            StateHasChanged();
+        });
+    }
+
+    private void SetPeriod(int days)
+    {
+        mapsPeriodDays = days;
+        Refresh();
+    }
+
+    private void Refresh()
+    {
+        var profile = GameWatcher.CurrentProfile.Snapshot();
+        gameRunning = eft.IsGameRunning;
+        trackerLinked = !string.IsNullOrEmpty(TarkovTracker.GetTokenForProfile(profile));
+        apiLoaded = TarkovDev.LoadedProfileType != ProfileType.Unknown && TarkovDev.Tasks.Count > 0;
+
+        try
+        {
+            stats = Stats.GetDashboardStats(profile.Id, mapsPeriodDays > 0 ? DateTime.UtcNow.AddDays(-mapsPeriodDays) : null);
+        }
+        catch (Exception exception)
+        {
+            messageLog.Diagnostics.Capture(
+                new DiagnosticContext("TM-DASH-001", "DashboardStats", "Dashboard", "Database", "The raid and sale history could not be read."),
+                exception);
+            stats = new DashboardStats();
+        }
+
+        hasProgress = TaskStateService.HasTrackerProgress;
+        progress = hasProgress ? TarkovTracker.Progress?.data : null;
+        recommendations = new List<TaskRecommendation>();
+        tasksDone = tasksTotal = tasksAccepted = kappaDone = kappaTotal = hideoutDone = hideoutTotal = hideoutStationsStarted = 0;
+        if (hasProgress && progress != null)
+        {
+            var tasks = TarkovDev.Tasks;
+            var completed = progress.tasksProgress.Where(entry => entry.complete).Select(entry => entry.id).ToHashSet();
+            tasksTotal = tasks.Count;
+            tasksDone = tasks.Count(task => completed.Contains(task.id));
+            kappaTotal = tasks.Count(task => task.kappaRequired);
+            kappaDone = tasks.Count(task => task.kappaRequired && completed.Contains(task.id));
+
+            var moduleIds = TarkovDev.Stations.SelectMany(station => station.levels.Select(level => level.id)).ToHashSet();
+            var builtModules = progress.hideoutModulesProgress.Where(entry => entry.complete && moduleIds.Contains(entry.id)).Select(entry => entry.id).ToHashSet();
+            hideoutTotal = moduleIds.Count;
+            hideoutDone = builtModules.Count;
+            hideoutStationsStarted = TarkovDev.Stations.Count(station => station.levels.Any(level => builtModules.Contains(level.id)));
+
+            try
+            {
+                var views = TaskStateService.GetTasks();
+                tasksAccepted = views.Count(view => view.State == TaskState.Accepted);
+                recommendations = TaskStateService.GetRecommendations(views, 3, RecommendationMode.Unlocks);
+            }
+            catch
+            {
+                recommendations = new List<TaskRecommendation>();
+            }
+        }
+
+        try
+        {
+            var (questProfile, sessionMode) = TaskStateService.ResolveProfile();
+            questEvents = QuestLogStore.GetRecentEvents(questProfile, sessionMode, DateTime.Now.AddDays(-7));
+            // The game logs the same status change more than once at times; keep one per few minutes.
+            questEvents = questEvents
+                .Where((entry, index) => index == 0
+                    || entry.TaskId != questEvents[index - 1].TaskId
+                    || entry.Status != questEvents[index - 1].Status
+                    || (questEvents[index - 1].Time - entry.Time).TotalMinutes > 5)
+                .ToList();
+        }
+        catch
+        {
+            questEvents = new List<QuestLogEntry>();
+        }
+        questDone = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Finished);
+        questStarted = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Started);
+        questFailed = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Failed);
+    }
+
+    // ---- formatting helpers ----
+
+    private string ProfileSummary()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(progress?.displayName))
+        {
+            parts.Add(progress!.displayName!);
+        }
+        if (!string.IsNullOrEmpty(progress?.pmcFaction))
+        {
+            parts.Add(progress!.pmcFaction.ToUpperInvariant());
+        }
+        var edition = progress?.gameEdition switch
+        {
+            1 => "Standard",
+            2 => "Left Behind",
+            3 => "Prepare for Escape",
+            4 => "Edge of Darkness",
+            5 => "Unheard",
+            _ => null,
+        };
+        if (edition != null)
+        {
+            parts.Add(edition);
+        }
+        return string.Join(" · ", parts);
+    }
+
+    private string RaidTypeSummary()
+    {
+        var parts = TypeOrder.Where(type => stats.RaidsByType.ContainsKey(type)).Select(type => $"{stats.RaidsByType[type]} {TypeLabel(type)}");
+        return string.Join(" · ", parts);
+    }
+
+    private string TypeLabel(RaidType type) => type switch
+    {
+        RaidType.PMC => "PMC",
+        RaidType.PVE => "PVE",
+        RaidType.Scav => "Scav",
+        _ => "?",
+    };
+
+    private static string TypeBarClass(RaidType type) => type switch
+    {
+        RaidType.PMC => "pmc",
+        RaidType.PVE => "pve",
+        RaidType.Scav => "scav",
+        _ => "unknown",
+    };
+
+    private string StatusLabel(TarkovMonitor.TaskStatus status) => status switch
+    {
+        TarkovMonitor.TaskStatus.Finished => LocalizationService.GetString("Done"),
+        TarkovMonitor.TaskStatus.Started => LocalizationService.GetString("Started"),
+        TarkovMonitor.TaskStatus.Failed => LocalizationService.GetString("Failed"),
+        _ => status.ToString(),
+    };
+
+    private string MapName(string? nameId)
+    {
+        if (string.IsNullOrEmpty(nameId))
+        {
+            return LocalizationService.GetString("UnknownMap");
+        }
+        return TarkovDev.Maps.Find(map => map.nameId == nameId)?.name ?? nameId;
+    }
+
+    private static string ItemName(string itemId) => TarkovDev.Items.Find(item => item.id == itemId)?.name ?? itemId;
+
+    private string TaskName(string taskId) => TarkovDev.Tasks.Find(task => task.id == taskId)?.name ?? LocalizationService.GetString("UnknownTask");
+
+    private static string Percent(int part, int total) => total > 0 ? Math.Round(100.0 * part / total).ToString(CultureInfo.InvariantCulture) : "0";
+
+    private static string Width(long part, long total) => $"width: {(total > 0 ? Math.Clamp(100.0 * part / total, 0, 100) : 0):F1}%";
+
+    private static string FormatQueue(double seconds)
+    {
+        var span = TimeSpan.FromSeconds(Math.Max(0, seconds));
+        return span.TotalHours >= 1 ? $"{(int)span.TotalHours}:{span.Minutes:00}:{span.Seconds:00}" : $"{span.Minutes}:{span.Seconds:00}";
+    }
+
+    private static string FormatDuration(TimeSpan span)
+    {
+        if (span.TotalHours >= 1)
+        {
+            return $"{(int)span.TotalHours} h {span.Minutes} min";
+        }
+        return $"{Math.Max(1, (int)Math.Round(span.TotalMinutes))} min";
+    }
+
+    private static string FormatRoubles(long amount)
+    {
+        if (Math.Abs(amount) >= 1_000_000)
+        {
+            return $"₽ {amount / 1_000_000.0:0.#} M";
+        }
+        if (Math.Abs(amount) >= 10_000)
+        {
+            return $"₽ {amount / 1_000.0:0} k";
+        }
+        return $"₽ {amount:N0}";
+    }
+
+    private static string FormatPrice(int price, string currency) => currency switch
+    {
+        "5449016a4bdc2d6f028b456f" => $"₽ {price:N0}",
+        "5696686a4bdc2da3298b456a" => $"$ {price:N0}",
+        "569668774bdc2da2298b4568" => $"€ {price:N0}",
+        _ => price.ToString("N0"),
+    };
+
+    private static string Ago(DateTime utc) => DateTime.SpecifyKind(utc, DateTimeKind.Utc).Humanize();
+
+    /// <summary>Time of day for today, weekday for this week, date otherwise.</summary>
+    private static string ShortTime(DateTime utc)
+    {
+        var local = DateTime.SpecifyKind(utc, DateTimeKind.Utc).ToLocalTime();
+        var today = DateTime.Now.Date;
+        if (local.Date == today)
+        {
+            return local.ToString("HH:mm");
+        }
+        if (local.Date > today.AddDays(-6))
+        {
+            return local.ToString("ddd HH:mm");
+        }
+        return local.ToString("d");
+    }
 }

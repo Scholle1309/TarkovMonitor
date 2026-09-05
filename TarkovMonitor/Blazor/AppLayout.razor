@@ -43,11 +43,10 @@
 			</MudDrawerHeader>
 			@* Everyday pages on top; rarely used pages pinned to the bottom. *@
 			<MudNavMenu Class="navigation-menu" Color="Color.Secondary" Bordered="false">
-				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Message">@LocalizationService.GetString("Messages")</MudNavLink>
+				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">@LocalizationService.GetString("Dashboard")</MudNavLink>
 				<MudNavLink Href="/maps" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Map">@LocalizationService.GetString("Maps")</MudNavLink>
 				<MudNavLink Href="/tasks" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Assignment">@LocalizationService.GetString("Tasks")</MudNavLink>
 				<MudNavLink Href="/timers" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Timer">@LocalizationService.GetString("Timers")</MudNavLink>
-				<MudNavLink Href="/stats" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.BarChart">@LocalizationService.GetString("Stats")</MudNavLink>
 				<MudNavLink Href="/sounds" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Speaker">@LocalizationService.GetString("Sounds")</MudNavLink>
 			</MudNavMenu>
 			<div class="navigation-spacer"></div>

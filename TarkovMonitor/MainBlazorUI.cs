@@ -951,6 +951,7 @@ namespace TarkovMonitor
         private async void Eft_RaidEnded(object? sender, RaidInfoEventArgs e)
         {
             inRaid = false;
+            Stats.EndRaid(e.Profile?.Id, e.RaidInfo.RaidId);
             mapsService.RequestShowDashboard();
             await ResumeMediaAfterRaid();
             
@@ -2305,6 +2306,7 @@ namespace TarkovMonitor
             //groupManager.Stale = true;
             runthroughTimer.Stop();
             inRaid = false;
+            Stats.EndRaid(GameWatcher.CurrentProfile.Snapshot().Id, e.RaidId);
             mapsService.RequestShowDashboard();
             await ResumeMediaAfterRaid();
             var startedUtc = DateTime.UtcNow;

@@ -1,4 +1,5 @@
 @using System.Diagnostics
+@using Humanizer
 @inject IJSRuntime JSRuntime
 @inject MapsService MapsService
 @inject TaskStateService TaskStateService
@@ -29,7 +30,48 @@
         <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
     </div>
     <div class="map-host__frame">
-        @* Floating task button in the corner where the site's settings gear used to be. *@
+        @* Floating buttons in the corner where the site's settings gear used to be: bosses above, tasks below. *@
+        <button type="button" class="@("map-host__fab map-host__fab--bosses" + (bossesPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("ShowMapBosses")" @onclick="ToggleBossesPanel">
+            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Size="Size.Medium" />
+        </button>
+        @if (bossesPanelOpen)
+        {
+            <div class="map-tasks map-bosses">
+                <div class="map-tasks__header">
+                    <span class="map-tasks__title"><MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("BossesOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText></span>
+                    <span class="map-tasks__count map-tasks__count--bosses">@MapBosses.Count</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Inherit" OnClick="ToggleBossesPanel" />
+                </div>
+                <div class="map-tasks__hint">@LocalizationService.GetString("BossChanceHint")</div>
+                <div class="map-tasks__list">
+                    @if (MapBosses.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoBossData")</MudText>
+                    }
+                    @foreach (var spawn in MapBosses)
+                    {
+                        <div class="map-task map-task--no-marker map-boss">
+                            <div class="map-task__title">
+                                <span class="map-task__name">@TarkovDev.MobName(spawn.mob)</span>
+                                <span class="map-boss__chance">@FormatChance(spawn.spawnChance)</span>
+                            </div>
+                            @if (spawn.escorts.Count > 0)
+                            {
+                                <div class="map-task__objective"><span class="map-task__bullet">•</span><span>@string.Join(", ", spawn.escorts.Select(escort => TarkovDev.MobName(escort.mob)).Distinct())</span></div>
+                            }
+                            @foreach (var location in spawn.spawnLocations.OrderByDescending(location => location.chance).Take(4))
+                            {
+                                <div class="map-task__objective"><span class="map-task__bullet">◦</span><span>@LocationName(location.name)</span><span class="map-boss__location-chance">@FormatChance(location.chance)</span></div>
+                            }
+                        </div>
+                    }
+                    @if (GoonsLastSeen != null)
+                    {
+                        <div class="map-tasks__section">@string.Format(LocalizationService.GetString("GoonsLastSeen"), GoonsLastSeen.Value.Map, GoonsLastSeen.Value.Time.ToUniversalTime().Humanize())</div>
+                    }
+                </div>
+            </div>
+        }
         <button type="button" class="@("map-host__fab" + (tasksPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("ShowMapTasks")" @onclick="ToggleTasksPanel">
             <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Medium" />
             @if (mapTasks.Count > 0)
@@ -261,6 +303,47 @@
     private void ToggleTasksPanel()
     {
         tasksPanelOpen = !tasksPanelOpen;
+        if (tasksPanelOpen)
+        {
+            bossesPanelOpen = false;
+        }
+    }
+    // Boss spawns of the shown map (from the Tarkov.dev map data), highest chance first.
+    private bool bossesPanelOpen;
+    private List<TarkovDev.BossSpawn> MapBosses => (MapsService.ShownMap?.bosses ?? new List<TarkovDev.BossSpawn>())
+        .Where(spawn => !string.IsNullOrEmpty(spawn.mob) && !spawn.mob.StartsWith("pmc", StringComparison.OrdinalIgnoreCase))
+        .GroupBy(spawn => spawn.mob)
+        .Select(group => group.OrderByDescending(spawn => spawn.spawnChance).First())
+        .OrderByDescending(spawn => spawn.spawnChance)
+        .ThenBy(spawn => TarkovDev.MobName(spawn.mob))
+        .ToList();
+    private (string Map, DateTime Time)? GoonsLastSeen
+    {
+        get
+        {
+            var report = TarkovDev.GoonReports.FirstOrDefault();
+            if (report == null)
+            {
+                return null;
+            }
+            var map = TarkovDev.Maps.Find(candidate => candidate.id == report.map);
+            return (map?.name ?? report.map, report.Time);
+        }
+    }
+    private void ToggleBossesPanel()
+    {
+        bossesPanelOpen = !bossesPanelOpen;
+        if (bossesPanelOpen)
+        {
+            tasksPanelOpen = false;
+        }
+    }
+    private static string FormatChance(double chance) => chance <= 0 ? "" : $"{Math.Round(chance * 100)} %";
+    // Spawn zone ids read like "ZoneGasStation"; split them into words.
+    private static string LocationName(string zone)
+    {
+        var name = zone.StartsWith("Zone", StringComparison.Ordinal) ? zone[4..] : zone;
+        return System.Text.RegularExpressions.Regex.Replace(name, "(?<=[a-z0-9])(?=[A-Z])|_", " ");
     }
 
     private const string FrameElementId = "tarkov-map-frame";

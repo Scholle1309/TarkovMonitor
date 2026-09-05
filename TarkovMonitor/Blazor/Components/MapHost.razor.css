@@ -73,6 +73,26 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+.map-host__fab--bosses {
+    bottom: 64px;
+}
+
+.map-tasks__count--bosses {
+    background: rgba(224, 83, 63, 0.55);
+}
+
+.map-boss__chance {
+    font-weight: 600;
+    color: #ffb74d;
+    white-space: nowrap;
+}
+
+.map-boss__location-chance {
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.5);
+    padding-left: 8px;
+}
+
 .map-host__fab:hover {
     background: rgba(60, 60, 60, 0.95);
 }

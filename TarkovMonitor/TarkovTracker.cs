@@ -90,6 +90,8 @@ namespace TarkovMonitor
         private static ITarkovTrackerAPI api = InitAPI();
 
         public static ProgressResponse Progress { get; private set; } = new();
+        /// <summary>When progress was last fetched successfully.</summary>
+        public static DateTime? LastProgressRetrievedUtc { get; private set; }
         public static bool ValidToken { get; private set; } = false;
         // TarkovTracker.io compatibility store. Keys are EFT profile IDs.
         private static Dictionary<string, string> tokens = new();
@@ -2183,6 +2185,7 @@ namespace TarkovMonitor
                 var progress = await request.Api.GetProgress(Bearer(request.Token), request.CancellationToken);
                 if (TryPublishProgress(request, progress))
                 {
+                    LastProgressRetrievedUtc = DateTime.UtcNow;
                     ProgressRetrieved?.Invoke(null, new(request.ProfileId, request.AccountId, request.SessionMode, request.Token, progress));
                 }
                 return progress;
@@ -2317,6 +2320,7 @@ namespace TarkovMonitor
                 if (TryPublishProgress(request, progress))
                 {
                     TokenValidated?.Invoke(null, new EventArgs());
+                    LastProgressRetrievedUtc = DateTime.UtcNow;
                     ProgressRetrieved?.Invoke(null, new(request.ProfileId, request.AccountId, request.SessionMode, request.Token, progress));
                 }
                 return response;
