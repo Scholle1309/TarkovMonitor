@@ -86,7 +86,14 @@ namespace TarkovMonitor
         // back to the centre. Leaflet publishes itself as window.L, so its
         // setMaxBounds is widened before the map is created.
         private const string MapFrameInjection =
-            "<style id=\"tarkov-monitor-frame\">nav.navigation, .CookieConsent { display: none !important; }</style>"
+            "<style id=\"tarkov-monitor-frame\">"
+            + "nav.navigation, .CookieConsent { display: none !important; }"
+            // Quest markers on another floor or underground are faded to 20% by the site,
+            // which makes them nearly invisible. Keep them visible and tint them light blue.
+            + "html body div.leaflet-pane.leaflet-marker-pane > .off-level.active-quest-marker {"
+            + " opacity: 0.95 !important; z-index: 600 !important;"
+            + " filter: sepia(1) saturate(5) hue-rotate(165deg) brightness(1.15) drop-shadow(0 0 2px #4fc3f7); }"
+            + "</style>"
             + "<script id=\"tarkov-monitor-frame-script\">(function () {"
             + "  var patched = false;"
             + "  function patch(L) {"
