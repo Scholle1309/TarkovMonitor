@@ -820,7 +820,7 @@
     <value>Unknown map</value>
   </data>
   <data name="UnknownTask" xml:space="preserve">
-    <value>Unknown task</value>
+    <value>Daily/weekly task</value>
   </data>
   <data name="DashboardNeedsSession" xml:space="preserve">
     <value>Start Escape from Tarkov and pick a mode. Progress and statistics load once the game session is recognised.</value>
