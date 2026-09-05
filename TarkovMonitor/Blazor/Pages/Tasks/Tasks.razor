@@ -439,7 +439,9 @@
         {
             recommendationMode = RecommendationMode.Unlocks;
         }
-        all = TaskStateService.GetTasks();
+        // Without tracker progress (only fetched while the game runs) the log history
+        // alone would show a stale list next to the "start the game" notice.
+        all = TaskStateService.HasTrackerProgress ? TaskStateService.GetTasks() : new List<TaskView>();
         accepted = all.Where(item => item.State == TaskState.Accepted).ToList();
         recommendations = TaskStateService.GetRecommendations(all, 3, recommendationMode);
         dependents = new Dictionary<string, List<TarkovDev.Task>>();
