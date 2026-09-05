@@ -55,11 +55,53 @@
     font-size: 0.65rem;
 }
 
+/* floating task button, bottom right of the map */
+.map-host__fab {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 6;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(30, 30, 30, 0.95);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.map-host__fab:hover {
+    background: rgba(60, 60, 60, 0.95);
+}
+
+.map-host__fab--on {
+    border-color: rgba(33, 150, 243, 0.8);
+    color: #64b5f6;
+}
+
+.map-host__fab-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: #43a047;
+    color: #fff;
+    font-size: 0.7rem;
+    line-height: 18px;
+    text-align: center;
+}
+
 .map-tasks {
     position: absolute;
     top: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: 68px;
     width: 340px;
     max-width: 45%;
     z-index: 5;

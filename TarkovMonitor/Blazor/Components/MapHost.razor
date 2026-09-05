@@ -21,10 +21,6 @@
             }
         </MudSelect>
         <MudSpacer />
-        <MudBadge Content="@mapTasks.Count" Color="Color.Success" Overlap="true" Visible="@(mapTasks.Count > 0)" Class="map-host__tasks-badge">
-            <MudIconButton Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" Color="@(tasksPanelOpen ? Color.Info : Color.Inherit)"
-                           Title="@LocalizationService.GetString("ShowMapTasks")" OnClick="ToggleTasksPanel" />
-        </MudBadge>
         <MudText Typo="Typo.caption" Class="map-host__status">@LocalizationService.GetString("MapSessionId"): @MapsService.SessionId</MudText>
         @* Replaces the gear of the hidden Tarkov.dev header: opens the site settings (language etc.) inside the frame. *@
         <MudIconButton Icon="@(MapsService.SettingsOpen ? Icons.Material.Filled.Map : Icons.Material.Filled.Settings)" Size="Size.Small" Color="@(MapsService.SettingsOpen ? Color.Info : Color.Inherit)" Disabled="@(!MapsService.FrameLoaded)"
@@ -33,6 +29,14 @@
         <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
     </div>
     <div class="map-host__frame">
+        @* Floating task button in the corner where the site's settings gear used to be. *@
+        <button type="button" class="@("map-host__fab" + (tasksPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("ShowMapTasks")" @onclick="ToggleTasksPanel">
+            <MudIcon Icon="@Icons.Material.Filled.Assignment" Size="Size.Medium" />
+            @if (mapTasks.Count > 0)
+            {
+                <span class="map-host__fab-count">@mapTasks.Count</span>
+            }
+        </button>
         @if (tasksPanelOpen)
         {
             <div class="map-tasks">
