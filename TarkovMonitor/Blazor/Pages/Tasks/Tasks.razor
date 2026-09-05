@@ -6,6 +6,7 @@
 @inject TimersManager TimersManager
 @inject LocalizationService LocalizationService
 @inject MessageLog MessageLog
+@inject ISnackbar Snackbar
 @layout AppLayout
 @implements IDisposable
 
@@ -145,6 +146,7 @@
             <span>@LocalizationService.GetString("ColumnTask")</span>
             <span>@LocalizationService.GetString("ColumnMaps")</span>
             <span class="tasks-cols__num">XP</span>
+            <span class="tasks-cols__num">@LocalizationService.GetString("ColumnObjectives")</span>
             <span>@LocalizationService.GetString("ColumnStatus")</span>
             <span class="tasks-cols__actions">@LocalizationService.GetString("ColumnActions")</span>
         </div>
@@ -180,6 +182,19 @@
                     }
                 </div>
                 <div class="task-row__xp">@(item.Task.experience > 0 ? item.Task.experience.ToString("N0") : "–")</div>
+                <div class="task-row__objectives">
+                    @{
+                        var (done, total) = TaskStateService.ObjectiveSummary(item.Task);
+                    }
+                    @if (total > 0)
+                    {
+                        <span class="@(done == total ? "task-row__objectives--done" : "")">@done/@total</span>
+                    }
+                    else
+                    {
+                        <span>–</span>
+                    }
+                </div>
                 <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())" title="@ReasonLabel(item)">@StateLabel(item.State)</span></div>
                 <div class="task-row__actions">
                     <MudIconButton Icon="@Icons.Material.Filled.MyLocation" Size="Size.Small" Color="@(item.MarkerMapIds.Count > 0 ? Color.Inherit : Color.Default)"
@@ -205,11 +220,26 @@
                 @if (isOpen)
                 {
                     <div class="task-row__details">
+                        @if (!TaskStateService.CanWriteObjectives)
+                        {
+                            <div class="task-row__note">@LocalizationService.GetString("ObjectivesNeedToken")</div>
+                        }
                         @foreach (var objective in item.Task.objectives)
                         {
-                            <div class="task-objective">
-                                <MudIcon Icon="@Icons.Material.Outlined.Circle" Size="Size.Small" Class="task-objective__icon" />
-                                <span>@objective.description</span>
+                            var progress = TaskStateService.GetObjectiveProgress(objective.id);
+                            var busy = busyObjectives.Contains(objective.id);
+                            <div class="@("task-objective" + (progress.Complete ? " task-objective--done" : ""))">
+                                <MudCheckBox T="bool" Value="@progress.Complete" ValueChanged="@(value => SetObjectiveComplete(objective, value))"
+                                             Disabled="@(busy || !TaskStateService.CanWriteObjectives)" Size="Size.Small" Color="Color.Success" Dense="true" Class="task-objective__check" />
+                                <span class="task-objective__text">@objective.description</span>
+                                @if (objective.count >= 1)
+                                {
+                                    <span class="task-objective__counter" title="@LocalizationService.GetString("ObjectiveCountHint")">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Remove" Size="Size.Small" Color="Color.Inherit" Disabled="@(busy || !TaskStateService.CanWriteObjectives || progress.Count <= 0)" OnClick="@(() => ChangeObjectiveCount(objective, -1))" />
+                                        <span class="task-objective__count">@Math.Min(progress.Count, objective.count)/@objective.count</span>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Inherit" Disabled="@(busy || !TaskStateService.CanWriteObjectives || progress.Count >= objective.count)" OnClick="@(() => ChangeObjectiveCount(objective, 1))" />
+                                    </span>
+                                }
                                 @if (objective.optional)
                                 {
                                     <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
@@ -305,6 +335,7 @@
         TimersManager.RaidActiveChanged += OnDataChanged;
         TarkovDev.ApiDataLoaded += OnDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        TarkovTracker.ObjectiveProgressChanged += OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged += OnDataChanged;
         Refresh();
     }
@@ -447,6 +478,58 @@
         MapsService.RequestHighlight(item);
     }
 
+    private readonly HashSet<string> busyObjectives = new();
+
+    // Objectives are written to Tarkov Tracker; the cached progress follows on
+    // success and the page re-renders through ObjectiveProgressChanged.
+    private async Task SetObjectiveComplete(TarkovDev.TaskObjective objective, bool complete)
+    {
+        // Ticking a counted objective also fills its count; unticking keeps the count.
+        int? count = objective.count >= 1 && complete ? objective.count : null;
+        await WriteObjective(objective, complete, count);
+    }
+
+    private async Task ChangeObjectiveCount(TarkovDev.TaskObjective objective, int delta)
+    {
+        var current = TaskStateService.GetObjectiveProgress(objective.id).Count;
+        var next = Math.Clamp(current + delta, 0, objective.count);
+        if (next == current)
+        {
+            return;
+        }
+        bool? complete = next >= objective.count ? true : (current >= objective.count ? false : null);
+        await WriteObjective(objective, complete, next);
+    }
+
+    private async Task WriteObjective(TarkovDev.TaskObjective objective, bool? complete, int? count)
+    {
+        if (!busyObjectives.Add(objective.id))
+        {
+            return;
+        }
+        try
+        {
+            await TaskStateService.SetObjectiveAsync(objective.id, complete, count);
+            MapsService.NotifyQuestStateChanged(TimersManager.IsRaidActive || MapsService.RaidActive);
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add(string.Format(LocalizationService.GetString("ObjectiveSyncFailed"), exception.Message), Severity.Warning);
+            MessageLog.Diagnostics.Capture(
+                new DiagnosticContext("TM-TASKS-002", "SetObjective", "TarkovTracker", "ObjectiveUpdate", "An objective could not be updated on Tarkov Tracker."),
+                exception);
+        }
+        finally
+        {
+            busyObjectives.Remove(objective.id);
+        }
+    }
+
+    private void OnObjectiveProgressChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
     private string ViewLabel(TaskListView option) => option switch
     {
         TaskListView.Available => LocalizationService.GetString("TaskStateAvailable"),
@@ -512,6 +595,7 @@
         TimersManager.RaidActiveChanged -= OnDataChanged;
         TarkovDev.ApiDataLoaded -= OnDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        TarkovTracker.ObjectiveProgressChanged -= OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged -= OnDataChanged;
     }
 }

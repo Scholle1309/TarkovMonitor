@@ -35,6 +35,9 @@ namespace TarkovMonitor
 
             [Post("/progress/tasks")]
             Task<string> SetTaskStatuses([Body] List<TaskStatusBody> body, [Header("Authorization")] string authorization, CancellationToken cancellationToken = default);
+
+            [Post("/progress/task/objective/{id}")]
+            Task<string> SetObjectiveProgress(string id, [Body] ObjectiveProgressBody body, [Header("Authorization")] string authorization, CancellationToken cancellationToken = default);
         }
 
         private static readonly HttpClient tokenInspectionClient = new();
@@ -1943,6 +1946,69 @@ namespace TarkovMonitor
             }
         }
 
+        /// <summary>Raised after an objective was updated on the tracker and in the cached progress.</summary>
+        public static event EventHandler? ObjectiveProgressChanged;
+
+        /// <summary>
+        /// Update one task objective on Tarkov Tracker (completed / uncompleted
+        /// and/or the item count) and mirror it in the cached progress.
+        /// </summary>
+        public static async Task SetObjectiveProgress(string objectiveId, bool? complete, int? count)
+        {
+            if (complete == null && count == null)
+            {
+                return;
+            }
+            var request = CaptureActiveRequest();
+            var body = new ObjectiveProgressBody
+            {
+                state = complete == null ? null : (complete.Value ? "completed" : "uncompleted"),
+                count = count,
+            };
+            try
+            {
+                await request.Api.SetObjectiveProgress(objectiveId, body, Bearer(request.Token), request.CancellationToken);
+            }
+            catch (ApiException ex)
+            {
+                if (ex.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    InvalidTokenException(request);
+                }
+                if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    throw new Exception("Rate limited by Tarkov Tracker API");
+                }
+                if (ex.StatusCode == HttpStatusCode.Forbidden)
+                {
+                    throw new Exception("The Tarkov Tracker token has no write permission.");
+                }
+                throw new Exception($"Invalid TarkovTracker API response code: {ex.StatusCode}.", ex);
+            }
+            lock (stateLock)
+            {
+                if (!IsCurrent(request))
+                {
+                    return;
+                }
+                var entry = Progress.data.taskObjectivesProgress.Find(item => item.id == objectiveId);
+                if (entry == null)
+                {
+                    entry = new ProgressResponseObjective { id = objectiveId };
+                    Progress.data.taskObjectivesProgress.Add(entry);
+                }
+                if (complete != null)
+                {
+                    entry.complete = complete.Value;
+                }
+                if (count != null)
+                {
+                    entry.count = count.Value;
+                }
+            }
+            ObjectiveProgressChanged?.Invoke(null, EventArgs.Empty);
+        }
+
         public static async Task<string> SetTaskStatus(
             string questId,
             TaskStatus status,
@@ -2384,6 +2450,17 @@ namespace TarkovMonitor
         {
             public string self { get; set; }
         }
+        /// <summary>Body of the objective update; state and/or count.</summary>
+        public class ObjectiveProgressBody
+        {
+            [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+            [Newtonsoft.Json.JsonProperty("state", NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+            public string? state { get; set; }
+            [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+            [Newtonsoft.Json.JsonProperty("count", NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+            public int? count { get; set; }
+        }
+
         public class TaskStatusBody
         {
             public string? id { get; set; }

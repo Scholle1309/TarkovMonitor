@@ -560,4 +560,19 @@
   <data name="ModeMixHint" xml:space="preserve">
     <value>Ausgewogene Bewertung aus Freischaltungen und Erfahrung.</value>
   </data>
+  <data name="ColumnObjectives" xml:space="preserve">
+    <value>Ziele</value>
+  </data>
+  <data name="ObjectiveSyncFailed" xml:space="preserve">
+    <value>Das Ziel konnte nicht auf Tarkov Tracker gespeichert werden: {0}</value>
+  </data>
+  <data name="ObjectivesNeedToken" xml:space="preserve">
+    <value>Ziele lassen sich abhaken, sobald ein Tarkov-Tracker-Token mit Schreibrecht aktiv ist.</value>
+  </data>
+  <data name="ObjectivesSynced" xml:space="preserve">
+    <value>Ziele werden auf Tarkov Tracker gespeichert und auf der Karte angezeigt.</value>
+  </data>
+  <data name="ObjectiveCountHint" xml:space="preserve">
+    <value>Bisher gesammelt; der Haken bedeutet abgegeben / erledigt</value>
+  </data>
 </root>

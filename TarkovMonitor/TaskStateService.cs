@@ -235,6 +235,29 @@ namespace TarkovMonitor
             return result;
         }
 
+        /// <summary>Tracker progress of one objective: completed flag and counted amount.</summary>
+        public static (bool Complete, int Count) GetObjectiveProgress(string objectiveId)
+        {
+            var entry = TarkovTracker.Progress?.data?.taskObjectivesProgress?.Find(item => item.id == objectiveId);
+            return entry == null ? (false, 0) : (entry.complete, entry.count);
+        }
+
+        /// <summary>Completed objectives out of all objectives of a task.</summary>
+        public static (int Done, int Total) ObjectiveSummary(TarkovDev.Task task)
+        {
+            var done = task.objectives.Count(objective => GetObjectiveProgress(objective.id).Complete);
+            return (done, task.objectives.Count);
+        }
+
+        /// <summary>True when objectives can be written to the tracker right now.</summary>
+        public static bool CanWriteObjectives => TarkovTracker.ValidToken && !string.IsNullOrEmpty(TarkovTracker.CurrentProfileId);
+
+        /// <summary>Set an objective on the tracker; the cached progress follows.</summary>
+        public Task SetObjectiveAsync(string objectiveId, bool? complete, int? count)
+        {
+            return TarkovTracker.SetObjectiveProgress(objectiveId, complete, count);
+        }
+
         /// <summary>Manual decision by the user for the active profile.</summary>
         public void SetOverride(string taskId, QuestOverride kind)
         {

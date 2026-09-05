@@ -624,4 +624,19 @@
   <data name="ModeMixHint" xml:space="preserve">
     <value>Balanced score of unlocks and experience.</value>
   </data>
+  <data name="ColumnObjectives" xml:space="preserve">
+    <value>Objectives</value>
+  </data>
+  <data name="ObjectiveSyncFailed" xml:space="preserve">
+    <value>The objective could not be saved on Tarkov Tracker: {0}</value>
+  </data>
+  <data name="ObjectivesNeedToken" xml:space="preserve">
+    <value>Objectives can be ticked off once a Tarkov Tracker token with write permission is active.</value>
+  </data>
+  <data name="ObjectivesSynced" xml:space="preserve">
+    <value>Objectives are saved on Tarkov Tracker and shown on the map.</value>
+  </data>
+  <data name="ObjectiveCountHint" xml:space="preserve">
+    <value>Collected so far; the check mark means handed over / completed</value>
+  </data>
 </root>

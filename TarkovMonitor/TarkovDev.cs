@@ -688,6 +688,8 @@ namespace TarkovMonitor
             public string? description { get; set; }
             public string? type { get; set; }
             public bool optional { get; set; }
+            /// <summary>Required amount for counted objectives (items, kills); 0 when not counted.</summary>
+            public int count { get; set; }
             /// <summary>Ids of the maps the objective can be done on (empty = anywhere).</summary>
             public List<string> maps { get; set; } = new();
             /// <summary>Zones drawn as markers on the Tarkov.dev map.</summary>
