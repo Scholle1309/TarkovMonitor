@@ -505,6 +505,10 @@ button.dash-chip {
 
 .dash-table__item {
     max-width: 180px;
+}
+
+.dash__col--main .dash-table__item {
+    max-width: 420px;
     overflow: hidden;
     text-overflow: ellipsis;
 }

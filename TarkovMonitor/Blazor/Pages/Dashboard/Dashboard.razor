@@ -176,6 +176,32 @@ else
                     </div>
                 }
             </div>
+
+            <div class="dash-card">
+                <span class="dash-src">Logs + tarkov.dev</span>
+                <h2>@LocalizationService.GetString("RecentFleaSales") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("ThisWeek"), FormatRoubles(stats.RoublesLastWeek))</span></h2>
+                @if (stats.RecentSales.Count == 0)
+                {
+                    <div class="dash-empty">@LocalizationService.GetString("NoSalesYet")</div>
+                }
+                else
+                {
+                    <table class="dash-table">
+                        <thead><tr><th>@LocalizationService.GetString("Item")</th><th class="r">@LocalizationService.GetString("Quantity")</th><th class="r">@LocalizationService.GetString("Price")</th><th class="r">@LocalizationService.GetString("When")</th></tr></thead>
+                        <tbody>
+                            @foreach (var sale in stats.RecentSales)
+                            {
+                                <tr>
+                                    <td class="dash-table__item" title="@ItemName(sale.ItemId)">@ItemName(sale.ItemId)</td>
+                                    <td class="r">@sale.Count</td>
+                                    <td class="r">@FormatPrice(sale.Price, sale.Currency)</td>
+                                    <td class="r">@ShortTime(sale.TimeUtc)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
         </div>
 
         <div class="dash__col">
@@ -277,32 +303,6 @@ else
                                     <td class="r">@(raid.QueueSeconds > 0 ? FormatQueue(raid.QueueSeconds) : "–")</td>
                                     <td class="r">@(raid.Duration != null ? FormatDuration(raid.Duration.Value) : "–")</td>
                                     <td class="r">@ShortTime(raid.TimeUtc)</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-
-            <div class="dash-card">
-                <span class="dash-src">Logs + tarkov.dev</span>
-                <h2>@LocalizationService.GetString("RecentFleaSales") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("ThisWeek"), FormatRoubles(stats.RoublesLastWeek))</span></h2>
-                @if (stats.RecentSales.Count == 0)
-                {
-                    <div class="dash-empty">@LocalizationService.GetString("NoSalesYet")</div>
-                }
-                else
-                {
-                    <table class="dash-table">
-                        <thead><tr><th>@LocalizationService.GetString("Item")</th><th class="r">@LocalizationService.GetString("Quantity")</th><th class="r">@LocalizationService.GetString("Price")</th><th class="r">@LocalizationService.GetString("When")</th></tr></thead>
-                        <tbody>
-                            @foreach (var sale in stats.RecentSales)
-                            {
-                                <tr>
-                                    <td class="dash-table__item" title="@ItemName(sale.ItemId)">@ItemName(sale.ItemId)</td>
-                                    <td class="r">@sale.Count</td>
-                                    <td class="r">@FormatPrice(sale.Price, sale.Currency)</td>
-                                    <td class="r">@ShortTime(sale.TimeUtc)</td>
                                 </tr>
                             }
                         </tbody>
