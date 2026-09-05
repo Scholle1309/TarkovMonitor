@@ -378,7 +378,7 @@ else
         eft.GameStopped += OnDataChanged;
         eft.ProfileChanged += OnProfileChanged;
         // Relative times ("5 minutes ago") and the game state are refreshed on a slow clock.
-        clock = new System.Threading.Timer(_ => OnDataChanged(null, EventArgs.Empty), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        clock = new System.Threading.Timer(_ => OnDataChanged(null, EventArgs.Empty), null, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(60));
         Refresh();
     }
 
@@ -642,7 +642,7 @@ else
         _ => price.ToString("N0"),
     };
 
-    private static string Ago(DateTime utc) => DateTime.SpecifyKind(utc, DateTimeKind.Utc).Humanize();
+    private string Ago(DateTime utc) => LocalizationService.RelativeTime(DateTime.SpecifyKind(utc, DateTimeKind.Utc));
 
     /// <summary>Time of day for today, weekday for this week, date otherwise.</summary>
     private static string ShortTime(DateTime utc)

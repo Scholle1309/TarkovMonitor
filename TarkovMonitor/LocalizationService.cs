@@ -21,6 +21,33 @@ namespace TarkovMonitor
             SetCulture(Properties.Settings.Default.language);
         }
 
+        /// <summary>
+        /// Coarse relative time for lists that refresh: no seconds, so the text
+        /// changes at most once a minute and keeps a similar width.
+        /// </summary>
+        public string RelativeTime(DateTime time)
+        {
+            var local = time.Kind == DateTimeKind.Utc ? time.ToLocalTime() : time;
+            var age = DateTime.Now - local;
+            if (age < TimeSpan.FromMinutes(1))
+            {
+                return GetString("JustNow");
+            }
+            if (age < TimeSpan.FromHours(1))
+            {
+                return string.Format(GetString("MinutesAgo"), (int)age.TotalMinutes);
+            }
+            if (local.Date == DateTime.Now.Date)
+            {
+                return string.Format(GetString("HoursAgo"), (int)age.TotalHours);
+            }
+            if (local.Date > DateTime.Now.Date.AddDays(-6))
+            {
+                return local.ToString("ddd HH:mm");
+            }
+            return local.ToString("d");
+        }
+
         public string GetString(string key)
         {
             try

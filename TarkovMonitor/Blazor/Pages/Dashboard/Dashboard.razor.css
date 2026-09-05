@@ -293,6 +293,13 @@
     color: rgba(255, 255, 255, 0.45);
     white-space: nowrap;
     line-height: 1.6;
+    min-width: 72px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.dash-pill__sub {
+    font-variant-numeric: tabular-nums;
 }
 
 .dash__messages ::deep .tm-message-actions {

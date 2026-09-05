@@ -764,4 +764,13 @@
   <data name="RepeatableTask" xml:space="preserve">
     <value>Tägliche/wöchentliche Aufgabe ({0})</value>
   </data>
+  <data name="JustNow" xml:space="preserve">
+    <value>jetzt</value>
+  </data>
+  <data name="MinutesAgo" xml:space="preserve">
+    <value>vor {0} min</value>
+  </data>
+  <data name="HoursAgo" xml:space="preserve">
+    <value>vor {0} h</value>
+  </data>
 </root>

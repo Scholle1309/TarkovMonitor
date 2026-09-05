@@ -68,7 +68,7 @@
                     }
                     @if (GoonsLastSeen != null)
                     {
-                        <div class="map-tasks__section">@string.Format(LocalizationService.GetString("GoonsLastSeen"), GoonsLastSeen.Value.Map, GoonsLastSeen.Value.Time.ToUniversalTime().Humanize())</div>
+                        <div class="map-tasks__section">@string.Format(LocalizationService.GetString("GoonsLastSeen"), GoonsLastSeen.Value.Map, LocalizationService.RelativeTime(GoonsLastSeen.Value.Time))</div>
                     }
                 </div>
             </div>
