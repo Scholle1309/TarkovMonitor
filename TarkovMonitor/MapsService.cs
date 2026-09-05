@@ -47,6 +47,9 @@ namespace TarkovMonitor
         /// <summary>Changes whenever a full reload of the iframe is wanted.</summary>
         public int FrameGeneration => frameGeneration;
 
+        /// <summary>True while the Tarkov.dev settings page is shown instead of the map.</summary>
+        public bool SettingsOpen { get; private set; }
+
         public string CurrentMapName => CurrentMap?.normalizedName ?? DefaultMap;
 
         public string FrameUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(CurrentMapName)}?connection={Uri.EscapeDataString(SessionId)}";
@@ -67,6 +70,36 @@ namespace TarkovMonitor
             RaiseChanged();
         }
 
+        /// <summary>
+        /// Toggle between the Tarkov.dev settings page (language, map options)
+        /// and the current map. The site header is hidden in the frame, so this
+        /// replaces the gear icon of the header.
+        /// </summary>
+        public async Task ToggleSettingsAsync()
+        {
+            if (!FrameLoaded)
+            {
+                return;
+            }
+            var open = !SettingsOpen;
+            var message = open
+                ? SocketClient.GetNavigateToPageMessage("settings", "")
+                : SocketClient.GetNavigateToPageMessage("map", CurrentMapName);
+            try
+            {
+                await SocketClient.Send(new List<JsonObject> { message }, SocketTargets.MapView).ConfigureAwait(false);
+                lock (gate)
+                {
+                    SettingsOpen = open;
+                }
+                RaiseChanged();
+            }
+            catch
+            {
+                ReloadFrame();
+            }
+        }
+
         /// <summary>Force a full reload of the embedded page.</summary>
         public void ReloadFrame()
         {
@@ -74,6 +107,7 @@ namespace TarkovMonitor
             {
                 FrameRequested = true;
                 FrameLoaded = false;
+                SettingsOpen = false;
                 SocketClient.MapViewSessionId = null;
                 Interlocked.Increment(ref frameGeneration);
             }
@@ -106,9 +140,12 @@ namespace TarkovMonitor
             bool changed;
             lock (gate)
             {
-                changed = CurrentMap?.normalizedName != map.normalizedName;
+                var mapChanged = CurrentMap?.normalizedName != map.normalizedName;
+                changed = mapChanged || SettingsOpen;
                 CurrentMap = map;
-                if (changed)
+                // Callers send a map command right after this, which leaves the settings page.
+                SettingsOpen = false;
+                if (mapChanged)
                 {
                     // A position from another map is meaningless on the new one.
                     lastPositionMessage = null;

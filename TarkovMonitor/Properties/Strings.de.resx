@@ -359,4 +359,10 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Beim Raidstart den Karten-Tab öffnen und nach Raidende zurück zu Nachrichten</value>
   </data>
+  <data name="TarkovDevSettings" xml:space="preserve">
+    <value>Tarkov.dev-Einstellungen (Sprache, Kartenoptionen)</value>
+  </data>
+  <data name="BackToMap" xml:space="preserve">
+    <value>Zurück zur Karte</value>
+  </data>
 </root>

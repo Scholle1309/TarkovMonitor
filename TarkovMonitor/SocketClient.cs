@@ -834,6 +834,23 @@ namespace TarkovMonitor
             };
         }
 
+        /// <summary>
+        /// Navigation command understood by the Tarkov.dev website: it navigates
+        /// to "/{page}/{value}", e.g. ("map", "customs") or ("settings", "").
+        /// </summary>
+        public static JsonObject GetNavigateToPageMessage(string page, string value)
+        {
+            return new JsonObject
+            {
+                ["type"] = "command",
+                ["data"] = new JsonObject
+                {
+                    ["type"] = page,
+                    ["value"] = value
+                }
+            };
+        }
+
         public static JsonObject GetNavigateToMapMessage(TarkovDev.Map map)
         {
             return new JsonObject

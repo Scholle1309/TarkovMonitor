@@ -423,4 +423,10 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Open the Maps tab when a raid loads and return to Messages when it ends</value>
   </data>
+  <data name="TarkovDevSettings" xml:space="preserve">
+    <value>Tarkov.dev settings (language, map options)</value>
+  </data>
+  <data name="BackToMap" xml:space="preserve">
+    <value>Back to the map</value>
+  </data>
 </root>

@@ -19,6 +19,9 @@
         </MudSelect>
         <MudSpacer />
         <MudText Typo="Typo.caption" Class="map-host__status">@LocalizationService.GetString("MapSessionId"): @MapsService.SessionId</MudText>
+        @* Replaces the gear of the hidden Tarkov.dev header: opens the site settings (language etc.) inside the frame. *@
+        <MudIconButton Icon="@(MapsService.SettingsOpen ? Icons.Material.Filled.Map : Icons.Material.Filled.Settings)" Size="Size.Small" Color="@(MapsService.SettingsOpen ? Color.Info : Color.Inherit)" Disabled="@(!MapsService.FrameLoaded)"
+                       Title="@LocalizationService.GetString(MapsService.SettingsOpen ? "BackToMap" : "TarkovDevSettings")" OnClick="ToggleSettings" />
         <MudIconButton Icon="@Icons.Material.Filled.Refresh" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("ReloadMap")" OnClick="Reload" />
         <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
     </div>
@@ -135,6 +138,11 @@
             return;
         }
         await MapsService.NavigateAsync(map);
+    }
+
+    private Task ToggleSettings()
+    {
+        return MapsService.ToggleSettingsAsync();
     }
 
     private void Reload()
