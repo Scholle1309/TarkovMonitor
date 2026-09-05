@@ -73,8 +73,19 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+/* The bosses button sits left of the task button; its panel opens above them, only as tall as its content. */
 .map-host__fab--bosses {
-    bottom: 64px;
+    right: 64px;
+}
+
+.map-tasks.map-bosses {
+    top: auto;
+    bottom: 68px;
+    max-height: calc(100% - 80px);
+}
+
+.map-bosses .map-tasks__list {
+    flex: 0 1 auto;
 }
 
 .map-tasks__count--bosses {

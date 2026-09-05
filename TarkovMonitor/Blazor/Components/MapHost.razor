@@ -33,7 +33,7 @@
     <div class="map-host__frame">
         @* Floating buttons in the corner where the site's settings gear used to be: bosses above, tasks below. *@
         <button type="button" class="@("map-host__fab map-host__fab--bosses" + (bossesPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("ShowMapBosses")" @onclick="ToggleBossesPanel">
-            <MudIcon Icon="@Icons.Material.Filled.Dangerous" Size="Size.Medium" />
+            <MudIcon Icon="@RifleIcon" Size="Size.Medium" />
         </button>
         @if (bossesPanelOpen)
         {
@@ -314,6 +314,8 @@
             bossesPanelOpen = false;
         }
     }
+    // Rifle silhouette for the bosses button (the Material set has no weapon icon).
+    private const string RifleIcon = "<path d=\"M1 9.5 6 9v4l-5 1zM6 9h9v4H6zM15 10h8v1.5h-8zM16 8.5h1.5V10H16zM9 13h3l2 6-2.5.5zM7 13h2l-.5 4H6.5z\"/>";
     // Boss spawns of the shown map (from the Tarkov.dev map data), highest chance first.
     private bool bossesPanelOpen;
     private List<TarkovDev.BossSpawn> MapBosses => (MapsService.ShownMap?.bosses ?? new List<TarkovDev.BossSpawn>())
