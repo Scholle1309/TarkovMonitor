@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -6,15 +7,15 @@ namespace TarkovMonitor
 {
     /// <summary>
     /// State for the embedded Tarkov.dev map view (the "Maps" tab).
-    /// The map page is loaded in an iframe with its own remote-control
-    /// session id, so the same socket messages that drive the Tarkov.dev
-    /// website remote also drive the embedded map.
+    /// The map page is loaded in an iframe with the remote id of the
+    /// settings page, so the same socket messages that drive a browser
+    /// on Tarkov.dev also drive the embedded map.
     /// </summary>
     public class MapsService
     {
         private const string DefaultMap = "customs";
         private const string SessionAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        private const int SessionLength = 8;
+        private const int SessionLength = 4;
 
         private readonly object gate = new();
         private JsonObject? lastPositionMessage;
@@ -30,11 +31,29 @@ namespace TarkovMonitor
 
         public MapsService()
         {
-            SessionId = LoadOrCreateSessionId();
+            EnsureRemoteId();
+            Properties.Settings.Default.PropertyChanged += OnSettingChanged;
         }
 
-        /// <summary>Session id the embedded Tarkov.dev page connects with.</summary>
-        public string SessionId { get; }
+        /// <summary>
+        /// Session id the embedded Tarkov.dev page connects with: the remote id
+        /// of the settings page, shared with any browser that enters the same id.
+        /// </summary>
+        public string SessionId => Properties.Settings.Default.remoteId?.Trim() ?? "";
+
+        private void OnSettingChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(Properties.Settings.Default.remoteId))
+            {
+                return;
+            }
+            // An emptied field gets a fresh id, which raises this event again.
+            if (EnsureRemoteId())
+            {
+                return;
+            }
+            ReloadFrame();
+        }
 
         /// <summary>Map currently shown (or requested) in the embedded view.</summary>
         public TarkovDev.Map? CurrentMap { get; private set; }
@@ -456,22 +475,21 @@ namespace TarkovMonitor
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
-        private static string LoadOrCreateSessionId()
+        /// <summary>Creates a remote id when the setting is empty; true if one was created.</summary>
+        private static bool EnsureRemoteId()
         {
-            var stored = Properties.Settings.Default.mapSessionId;
-            if (!string.IsNullOrWhiteSpace(stored))
+            if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.remoteId))
             {
-                return stored;
+                return false;
             }
             var chars = new char[SessionLength];
             for (var i = 0; i < chars.Length; i++)
             {
                 chars[i] = SessionAlphabet[RandomNumberGenerator.GetInt32(SessionAlphabet.Length)];
             }
-            var created = new string(chars);
-            Properties.Settings.Default.mapSessionId = created;
+            Properties.Settings.Default.remoteId = new string(chars);
             Properties.Settings.Default.Save();
-            return created;
+            return true;
         }
     }
 
