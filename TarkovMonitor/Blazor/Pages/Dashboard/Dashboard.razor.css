@@ -225,20 +225,74 @@
     overflow-y: auto;
 }
 
-.dash__messages ::deep .dashboard-notification-surface {
+.dash__messages ::deep .mud-paper.dashboard-notification-surface {
     margin: 0 !important;
+    padding: 0 !important;
     min-height: 0;
     background: transparent !important;
+    border: 0 !important;
     box-shadow: none !important;
 }
 
 .dash__messages ::deep .dashboard-message-stack {
     padding: 0 !important;
+    gap: 0 !important;
     align-items: stretch !important;
 }
 
+/* Each message becomes one compact dark row: icon, text, time on the right. */
 .dash__messages ::deep .dashboard-message {
     width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dash__messages ::deep .dashboard-message__paper {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: rgba(255, 255, 255, 0.87) !important;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+.dash__messages ::deep .dashboard-message__row .mud-icon-root {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.dash__messages ::deep .dashboard-message > .d-flex.justify-end {
+    margin: 0 !important;
+    flex: none;
+}
+
+.dash__messages ::deep .dashboard-message > .d-flex.justify-end .mud-typography {
+    font-size: 0.7rem !important;
+    color: rgba(255, 255, 255, 0.45);
+    white-space: nowrap;
+    line-height: 1.6;
+}
+
+.dash__messages ::deep .tm-message-actions {
+    margin-top: 6px;
+}
+
+.dash__messages ::deep .tm-message-actions:empty {
+    display: none;
+}
+
+.dash__messages ::deep .dashboard-message__row .mud-icon-root {
+    margin-top: 0;
 }
 
 /* ---- recommendations ---- */
