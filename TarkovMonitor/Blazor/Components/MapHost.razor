@@ -1,6 +1,7 @@
 @using System.Diagnostics
 @using Humanizer
 @inject IJSRuntime JSRuntime
+@inject GameWatcher eft
 @inject MapsService MapsService
 @inject TaskStateService TaskStateService
 @inject QuestLogStore QuestLogStore
@@ -197,6 +198,9 @@
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         MapsService.PositionUpdated += OnPositionUpdated;
         MapsService.HighlightRequested += OnHighlightRequested;
+        eft.GameStarted += OnQuestDataChanged;
+        eft.GameStopped += OnQuestDataChanged;
+        eft.ProfileChanged += OnProfileChanged;
         SyncFrame();
         RefreshMapTasks();
     }
@@ -273,10 +277,12 @@
 
     private void RefreshMapTasks()
     {
+        // No task data before the game runs and has announced its mode.
+        var sessionReady = eft.IsGameRunning && GameWatcher.CurrentProfile.Snapshot().SessionMode != EftSessionMode.Unknown;
         try
         {
             // Tasks bound to this map first, tasks that can be done anywhere after them.
-            mapTasks = TaskStateService.GetTasks()
+            mapTasks = !sessionReady ? new List<TaskView>() : TaskStateService.GetTasks()
                 .Where(view => view.State == TaskState.Accepted && view.OnCurrentMap)
                 .OrderBy(view => view.Maps.Count == 0 ? 1 : 0)
                 .ThenBy(view => view.TraderName)
@@ -499,5 +505,9 @@
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
         MapsService.PositionUpdated -= OnPositionUpdated;
         MapsService.HighlightRequested -= OnHighlightRequested;
+        eft.GameStarted -= OnQuestDataChanged;
+        eft.GameStopped -= OnQuestDataChanged;
+        eft.ProfileChanged -= OnProfileChanged;
     }
+    private void OnProfileChanged(object? sender, ProfileEventArgs e) => OnQuestDataChanged(sender, EventArgs.Empty);
 }

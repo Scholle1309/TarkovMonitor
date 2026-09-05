@@ -166,6 +166,18 @@
     min-width: 0;
 }
 
+.dash__grid--single {
+    grid-template-columns: 1fr;
+}
+
+.dash__alert {
+    margin-bottom: 12px;
+}
+
+.dash__grid--single .dash__messages {
+    max-height: none;
+}
+
 .dash-card {
     position: relative;
     padding: 12px 14px;

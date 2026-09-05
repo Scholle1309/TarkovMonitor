@@ -758,4 +758,7 @@
   <data name="UnknownTask" xml:space="preserve">
     <value>Unbekannte Aufgabe</value>
   </data>
+  <data name="DashboardNeedsSession" xml:space="preserve">
+    <value>Starte Escape from Tarkov und wähle einen Modus. Fortschritt und Statistiken laden, sobald die Spielsitzung erkannt wird.</value>
+  </data>
 </root>

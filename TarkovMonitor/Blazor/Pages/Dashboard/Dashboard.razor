@@ -14,6 +14,18 @@
 @implements IDisposable
 
 <div class="dash">
+@if (!sessionReady)
+{
+    @* No game session yet: only the messages, nothing is loaded. *@
+    <MudAlert Severity="Severity.Info" Dense="true" Class="dash__alert">@LocalizationService.GetString("DashboardNeedsSession")</MudAlert>
+    <div class="dash__grid dash__grid--single">
+        <div class="dash__col dash__col--main">
+            @MessagesCard
+        </div>
+    </div>
+}
+else
+{
     @* Status line: what the monitor is connected to right now. *@
     <div class="dash__status">
         <span class="dash-pill"><span class="@("dash-dot" + (gameRunning ? " dash-dot--ok" : ""))"></span>@(gameRunning ? LocalizationService.GetString("GameRunning") : LocalizationService.GetString("GameNotRunning"))</span>
@@ -134,12 +146,7 @@
 
     <div class="dash__grid">
         <div class="dash__col dash__col--main">
-            <div class="dash-card dash-card--messages">
-                <h2>@LocalizationService.GetString("Messages")</h2>
-                <div class="dash__messages">
-                    <MessageBoard></MessageBoard>
-                </div>
-            </div>
+            @MessagesCard
 
             <div class="dash-card">
                 <h2>
@@ -328,9 +335,17 @@
             </div>
         </div>
     </div>
+}
 </div>
 
 @code {
+    private RenderFragment MessagesCard => @<div class="dash-card dash-card--messages">
+        <h2>@LocalizationService.GetString("Messages")</h2>
+        <div class="dash__messages">
+            <MessageBoard></MessageBoard>
+        </div>
+    </div>;
+
     [CascadingParameter(Name = "AppLayout")]
     public AppLayout AppLayout { get; set; } = default!;
 
@@ -342,6 +357,7 @@
     private TarkovTracker.ProgressResponseData? progress;
     private bool hasProgress;
     private bool gameRunning;
+    private bool sessionReady;
     private bool trackerLinked;
     private bool apiLoaded;
     private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
@@ -411,6 +427,19 @@
     {
         var profile = GameWatcher.CurrentProfile.Snapshot();
         gameRunning = eft.IsGameRunning;
+        // Nothing is read before the game runs and has announced its mode (PVE / PVP).
+        sessionReady = gameRunning && profile.SessionMode != EftSessionMode.Unknown;
+        if (!sessionReady)
+        {
+            stats = new DashboardStats();
+            questEvents = new List<QuestLogEntry>();
+            recommendations = new List<TaskRecommendation>();
+            hasProgress = false;
+            progress = null;
+            trackerLinked = false;
+            apiLoaded = false;
+            return;
+        }
         trackerLinked = !string.IsNullOrEmpty(TarkovTracker.GetTokenForProfile(profile));
         apiLoaded = TarkovDev.LoadedProfileType != ProfileType.Unknown && TarkovDev.Tasks.Count > 0;
 
