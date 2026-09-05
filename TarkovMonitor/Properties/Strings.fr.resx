@@ -347,4 +347,7 @@
   <data name="Maps" xml:space="preserve">
     <value>Cartes</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Ouvrir l'onglet Cartes au chargement d'un raid et revenir aux Messages à la fin</value>
+  </data>
 </root>

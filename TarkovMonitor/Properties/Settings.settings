@@ -32,6 +32,9 @@
     <Setting Name="mapSessionId" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="autoShowMapTab" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
     <Setting Name="autoNavigateMap" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>

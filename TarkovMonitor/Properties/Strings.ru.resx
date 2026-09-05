@@ -402,4 +402,7 @@
   <data name="Maps" xml:space="preserve">
     <value>Карты</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Открывать вкладку Карты при загрузке рейда и возвращаться к Сообщениям после его окончания</value>
+  </data>
 </root>

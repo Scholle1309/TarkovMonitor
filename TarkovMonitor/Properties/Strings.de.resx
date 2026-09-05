@@ -356,4 +356,7 @@
   <data name="MapSessionId" xml:space="preserve">
     <value>Karten-ID</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Beim Raidstart den Karten-Tab öffnen und nach Raidende zurück zu Nachrichten</value>
+  </data>
 </root>

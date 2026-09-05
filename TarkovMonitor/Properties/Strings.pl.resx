@@ -347,4 +347,7 @@
   <data name="Maps" xml:space="preserve">
     <value>Mapy</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Otwórz kartę Mapy podczas ładowania rajdu i wróć do Wiadomości po jego zakończeniu</value>
+  </data>
 </root>

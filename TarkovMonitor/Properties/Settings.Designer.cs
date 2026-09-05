@@ -145,6 +145,18 @@ namespace TarkovMonitor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool autoShowMapTab {
+            get {
+                return ((bool)(this["autoShowMapTab"]));
+            }
+            set {
+                this["autoShowMapTab"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool autoNavigateMap {
             get {

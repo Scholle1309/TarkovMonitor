@@ -420,4 +420,7 @@
   <data name="MapSessionId" xml:space="preserve">
     <value>Map ID</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Open the Maps tab when a raid loads and return to Messages when it ends</value>
+  </data>
 </root>

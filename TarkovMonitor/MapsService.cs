@@ -21,6 +21,12 @@ namespace TarkovMonitor
 
         public event EventHandler? Changed;
 
+        /// <summary>Raised when the UI should switch to another tab because of a raid event.</summary>
+        public event EventHandler<MapsNavigationRequestedEventArgs>? NavigationRequested;
+
+        public const string MapsRoute = "/maps";
+        public const string DashboardRoute = "/";
+
         public MapsService()
         {
             SessionId = LoadOrCreateSessionId();
@@ -174,6 +180,27 @@ namespace TarkovMonitor
             }
         }
 
+        /// <summary>A raid is loading: show the Maps tab (if the setting is on).</summary>
+        public void RequestShowMaps()
+        {
+            if (!Properties.Settings.Default.autoShowMapTab)
+            {
+                return;
+            }
+            RequestFrame();
+            NavigationRequested?.Invoke(this, new MapsNavigationRequestedEventArgs(MapsRoute, onlyFromMaps: false));
+        }
+
+        /// <summary>The raid ended: go back to the dashboard, but only if the Maps tab is showing.</summary>
+        public void RequestShowDashboard()
+        {
+            if (!Properties.Settings.Default.autoShowMapTab)
+            {
+                return;
+            }
+            NavigationRequested?.Invoke(this, new MapsNavigationRequestedEventArgs(DashboardRoute, onlyFromMaps: true));
+        }
+
         private void RaiseChanged()
         {
             Changed?.Invoke(this, EventArgs.Empty);
@@ -196,5 +223,20 @@ namespace TarkovMonitor
             Properties.Settings.Default.Save();
             return created;
         }
+    }
+
+    public class MapsNavigationRequestedEventArgs : EventArgs
+    {
+        public MapsNavigationRequestedEventArgs(string route, bool onlyFromMaps)
+        {
+            Route = route;
+            OnlyFromMaps = onlyFromMaps;
+        }
+
+        /// <summary>Route to navigate to.</summary>
+        public string Route { get; }
+
+        /// <summary>When true, only navigate if the Maps tab is currently shown.</summary>
+        public bool OnlyFromMaps { get; }
     }
 }

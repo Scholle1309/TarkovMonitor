@@ -10,6 +10,7 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 @inject TimersManager TimersManager
+@inject MapsService MapsService
 
 <div style="width: 100%; height: 100%" class="tarkov-dev-bg">
 	<MudLayout>
@@ -144,6 +145,7 @@
 		TimersManager.RunThroughTimerChanged += OnRunThroughTimerChanged;
 		TimersManager.RaidActiveChanged += OnFloatingTimerStateChanged;
 		TimersManager.FloatingPanelSettingChanged += OnFloatingTimerStateChanged;
+		MapsService.NavigationRequested += OnMapsNavigationRequested;
 		isWindowMaximized = WindowHost.IsMaximized;
 		timeInRaid = TimersManager.TimeInRaid;
 		runThroughRemaining = TimersManager.RunThroughRemaining;
@@ -281,6 +283,22 @@
 		isMapsPage = page.Equals("maps", StringComparison.OrdinalIgnoreCase);
 	}
 
+	// Raid events may ask for a tab switch (Maps tab on raid load, dashboard
+	// when the raid ends). Leaving the Maps tab only happens while it is shown,
+	// so a user working in another tab is not interrupted.
+	private void OnMapsNavigationRequested(object? sender, MapsNavigationRequestedEventArgs e)
+	{
+		_ = InvokeAsync(() =>
+		{
+			UpdateCurrentPage();
+			if (e.OnlyFromMaps && !isMapsPage)
+			{
+				return;
+			}
+			NavigationManager.NavigateTo(e.Route);
+		});
+	}
+
 	private void OnRaidTimerChanged(object? sender, TimerChangedEventArgs e)
 	{
 		timeInRaid = e.TimerValue;
@@ -322,5 +340,6 @@
 		TimersManager.RunThroughTimerChanged -= OnRunThroughTimerChanged;
 		TimersManager.RaidActiveChanged -= OnFloatingTimerStateChanged;
 		TimersManager.FloatingPanelSettingChanged -= OnFloatingTimerStateChanged;
+		MapsService.NavigationRequested -= OnMapsNavigationRequested;
 	}
 }

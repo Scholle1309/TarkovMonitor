@@ -347,4 +347,7 @@
   <data name="Maps" xml:space="preserve">
     <value>Mapas</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>Abrir a aba Mapas ao carregar uma raid e voltar às Mensagens ao terminar</value>
+  </data>
 </root>

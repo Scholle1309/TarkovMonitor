@@ -377,4 +377,7 @@
   <data name="Maps" xml:space="preserve">
     <value>地图</value>
   </data>
+  <data name="ShowMapsTabDuringRaid" xml:space="preserve">
+    <value>加载战局时打开地图标签页，战局结束后返回消息</value>
+  </data>
 </root>

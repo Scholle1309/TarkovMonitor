@@ -709,6 +709,7 @@ namespace TarkovMonitor
         private async void Eft_RaidEnded(object? sender, RaidInfoEventArgs e)
         {
             inRaid = false;
+            mapsService.RequestShowDashboard();
             await ResumeMediaAfterRaid();
             
             //groupManager.Stale = true;
@@ -965,6 +966,7 @@ namespace TarkovMonitor
         private async Task FollowMapAsync(TarkovDev.Map map)
         {
             mapsService.SetMap(map);
+            mapsService.RequestShowMaps();
             var targets = Properties.Settings.Default.autoNavigateMap ? SocketTargets.All : SocketTargets.MapView;
             await NavigateToMapWithDiagnostics(map, targets);
         }
@@ -1820,6 +1822,7 @@ namespace TarkovMonitor
             //groupManager.Stale = true;
             runthroughTimer.Stop();
             inRaid = false;
+            mapsService.RequestShowDashboard();
             await ResumeMediaAfterRaid();
             var startedUtc = DateTime.UtcNow;
             try
