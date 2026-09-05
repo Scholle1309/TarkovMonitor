@@ -837,4 +837,13 @@
   <data name="HoursAgo" xml:space="preserve">
     <value>{0} h ago</value>
   </data>
+  <data name="HistoryStart" xml:space="preserve">
+    <value>History starts on</value>
+  </data>
+  <data name="HistoryStartHint" xml:space="preserve">
+    <value>Quest history, raids and sales count from this point. It is set when you read past logs from a chosen session (Raw logs), on the first start of the tool, or here by hand.</value>
+  </data>
+  <data name="HistoryStartNone" xml:space="preserve">
+    <value>Not set: everything in the logs folder counts</value>
+  </data>
 </root>

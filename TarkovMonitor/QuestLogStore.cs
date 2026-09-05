@@ -23,6 +23,20 @@ namespace TarkovMonitor
 
         public event EventHandler? Changed;
 
+        /// <summary>Tells views that the visible history changed (for example the start point).</summary>
+        public void NotifyChanged() => Changed?.Invoke(this, EventArgs.Empty);
+
+        /// <summary>True when no quest events have been stored yet (a fresh installation).</summary>
+        public bool IsEmpty()
+        {
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT COUNT(*) FROM quest_log_events;";
+                return Convert.ToInt64(command.ExecuteScalar()) == 0;
+            }
+        }
+
         public QuestLogStore(string databasePath)
         {
             connection = new SqliteConnection($"Data Source={databasePath};");
@@ -167,6 +181,7 @@ namespace TarkovMonitor
             }
 
             var horizons = new Dictionary<(string, EftSessionMode), DateTime>();
+            var start = HistoryStart.Value;
             foreach (var folder in Directory.GetDirectories(logsPath))
             {
                 List<LogDetails> details;
@@ -182,13 +197,20 @@ namespace TarkovMonitor
                 {
                     continue;
                 }
+                // Sessions that ended before the start point are not history.
+                var folderTime = File.GetLastWriteTime(folder);
+                if (start != null && folderTime < start && details.All(detail => detail.Date < start))
+                {
+                    continue;
+                }
                 result.Folders++;
                 foreach (var detail in details)
                 {
                     var key = (detail.Profile.Id, detail.Profile.SessionMode);
-                    if (!horizons.TryGetValue(key, out var horizon) || detail.Date < horizon)
+                    var date = HistoryStart.Clamp(detail.Date);
+                    if (!horizons.TryGetValue(key, out var horizon) || date < horizon)
                     {
-                        horizons[key] = detail.Date;
+                        horizons[key] = date;
                     }
                 }
 
@@ -201,6 +223,10 @@ namespace TarkovMonitor
                     }
                     foreach (var questEvent in ReadQuestEvents(file))
                     {
+                        if (start != null && questEvent.Time < start)
+                        {
+                            continue;
+                        }
                         // The profile that was selected when the message arrived.
                         var owner = ordered.LastOrDefault(detail => detail.Date <= questEvent.Time) ?? ordered[0];
                         lock (gate)
@@ -345,14 +371,19 @@ namespace TarkovMonitor
                     var horizon = command.ExecuteScalar() as string;
                     if (horizon != null)
                     {
-                        history.Horizon = ParseIso(horizon);
+                        history.Horizon = HistoryStart.Clamp(ParseIso(horizon));
+                    }
+                    else if (HistoryStart.Value != null)
+                    {
+                        history.Horizon = HistoryStart.Value;
                     }
                 }
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "SELECT task_id, status, MAX(event_time) FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode GROUP BY task_id, status;";
+                    command.CommandText = "SELECT task_id, status, MAX(event_time) FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode AND event_time >= @start GROUP BY task_id, status;";
                     command.Parameters.AddWithValue("@profile", profileId);
                     command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                    command.Parameters.AddWithValue("@start", HistoryStart.Value is { } startAt ? Iso(startAt) : "");
                     using var reader = command.ExecuteReader();
                     while (reader.Read())
                     {
@@ -390,7 +421,7 @@ namespace TarkovMonitor
                 command.CommandText = "SELECT task_id, status, event_time FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode AND event_time >= @since ORDER BY event_time DESC;";
                 command.Parameters.AddWithValue("@profile", profileId);
                 command.Parameters.AddWithValue("@mode", sessionMode.ToString());
-                command.Parameters.AddWithValue("@since", sinceLocal.ToString("yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                command.Parameters.AddWithValue("@since", HistoryStart.Clamp(sinceLocal).ToString("yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture));
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {

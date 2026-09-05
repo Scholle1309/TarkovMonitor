@@ -335,6 +335,17 @@ namespace TarkovMonitor
 
             // Quest events from the game logs (which quests were really accepted)
             questLogStore = new QuestLogStore(Stats.DatabasePath);
+            // A fresh installation counts from now; older sessions in the logs folder are not history.
+            if (HistoryStart.Value == null && questLogStore.IsEmpty())
+            {
+                HistoryStart.Set(DateTime.Now);
+            }
+            HistoryStart.Changed += (_, _) =>
+            {
+                questLogStore.NotifyChanged();
+                Stats.NotifyChanged();
+                mapsService.NotifyQuestStateChanged(inRaid);
+            };
 
             // Creates the dependency injection services which are the in-betweens for the Blazor interface and the rest of the C# application.
             var services = new ServiceCollection();

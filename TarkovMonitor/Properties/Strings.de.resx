@@ -773,4 +773,13 @@
   <data name="HoursAgo" xml:space="preserve">
     <value>vor {0} h</value>
   </data>
+  <data name="HistoryStart" xml:space="preserve">
+    <value>Historie beginnt am</value>
+  </data>
+  <data name="HistoryStartHint" xml:space="preserve">
+    <value>Quest-Historie, Raids und Verkäufe zählen ab diesem Zeitpunkt. Er wird gesetzt, wenn du alte Logs ab einer gewählten Sitzung einliest (Raw logs), beim ersten Start des Tools oder hier von Hand.</value>
+  </data>
+  <data name="HistoryStartNone" xml:space="preserve">
+    <value>Nicht gesetzt: alles im Logs-Ordner zählt</value>
+  </data>
 </root>

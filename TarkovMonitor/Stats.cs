@@ -11,6 +11,8 @@ namespace TarkovMonitor
         /// <summary>Raised after a raid or sale was recorded, so views can refresh.</summary>
         public static event EventHandler? Changed;
 
+        public static void NotifyChanged() => Changed?.Invoke(null, EventArgs.Empty);
+
         public static void ClearData()
         {
             Database.Value.ClearData();
@@ -267,6 +269,11 @@ namespace TarkovMonitor
             {
                 var raids = ReadRaids(profileId);
                 var sales = ReadSales(profileId);
+                if (HistoryStart.ValueUtc is { } startUtc)
+                {
+                    raids = raids.Where(raid => raid.TimeUtc >= startUtc).ToList();
+                    sales = sales.Where(sale => sale.TimeUtc >= startUtc).ToList();
+                }
                 var mapRaids = mapsSinceUtc.HasValue ? raids.Where(raid => raid.TimeUtc >= mapsSinceUtc.Value).ToList() : raids;
 
                 var byType = raids.GroupBy(raid => raid.Type).ToDictionary(group => group.Key, group => group.Count());

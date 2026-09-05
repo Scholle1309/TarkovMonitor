@@ -399,6 +399,8 @@
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("LocalData")</span></MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">@LocalizationService.GetString("HistoryStartHint")</MudText>
+            <MudDatePicker Label="@LocalizationService.GetString("HistoryStart")" Date="@HistoryStartDate" DateChanged="OnHistoryStartChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Placeholder="@LocalizationService.GetString("HistoryStartNone")" Class="mb-3" />
             <MudText Typo="Typo.body2" Class="mb-2">@LocalizationService.GetString("LocalDataHint")</MudText>
             <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
         </MudPaper>
@@ -406,6 +408,13 @@
 </MudGrid>
 
 @code {
+    private DateTime? HistoryStartDate => HistoryStart.Value?.Date;
+
+    private void OnHistoryStartChanged(DateTime? date)
+    {
+        HistoryStart.Set(date?.Date);
+    }
+
     private void ClearData()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };

@@ -229,6 +229,8 @@
                 };
                 customWatcher.TaskModified += taskHandler;
                 handlerAttached = true;
+                // The chosen breakpoint is where the tool's history begins from now on.
+                HistoryStart.Set(breakpoint.Date);
                 await Task.Run(() => customWatcher.ProcessLogsFromBreakpoint(breakpoint));
 
                 KeyValuePair<string, TarkovMonitor.TaskStatus>[] observedTasks;
