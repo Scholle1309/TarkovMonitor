@@ -13,36 +13,120 @@
 .tasks-head__row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
 ::deep .tasks-head__title {
-    margin-right: 4px;
-}
-
-::deep .tasks-search {
-    flex: 1 1 240px;
-    max-width: 380px;
-}
-
-::deep .tasks-select {
-    min-width: 150px;
-    max-width: 200px;
-}
-
-.tasks-seg {
+    margin-right: 6px;
+    height: 40px;
     display: flex;
+    align-items: center;
+}
+
+/* one frame for every control in the row: same height, border, radius */
+.tasks-ctl {
+    box-sizing: border-box;
+    height: 40px;
+    display: flex;
+    align-items: center;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 6px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255, 255, 255, 0.85);
     overflow: hidden;
 }
 
-.tasks-seg__btn {
+.tasks-ctl:focus-within {
+    border-color: rgba(33, 150, 243, 0.7);
+}
+
+.tasks-search {
+    flex: 1 1 260px;
+    max-width: 380px;
+    padding: 0 12px;
+    gap: 8px;
+}
+
+::deep .tasks-ctl__icon {
+    color: rgba(255, 255, 255, 0.45);
+    flex: none;
+}
+
+.tasks-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
     background: transparent;
     border: 0;
+    outline: none;
+    color: inherit;
+    font: inherit;
+}
+
+.tasks-search input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.tasks-search input::-webkit-search-cancel-button {
+    filter: invert(1);
+    opacity: 0.5;
+}
+
+.tasks-pick {
+    position: relative;
+    min-width: 180px;
+    padding: 0 30px 0 12px;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.tasks-pick__caption {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.tasks-pick select {
+    appearance: none;
+    -webkit-appearance: none;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.tasks-pick select option {
+    background: #2b2b2b;
+    color: #fff;
+}
+
+::deep .tasks-pick__arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.tasks-seg {
+    padding: 3px;
+    gap: 2px;
+}
+
+.tasks-seg__btn {
+    height: 100%;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
     color: rgba(255, 255, 255, 0.55);
-    padding: 7px 12px;
+    padding: 0 12px;
     cursor: pointer;
     font: inherit;
     display: flex;
@@ -258,12 +342,24 @@
     padding: 0 8px;
 }
 
+/* Fixed, left-packed columns: the row background spans the width, the content does not spread. */
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 28px minmax(200px, 1.6fr) minmax(180px, 1.4fr) 80px 80px 120px 150px;
-    gap: 10px;
+    grid-template-columns: 28px minmax(200px, 320px) minmax(200px, 540px) 80px 80px 110px 140px;
+    justify-content: start;
+    gap: 12px;
     align-items: center;
+}
+
+.task-row .tasks-maps {
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.task-map--more {
+    color: rgba(255, 255, 255, 0.45);
+    border-style: dashed;
 }
 
 .task-row__objectives {

@@ -17,10 +17,12 @@
                 <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
                 <span class="tm-card-heading-text">@LocalizationService.GetString("Tasks")</span>
             </MudText>
-            <MudTextField T="string" Value="@search" ValueChanged="OnSearchChanged" Immediate="true" DebounceInterval="150"
-                          Placeholder="@LocalizationService.GetString("SearchTasks")" Variant="Variant.Outlined" Margin="Margin.Dense"
-                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="tm-input tasks-search" />
-            <div class="tasks-seg">
+            @* All controls share one height and frame (.tasks-ctl) so the row reads as one line. *@
+            <label class="tasks-ctl tasks-search">
+                <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="tasks-ctl__icon" />
+                <input type="search" value="@search" @oninput="e => OnSearchChanged(e.Value?.ToString() ?? string.Empty)" placeholder="@LocalizationService.GetString("SearchTasks")" />
+            </label>
+            <div class="tasks-ctl tasks-seg">
                 @foreach (var option in ViewOptions)
                 {
                     <button type="button" class="@("tasks-seg__btn" + (view == option ? " tasks-seg__btn--on" : ""))" @onclick="() => SetView(option)">
@@ -28,24 +30,28 @@
                     </button>
                 }
             </div>
-            <MudSelect T="string" Value="@mapFilter" ValueChanged="OnMapFilterChanged" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
-                       Label="@LocalizationService.GetString("Map")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="320"
-                       Class="tm-select tasks-select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("AllMaps")</MudSelectItem>
-                @foreach (var map in MapChoices)
-                {
-                    <MudSelectItem T="string" Value="@map.id">@map.name</MudSelectItem>
-                }
-            </MudSelect>
-            <MudSelect T="TaskSort" Value="@sort" ValueChanged="OnSortChanged" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
-                       Label="@LocalizationService.GetString("SortBy")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false"
-                       Class="tm-select tasks-select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                <MudSelectItem T="TaskSort" Value="TaskSort.Default">@LocalizationService.GetString("SortDefault")</MudSelectItem>
-                <MudSelectItem T="TaskSort" Value="TaskSort.Name">@LocalizationService.GetString("SortName")</MudSelectItem>
-                <MudSelectItem T="TaskSort" Value="TaskSort.Trader">@LocalizationService.GetString("SortTrader")</MudSelectItem>
-                <MudSelectItem T="TaskSort" Value="TaskSort.Experience">@LocalizationService.GetString("SortExperience")</MudSelectItem>
-                <MudSelectItem T="TaskSort" Value="TaskSort.Level">@LocalizationService.GetString("SortLevel")</MudSelectItem>
-            </MudSelect>
+            <label class="tasks-ctl tasks-pick">
+                <span class="tasks-pick__caption">@LocalizationService.GetString("Map")</span>
+                <select value="@mapFilter" @onchange="e => OnMapFilterChanged(e.Value?.ToString() ?? string.Empty)">
+                    <option value="">@LocalizationService.GetString("AllMaps")</option>
+                    @foreach (var map in MapChoices)
+                    {
+                        <option value="@map.id">@map.name</option>
+                    }
+                </select>
+                <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="tasks-pick__arrow" />
+            </label>
+            <label class="tasks-ctl tasks-pick">
+                <span class="tasks-pick__caption">@LocalizationService.GetString("SortBy")</span>
+                <select value="@sort" @onchange="e => OnSortChanged(Enum.TryParse<TaskSort>(e.Value?.ToString(), out var parsed) ? parsed : TaskSort.Default)">
+                    <option value="@TaskSort.Default">@LocalizationService.GetString("SortDefault")</option>
+                    <option value="@TaskSort.Name">@LocalizationService.GetString("SortName")</option>
+                    <option value="@TaskSort.Trader">@LocalizationService.GetString("SortTrader")</option>
+                    <option value="@TaskSort.Experience">@LocalizationService.GetString("SortExperience")</option>
+                    <option value="@TaskSort.Level">@LocalizationService.GetString("SortLevel")</option>
+                </select>
+                <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="tasks-pick__arrow" />
+            </label>
         </div>
         <div class="tasks-stats">
             <span><b>@accepted.Count</b> @LocalizationService.GetString("StatAccepted")</span>
@@ -172,9 +178,18 @@
                     {
                         <span class="task-map">@LocalizationService.GetString("AnyLocation")</span>
                     }
-                    @foreach (var map in item.Maps)
+                    @{
+                        // The current map is always among the shown chips; the rest is folded into "+n".
+                        var shownMaps = item.Maps.OrderByDescending(map => currentMap != null && map.id == currentMap.id).Take(4).ToList();
+                        var moreMaps = item.Maps.Except(shownMaps).ToList();
+                    }
+                    @foreach (var map in shownMaps)
                     {
                         <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                    }
+                    @if (moreMaps.Count > 0)
+                    {
+                        <span class="task-map task-map--more" title="@string.Join(", ", moreMaps.Select(map => map.name))">+@moreMaps.Count</span>
                     }
                     @if (item.Task.kappaRequired)
                     {
