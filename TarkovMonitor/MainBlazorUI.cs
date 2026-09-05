@@ -75,10 +75,33 @@ namespace TarkovMonitor
         private readonly TimersManager timersManager;
         private readonly MapsService mapsService;
         private const string MapFrameHost = "tarkov.dev";
-        // Injected into the embedded Tarkov.dev document: the site header and the
-        // cookie banner only take space inside the Maps tab. The map page sizes
-        // itself from the header height, so hiding it lets the map fill the frame.
-        private const string MapFrameStyle = "<style id=\"tarkov-monitor-frame\">nav.navigation, .CookieConsent { display: none !important; }</style>";
+        // Injected into the embedded Tarkov.dev document.
+        // Style: the site header and the cookie banner only take space inside the
+        // Maps tab. The map page sizes itself from the header height, so hiding
+        // it lets the map fill the frame.
+        // Script: Tarkov.dev clamps the view to 1.5x the map size. When the whole
+        // map fits the window that locks the map in place and every drag snaps
+        // back to the centre. Leaflet publishes itself as window.L, so its
+        // setMaxBounds is widened before the map is created.
+        private const string MapFrameInjection =
+            "<style id=\"tarkov-monitor-frame\">nav.navigation, .CookieConsent { display: none !important; }</style>"
+            + "<script id=\"tarkov-monitor-frame-script\">(function () {"
+            + "  var patched = false;"
+            + "  function patch(L) {"
+            + "    if (patched || !L || !L.Map || !L.latLngBounds) { return; }"
+            + "    patched = true;"
+            + "    var original = L.Map.prototype.setMaxBounds;"
+            + "    L.Map.prototype.setMaxBounds = function (bounds) {"
+            + "      var b = bounds ? L.latLngBounds(bounds) : null;"
+            + "      return original.call(this, b && b.isValid() ? b.pad(1) : bounds);"
+            + "    };"
+            + "  }"
+            + "  var current = window.L;"
+            + "  Object.defineProperty(window, 'L', { configurable: true, enumerable: true,"
+            + "    get: function () { return current; },"
+            + "    set: function (value) { current = value; patch(value); } });"
+            + "  patch(current);"
+            + "})();</script>";
         private static readonly HttpClient mapFrameClient = new(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.All,
@@ -1117,7 +1140,7 @@ namespace TarkovMonitor
                 body.Position = 0;
                 if (string.Equals(response.Content.Headers.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase))
                 {
-                    body = InjectMapFrameStyle(body);
+                    body = InjectMapFrameContent(body);
                 }
 
                 var headers = new StringBuilder();
@@ -1149,7 +1172,7 @@ namespace TarkovMonitor
             }
         }
 
-        private static MemoryStream InjectMapFrameStyle(MemoryStream html)
+        private static MemoryStream InjectMapFrameContent(MemoryStream html)
         {
             var text = Encoding.UTF8.GetString(html.GetBuffer(), 0, (int)html.Length);
             var headEnd = text.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
@@ -1157,7 +1180,7 @@ namespace TarkovMonitor
             {
                 return html;
             }
-            text = text.Insert(headEnd, MapFrameStyle);
+            text = text.Insert(headEnd, MapFrameInjection);
             return new MemoryStream(Encoding.UTF8.GetBytes(text));
         }
 
