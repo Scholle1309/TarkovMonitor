@@ -15,7 +15,13 @@
 <div style="width: 100%; height: 100%" class="tarkov-dev-bg">
 	<MudLayout>
 		<MudAppBar Class="window-app-bar" Elevation="1" Bottom="false" Dense="true">
-			<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer"/>
+			@* The drawer is toggled from its own logo; a small logo appears here only while it is collapsed. *@
+			@if (!drawerOpen)
+			{
+				<button class="navigation-reopen" type="button" @onclick="@ToggleDrawer" aria-label="Open navigation" title="Tarkov.dev">
+					<img class="navigation-reopen__logo" src="tarkov-dev-logo.svg" alt="Tarkov.dev" />
+				</button>
+			}
 			<span class="window-page-title" @onmousedown="BeginWindowDrag" @onmousedown:preventDefault="true">@CurrentPageTitle</span>
 			<div class="window-drag-region" @onmousedown="BeginWindowDrag">
 				<span class="window-product-title">@LocalizationService.GetString("TarkovMonitor")</span>
