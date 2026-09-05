@@ -114,14 +114,19 @@ namespace TarkovMonitor
             // One visual grid for the map controls: 44px squares, 8px gaps, same glass
             // background and corner radius; the raid info box matches the id box width.
             + "html body .leaflet-control-container .leaflet-control, html body .id-wrapper { background: rgba(0, 0, 0, 0.78) !important; border-radius: 6px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }"
-            + "html body .leaflet-top.leaflet-left .leaflet-control { margin: 8px 0 0 8px !important; }"
+            // Top-left: zoom and layers side by side; the layers panel drops down below its toggle.
+            + "html body .leaflet-top.leaflet-left { display: flex !important; align-items: flex-start; }"
+            + "html body .leaflet-top.leaflet-left .leaflet-control { float: none !important; clear: none !important; margin: 8px 0 0 8px !important; }"
             + "html body .leaflet-top.leaflet-left { z-index: 1010; }"
             + "html body .leaflet-bottom.leaflet-left { margin-bottom: 79px !important; }"
             + "html body .leaflet-bottom.leaflet-left .leaflet-control { margin: 0 0 8px 8px !important; }"
             + "html body .leaflet-touch .leaflet-bar a, html body .leaflet-bar a { width: 40px !important; height: 40px !important; line-height: 40px !important; }"
             + "html body .leaflet-control-zoom a:first-child { border-top-left-radius: 6px; border-top-right-radius: 6px; }"
             + "html body .leaflet-control-zoom a:last-child { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }"
-            + "html body .leaflet-control-layers:not(.leaflet-control-layers-expanded), html body .leaflet-control-layers-toggle { width: 44px !important; height: 44px !important; }"
+            + "html body .leaflet-control-layers { width: 44px !important; height: 44px !important; padding: 0 !important; box-sizing: border-box !important; overflow: visible !important; }"
+            + "html body .leaflet-control-layers-toggle { display: block !important; width: 100% !important; height: 100% !important; box-sizing: border-box; border-radius: 4px; }"
+            + "html body .leaflet-control-layers-expanded .leaflet-control-layers-toggle { background-color: rgba(255, 255, 255, 0.12) !important; }"
+            + "html body .leaflet-control-layers-expanded .leaflet-control-layers-list { display: block; position: absolute !important; left: -2px; top: 50px; box-sizing: border-box; width: max-content; min-width: 240px; max-width: min(420px, calc(100vw - 32px)); height: auto !important; max-height: calc(100vh - 210px); overflow-y: auto; margin: 0 !important; padding: 10px 12px !important; background: rgba(0, 0, 0, 0.85); border: 2px solid rgba(0, 0, 0, 0.2); border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }"
             + "html body .leaflet-control-map-settings, html body .maps-search-wrapper { width: 44px !important; height: 44px !important; padding: 0 !important; box-sizing: border-box !important; overflow: visible !important; }"
             + "html body .leaflet-control-map-settings-toggle, html body .leaflet-control-icon-search-toggle { display: block !important; width: 100% !important; height: 100% !important; box-sizing: border-box; border-radius: 4px; }"
             + "html body .leaflet-control-map-settings-expanded .leaflet-control-map-settings-toggle, html body .leaflet-control-icon-search-expanded .leaflet-control-icon-search-toggle { background-color: rgba(255, 255, 255, 0.12) !important; }"
