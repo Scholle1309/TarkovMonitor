@@ -380,4 +380,7 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>加载战局时打开地图标签页，战局结束后返回消息</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>隐藏游戏日志显示从未接受的任务的地图标记</value>
+  </data>
 </root>

@@ -350,4 +350,7 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Otwórz kartę Mapy podczas ładowania rajdu i wróć do Wiadomości po jego zakończeniu</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Ukryj na mapie zadania, których według logów gry nigdy nie przyjęto</value>
+  </data>
 </root>

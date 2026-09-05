@@ -405,4 +405,7 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Открывать вкладку Карты при загрузке рейда и возвращаться к Сообщениям после его окончания</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Скрывать на карте задания, которые по логам игры никогда не принимались</value>
+  </data>
 </root>

@@ -350,4 +350,7 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Abrir a aba Mapas ao carregar uma raid e voltar às Mensagens ao terminar</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Ocultar no mapa as tarefas que, segundo os registos do jogo, nunca foram aceites</value>
+  </data>
 </root>

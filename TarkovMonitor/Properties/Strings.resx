@@ -429,4 +429,7 @@
   <data name="BackToMap" xml:space="preserve">
     <value>Back to the map</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Hide map markers of tasks the game logs show you never accepted</value>
+  </data>
 </root>

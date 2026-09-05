@@ -669,6 +669,16 @@ namespace TarkovMonitor
             public string? wikiLink { get; set; }
             public bool restartable { get; set; }
             public List<TaskFailCondition> failConditions { get; set; } = new();
+            public int minPlayerLevel { get; set; }
+            public List<TaskRequirement> taskRequirements { get; set; } = new();
+        }
+
+        public class TaskRequirement
+        {
+            /// <summary>Id of the prerequisite task.</summary>
+            public string? task { get; set; }
+            /// <summary>Accepted states of the prerequisite: complete, failed or active.</summary>
+            public List<string> status { get; set; } = new();
         }
 
         public class TaskFailCondition

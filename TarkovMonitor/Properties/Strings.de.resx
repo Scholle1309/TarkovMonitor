@@ -365,4 +365,7 @@
   <data name="BackToMap" xml:space="preserve">
     <value>Zurück zur Karte</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Kartenmarker von Aufgaben ausblenden, die laut Spiel-Logs nie angenommen wurden</value>
+  </data>
 </root>

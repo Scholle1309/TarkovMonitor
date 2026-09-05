@@ -350,4 +350,7 @@
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
     <value>Ouvrir l'onglet Cartes au chargement d'un raid et revenir aux Messages à la fin</value>
   </data>
+  <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
+    <value>Masquer sur la carte les tâches que les journaux du jeu montrent comme jamais acceptées</value>
+  </data>
 </root>

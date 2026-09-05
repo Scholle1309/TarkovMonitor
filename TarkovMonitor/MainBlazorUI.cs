@@ -74,6 +74,8 @@ namespace TarkovMonitor
         private readonly GroupManager groupManager;
         private readonly TimersManager timersManager;
         private readonly MapsService mapsService;
+        private readonly QuestLogStore questLogStore;
+        private const string TrackerApiHostPrefix = "api.tarkovtracker.";
         private const string MapFrameHost = "tarkov.dev";
         // Injected into the embedded Tarkov.dev document.
         // Style: the site header and the cookie banner only take space inside the
@@ -172,6 +174,9 @@ namespace TarkovMonitor
             // State of the embedded Tarkov.dev map (Maps tab)
             mapsService = new MapsService();
 
+            // Quest events from the game logs (which quests were really accepted)
+            questLogStore = new QuestLogStore(Stats.DatabasePath);
+
             // Creates the dependency injection services which are the in-betweens for the Blazor interface and the rest of the C# application.
             var services = new ServiceCollection();
             services.AddWindowsFormsBlazorWebView();
@@ -190,6 +195,7 @@ namespace TarkovMonitor
             services.AddSingleton<GroupManager>(groupManager);
             services.AddSingleton<TimersManager>(timersManager);
             services.AddSingleton<MapsService>(mapsService);
+            services.AddSingleton<QuestLogStore>(questLogStore);
             services.AddSingleton<MainBlazorUI>(this);
 
             blazorWebView1.HostPage = "wwwroot\\index.html";
@@ -212,6 +218,7 @@ namespace TarkovMonitor
             eft.TaskStarted += Eft_TaskStarted;
             eft.TaskFailed += Eft_TaskFailed;
             eft.TaskFinished += Eft_TaskFinished;
+            eft.TaskModified += Eft_TaskModified;
             eft.NewLogData += Eft_NewLogData;
             eft.GroupInviteAccept += Eft_GroupInviteAccept;
             eft.GroupUserLeave += Eft_GroupUserLeave;
@@ -834,6 +841,7 @@ namespace TarkovMonitor
                     // are activated.
                     _ = RefreshTarkovDevApiData(lastKnownProfile, allowPersistedProfile: true);
                 }
+                ScanQuestLogsInBackground();
                 gameWatcherStarted = eft.Start();
                 if (!eft.IsGameRunning)
                 {
@@ -1099,6 +1107,10 @@ namespace TarkovMonitor
             try
             {
                 core.AddWebResourceRequestedFilter($"https://{MapFrameHost}/*", CoreWebView2WebResourceContext.Document);
+                foreach (var domain in TarkovTracker.Domains.Keys)
+                {
+                    core.AddWebResourceRequestedFilter($"https://api.{domain}/*", CoreWebView2WebResourceContext.All, CoreWebView2WebResourceRequestSourceKinds.All);
+                }
                 core.WebResourceRequested += CoreWebView2_WebResourceRequested;
             }
             catch (Exception exception)
@@ -1113,13 +1125,28 @@ namespace TarkovMonitor
         // Scripts, styles, images and API calls are not touched.
         private async void CoreWebView2_WebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
         {
-            if (sender is not CoreWebView2 core || e.ResourceContext != CoreWebView2WebResourceContext.Document)
+            if (sender is not CoreWebView2 core || !Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri))
             {
                 return;
             }
-            if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri)
-                || !uri.Host.Equals(MapFrameHost, StringComparison.OrdinalIgnoreCase)
-                || !string.Equals(e.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            if (uri.Host.StartsWith(TrackerApiHostPrefix, StringComparison.OrdinalIgnoreCase)
+                && (Debugger.IsAttached || Environment.GetEnvironmentVariable("TARKOVMONITOR_MAPS_DEBUG") == "1"))
+            {
+                messageLog.AddMessage($"Map debug: tracker request {e.Request.Method} {uri.AbsolutePath} context={e.ResourceContext}", "info");
+            }
+            if (!string.Equals(e.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+            if (uri.Host.StartsWith(TrackerApiHostPrefix, StringComparison.OrdinalIgnoreCase)
+                && uri.AbsolutePath.Equals("/progress", StringComparison.OrdinalIgnoreCase)
+                && (e.ResourceContext == CoreWebView2WebResourceContext.XmlHttpRequest || e.ResourceContext == CoreWebView2WebResourceContext.Fetch))
+            {
+                await HandleTrackerProgressRequest(core, e, uri);
+                return;
+            }
+            if (e.ResourceContext != CoreWebView2WebResourceContext.Document
+                || !uri.Host.Equals(MapFrameHost, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -1188,6 +1215,169 @@ namespace TarkovMonitor
             return new MemoryStream(Encoding.UTF8.GetBytes(text));
         }
 
+        // The embedded Tarkov.dev page fetches its TarkovTracker progress itself.
+        // The answer passes through here so quests the game logs prove were
+        // never accepted can be marked failed: Tarkov.dev then treats them as
+        // inactive and "only show markers for active tasks" matches the game.
+        private async Task HandleTrackerProgressRequest(CoreWebView2 core, CoreWebView2WebResourceRequestedEventArgs e, Uri uri)
+        {
+            var deferral = e.GetDeferral();
+            if (Debugger.IsAttached || Environment.GetEnvironmentVariable("TARKOVMONITOR_MAPS_DEBUG") == "1")
+            {
+                var (debugProfileId, debugSessionMode) = ResolveQuestHistoryProfile();
+                messageLog.AddMessage($"Map debug: tracker progress request ({e.ResourceContext}) profile={debugProfileId} mode={debugSessionMode} tasks={TarkovDev.Tasks.Count} withRequirements={TarkovDev.Tasks.Count(t => t.taskRequirements.Count > 0)} hideSetting={Properties.Settings.Default.mapHideUnacceptedTasks}", "info");
+            }
+            var startedUtc = DateTime.UtcNow;
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+                foreach (var header in e.Request.Headers)
+                {
+                    if (IsHopByHopHeader(header.Key))
+                    {
+                        continue;
+                    }
+                    request.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
+                using var response = await mapFrameClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                var body = new MemoryStream();
+                await response.Content.CopyToAsync(body);
+                body.Position = 0;
+                if (response.IsSuccessStatusCode && Properties.Settings.Default.mapHideUnacceptedTasks)
+                {
+                    body = HideUnacceptedTasks(body);
+                }
+
+                var headers = new StringBuilder();
+                foreach (var header in response.Headers.Concat(response.Content.Headers))
+                {
+                    if (IsStrippedResponseHeader(header.Key))
+                    {
+                        continue;
+                    }
+                    foreach (var value in header.Value)
+                    {
+                        headers.Append(header.Key).Append(": ").Append(value).Append("\r\n");
+                    }
+                }
+                e.Response = core.Environment.CreateWebResourceResponse(body, (int)response.StatusCode, response.ReasonPhrase ?? "OK", headers.ToString());
+            }
+            catch (Exception exception)
+            {
+                RecordException("The map could not filter the Tarkov Tracker progress; all available tasks are shown.", "TM-MAPS-004", "TrackerProgressFilter", exception, "Maps", "QuestHistory", endpoint: uri.GetLeftPart(UriPartial.Path), durationMilliseconds: DiagnosticsService.ElapsedMilliseconds(startedUtc));
+            }
+            finally
+            {
+                deferral.Complete();
+            }
+        }
+
+        // The profile whose quest history applies: the tracker's active profile
+        // while a session is recognised, otherwise the profile last seen in the logs.
+        private static (string ProfileId, EftSessionMode SessionMode) ResolveQuestHistoryProfile()
+        {
+            var profileId = TarkovTracker.CurrentProfileId;
+            if (!string.IsNullOrEmpty(profileId) && TarkovTracker.CurrentSessionMode != EftSessionMode.Unknown)
+            {
+                return (profileId, TarkovTracker.CurrentSessionMode);
+            }
+            var logProfile = GameWatcher.CurrentProfile.Snapshot();
+            return (logProfile.Id ?? "", logProfile.SessionMode);
+        }
+
+        private MemoryStream HideUnacceptedTasks(MemoryStream json)
+        {
+            var root = JsonNode.Parse(json.GetBuffer().AsSpan(0, (int)json.Length));
+            if (root?["data"]?["tasksProgress"] is not JsonArray tasksProgress)
+            {
+                json.Position = 0;
+                return json;
+            }
+            var completed = new HashSet<string>();
+            var entries = new Dictionary<string, JsonObject>();
+            foreach (var node in tasksProgress)
+            {
+                if (node is not JsonObject entry || entry["id"]?.GetValue<string>() is not string id)
+                {
+                    continue;
+                }
+                entries[id] = entry;
+                if (entry["complete"]?.GetValue<bool>() == true)
+                {
+                    completed.Add(id);
+                }
+            }
+
+            var (profileId, sessionMode) = ResolveQuestHistoryProfile();
+            var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, TarkovDev.Tasks, completed);
+            if (hidden.Count == 0)
+            {
+                json.Position = 0;
+                return json;
+            }
+            foreach (var id in hidden)
+            {
+                if (entries.TryGetValue(id, out var entry))
+                {
+                    entry["failed"] = true;
+                }
+                else
+                {
+                    tasksProgress.Add(new JsonObject { ["id"] = id, ["complete"] = false, ["failed"] = true });
+                }
+            }
+            messageLog.AddMessage($"Map: hiding {hidden.Count} available task(s) the game logs show as never accepted.", "info");
+            return new MemoryStream(Encoding.UTF8.GetBytes(root.ToJsonString()));
+        }
+
+        private bool questLogScanStarted;
+
+        private void ScanQuestLogsInBackground()
+        {
+            if (questLogScanStarted)
+            {
+                return;
+            }
+            questLogScanStarted = true;
+            var logsPath = eft.LogsPath;
+            _ = System.Threading.Tasks.Task.Run(() =>
+            {
+                var startedUtc = DateTime.UtcNow;
+                try
+                {
+                    var result = questLogStore.ScanLogs(logsPath, eft);
+                    if (result.Folders > 0)
+                    {
+                        var since = result.Horizon?.ToString("yyyy-MM-dd") ?? "unknown";
+                        messageLog.AddMessage($"Quest history: {result.Events} quest events found in {result.Folders} log sessions since {since}.", "info");
+                    }
+                    else
+                    {
+                        messageLog.AddMessage($"Quest history: no game log sessions found in \"{logsPath}\".", "warning");
+                    }
+                    if (result.NewEvents > 0)
+                    {
+                        mapsService.NotifyQuestStateChanged(inRaid);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    RecordException("Reading the quest history from the game logs failed.", "TM-MAPS-003", "ScanQuestLogs", exception, "Maps", "QuestHistory", durationMilliseconds: DiagnosticsService.ElapsedMilliseconds(startedUtc));
+                }
+            });
+        }
+
+        private void Eft_TaskModified(object? sender, LogContentEventArgs<TaskStatusMessageLogContent> e)
+        {
+            if (GameWatcher.ReadingPastLogs)
+            {
+                return;
+            }
+            questLogStore.AddLiveEvent(e.Profile, e.LogContent.TaskId, e.LogContent.Status, DateTime.Now);
+            mapsService.NotifyQuestStateChanged(inRaid);
+        }
+
         private static bool IsHopByHopHeader(string name)
         {
             return name.Equals("Host", StringComparison.OrdinalIgnoreCase)
@@ -1216,9 +1406,9 @@ namespace TarkovMonitor
             {
                 return;
             }
-
             try
             {
+                ScanQuestLogsInBackground();
                 gameWatcherStarted = eft.Start();
             }
             catch (Exception ex)

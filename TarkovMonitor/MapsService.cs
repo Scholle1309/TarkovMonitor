@@ -347,6 +347,44 @@ namespace TarkovMonitor
             }
         }
 
+        private bool questStateStale;
+
+        /// <summary>
+        /// The quest history changed (a task was accepted, finished or failed, or
+        /// the logs were scanned). The embedded page only re-reads its progress
+        /// on a reload, which is postponed while a raid is running.
+        /// </summary>
+        public void NotifyQuestStateChanged(bool inRaid)
+        {
+            if (!FrameLoaded)
+            {
+                return;
+            }
+            if (inRaid)
+            {
+                lock (gate)
+                {
+                    questStateStale = true;
+                }
+                return;
+            }
+            ReloadFrame();
+        }
+
+        private void ReloadIfStale()
+        {
+            bool stale;
+            lock (gate)
+            {
+                stale = questStateStale;
+                questStateStale = false;
+            }
+            if (stale && FrameLoaded)
+            {
+                ReloadFrame();
+            }
+        }
+
         /// <summary>A raid is loading: show the Maps tab (if the setting is on).</summary>
         public void RequestShowMaps()
         {
@@ -361,6 +399,7 @@ namespace TarkovMonitor
         /// <summary>The raid ended: go back to the dashboard, but only if the Maps tab is showing.</summary>
         public void RequestShowDashboard()
         {
+            ReloadIfStale();
             if (!Properties.Settings.Default.autoShowMapTab)
             {
                 return;
