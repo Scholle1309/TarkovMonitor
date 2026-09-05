@@ -353,4 +353,46 @@
   <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
     <value>Ukryj na mapie zadania, których według logów gry nigdy nie przyjęto</value>
   </data>
+  <data name="Tasks" xml:space="preserve">
+    <value>Zadania</value>
+  </data>
+  <data name="SearchTasks" xml:space="preserve">
+    <value>Search tasks, traders, maps or objectives</value>
+  </data>
+  <data name="IncludeAvailableTasks" xml:space="preserve">
+    <value>Also show available tasks that are not accepted yet</value>
+  </data>
+  <data name="TasksSummary" xml:space="preserve">
+    <value>{0} accepted tasks, {1} available.</value>
+  </data>
+  <data name="TasksSortedForMap" xml:space="preserve">
+    <value>Tasks for {0} are listed first.</value>
+  </data>
+  <data name="TasksOnMap" xml:space="preserve">
+    <value>On {0}</value>
+  </data>
+  <data name="TasksElsewhere" xml:space="preserve">
+    <value>Other maps</value>
+  </data>
+  <data name="AnyLocation" xml:space="preserve">
+    <value>Any location</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="TaskStateAccepted" xml:space="preserve">
+    <value>Accepted</value>
+  </data>
+  <data name="TaskStateAvailable" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="TaskAcceptedOn" xml:space="preserve">
+    <value>Accepted on {0}</value>
+  </data>
+  <data name="NoTasks" xml:space="preserve">
+    <value>No tasks to show.</value>
+  </data>
+  <data name="TasksNeedTracker" xml:space="preserve">
+    <value>No Tarkov Tracker progress yet. Assign an API token in Settings and start the game so the task list can be built.</value>
+  </data>
 </root>

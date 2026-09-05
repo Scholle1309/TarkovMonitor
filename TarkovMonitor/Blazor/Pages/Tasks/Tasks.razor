@@ -1,0 +1,262 @@
+@page "/tasks"
+@using System.Diagnostics
+@inject TaskStateService TaskStateService
+@inject QuestLogStore QuestLogStore
+@inject MapsService MapsService
+@inject TimersManager TimersManager
+@inject LocalizationService LocalizationService
+@inject MessageLog MessageLog
+@layout AppLayout
+@implements IDisposable
+
+<MudGrid Class="pa-0" Spacing="0">
+    <MudItem xs="12">
+        <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
+            <MudText Typo="Typo.h6" Class="d-flex align-center">
+                <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
+                <span class="tm-card-heading-text">@LocalizationService.GetString("Tasks")</span>
+            </MudText>
+            <div class="tasks-toolbar">
+                <MudTextField T="string" Value="@search" ValueChanged="OnSearchChanged" Immediate="true" DebounceInterval="150"
+                              Placeholder="@LocalizationService.GetString("SearchTasks")" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="tm-input tasks-search" />
+                <MudSwitch T="bool" Value="@includeAvailable" ValueChanged="OnIncludeAvailableChanged" Color="Color.Info" Label="@LocalizationService.GetString("IncludeAvailableTasks")" />
+            </div>
+            <MudText Typo="Typo.caption" Class="tasks-summary">@SummaryText</MudText>
+        </MudPaper>
+    </MudItem>
+
+    @if (!TaskStateService.HasTrackerProgress)
+    {
+        <MudItem xs="12">
+            <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2 mx-4">@LocalizationService.GetString("TasksNeedTracker")</MudAlert>
+        </MudItem>
+    }
+
+    @if (visible.Count == 0)
+    {
+        <MudItem xs="12">
+            <MudText Class="ma-4" Typo="Typo.body2">@LocalizationService.GetString("NoTasks")</MudText>
+        </MudItem>
+    }
+
+    @foreach (var group in visible.GroupBy(view => view.OnCurrentMap && currentMap != null))
+    {
+        @if (currentMap != null)
+        {
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle2" Class="tasks-group-heading">
+                    @(group.Key ? string.Format(LocalizationService.GetString("TasksOnMap"), currentMap.name) : LocalizationService.GetString("TasksElsewhere"))
+                    <span class="tasks-group-count">@group.Count()</span>
+                </MudText>
+            </MudItem>
+        }
+        @foreach (var view in group)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="@("app-surface task-card ma-2 mx-4" + (view.OnCurrentMap && currentMap != null ? " task-card--current" : ""))" Elevation="2">
+                    <div class="task-card__header" @onclick="() => ToggleExpanded(view.Task.id)">
+                        <MudIcon Icon="@(expanded.Contains(view.Task.id) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" Class="task-card__toggle" />
+                        <div class="task-card__title">
+                            <MudText Typo="Typo.subtitle1" Class="task-card__name">@view.Task.name</MudText>
+                            <MudText Typo="Typo.caption" Class="task-card__trader">@view.TraderName</MudText>
+                        </div>
+                        <div class="task-card__chips">
+                            @if (view.Maps.Count == 0)
+                            {
+                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@LocalizationService.GetString("AnyLocation")</MudChip>
+                            }
+                            @foreach (var map in view.Maps)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="@(currentMap != null && map.id == currentMap.id ? Color.Success : Color.Default)" Variant="@(currentMap != null && map.id == currentMap.id ? Variant.Filled : Variant.Outlined)">@map.name</MudChip>
+                            }
+                            @if (view.Task.kappaRequired)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Kappa</MudChip>
+                            }
+                            <MudChip T="string" Size="Size.Small" Color="@(view.State == TaskState.Accepted ? Color.Info : Color.Default)">@StateLabel(view.State)</MudChip>
+                        </div>
+                        <span @onclick:stopPropagation="true">
+                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev"
+                                           OnClick="@(() => OpenTask(view.Task))" />
+                        </span>
+                    </div>
+                    @if (expanded.Contains(view.Task.id))
+                    {
+                        <div class="task-card__objectives">
+                            @if (view.Task.objectives.Count == 0)
+                            {
+                                <MudText Typo="Typo.body2">-</MudText>
+                            }
+                            @foreach (var objective in view.Task.objectives)
+                            {
+                                <div class="task-objective">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Circle" Size="Size.Small" Class="task-objective__icon" />
+                                    <span class="task-objective__text">@objective.description</span>
+                                    @if (objective.optional)
+                                    {
+                                        <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
+                                    }
+                                    @foreach (var mapId in objective.maps)
+                                    {
+                                        var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
+                                        if (map != null)
+                                        {
+                                            <span class="@("task-objective__map" + (currentMap != null && map.id == currentMap.id ? " task-objective__map--current" : ""))">@map.name</span>
+                                        }
+                                    }
+                                </div>
+                            }
+                            @if (view.AcceptedAt != null)
+                            {
+                                <MudText Typo="Typo.caption" Class="task-card__accepted">@string.Format(LocalizationService.GetString("TaskAcceptedOn"), view.AcceptedAt.Value.ToString("g"))</MudText>
+                            }
+                        </div>
+                    }
+                </MudPaper>
+            </MudItem>
+        }
+    }
+</MudGrid>
+
+@code {
+    [CascadingParameter(Name = "AppLayout")]
+    public AppLayout AppLayout { get; set; } = default!;
+
+    private List<TaskView> all = new();
+    private List<TaskView> visible = new();
+    private TarkovDev.Map? currentMap;
+    private string search = "";
+    private bool includeAvailable;
+    private readonly HashSet<string> expanded = new();
+
+    private string SummaryText
+    {
+        get
+        {
+            var accepted = all.Count(view => view.State == TaskState.Accepted);
+            var available = all.Count(view => view.State == TaskState.Available);
+            var text = string.Format(LocalizationService.GetString("TasksSummary"), accepted, available);
+            if (currentMap != null)
+            {
+                text += " " + string.Format(LocalizationService.GetString("TasksSortedForMap"), currentMap.name);
+            }
+            return text;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        QuestLogStore.Changed += OnDataChanged;
+        MapsService.Changed += OnDataChanged;
+        TimersManager.RaidActiveChanged += OnDataChanged;
+        TarkovDev.ApiDataLoaded += OnDataChanged;
+        TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        LocalizationService.LanguageChanged += OnDataChanged;
+        Refresh();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            AppLayout.SetTitle(LocalizationService.GetString("Tasks"));
+        }
+    }
+
+    private void OnDataChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            Refresh();
+            StateHasChanged();
+        });
+    }
+
+    private void OnProgressRetrieved(object? sender, TarkovTracker.ProgressRetrievedEventArgs e)
+    {
+        OnDataChanged(sender, EventArgs.Empty);
+    }
+
+    // The current map only counts while a raid is running or loading; outside
+    // of a raid the list is sorted by trader and name.
+    private void Refresh()
+    {
+        currentMap = MapsService.RaidActive || TimersManager.IsRaidActive ? MapsService.CurrentMap : null;
+        all = TaskStateService.GetTasks();
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var query = all.Where(view => view.State == TaskState.Accepted || (includeAvailable && view.State == TaskState.Available));
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim();
+            query = query.Where(view =>
+                view.Task.name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || view.TraderName.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || view.Maps.Any(map => map.name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                || view.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+        visible = query
+            .OrderByDescending(view => currentMap != null && view.OnCurrentMap)
+            .ThenBy(view => view.State)
+            .ThenBy(view => view.TraderName)
+            .ThenBy(view => view.Task.name)
+            .ToList();
+    }
+
+    private void OnSearchChanged(string value)
+    {
+        search = value ?? "";
+        ApplyFilter();
+    }
+
+    private void OnIncludeAvailableChanged(bool value)
+    {
+        includeAvailable = value;
+        ApplyFilter();
+    }
+
+    private void ToggleExpanded(string taskId)
+    {
+        if (!expanded.Remove(taskId))
+        {
+            expanded.Add(taskId);
+        }
+    }
+
+    private string StateLabel(TaskState state) => state switch
+    {
+        TaskState.Accepted => LocalizationService.GetString("TaskStateAccepted"),
+        TaskState.Available => LocalizationService.GetString("TaskStateAvailable"),
+        _ => state.ToString(),
+    };
+
+    private void OpenTask(TarkovDev.Task task)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo($"https://tarkov.dev/task/{task.normalizedName}") { UseShellExecute = true });
+        }
+        catch (Exception exception)
+        {
+            MessageLog.Diagnostics.Capture(
+                new DiagnosticContext("TM-TASKS-001", "OpenTask", "Tasks", "Navigation", "The task page could not be opened in the browser."),
+                exception);
+        }
+    }
+
+    public void Dispose()
+    {
+        QuestLogStore.Changed -= OnDataChanged;
+        MapsService.Changed -= OnDataChanged;
+        TimersManager.RaidActiveChanged -= OnDataChanged;
+        TarkovDev.ApiDataLoaded -= OnDataChanged;
+        TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        LocalizationService.LanguageChanged -= OnDataChanged;
+    }
+}

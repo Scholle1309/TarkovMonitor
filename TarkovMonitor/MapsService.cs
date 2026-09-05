@@ -385,9 +385,14 @@ namespace TarkovMonitor
             }
         }
 
+        /// <summary>True from the moment a raid map starts loading until the raid ends.</summary>
+        public bool RaidActive { get; private set; }
+
         /// <summary>A raid is loading: show the Maps tab (if the setting is on).</summary>
         public void RequestShowMaps()
         {
+            RaidActive = true;
+            RaiseChanged();
             if (!Properties.Settings.Default.autoShowMapTab)
             {
                 return;
@@ -399,6 +404,8 @@ namespace TarkovMonitor
         /// <summary>The raid ended: go back to the dashboard, but only if the Maps tab is showing.</summary>
         public void RequestShowDashboard()
         {
+            RaidActive = false;
+            RaiseChanged();
             ReloadIfStale();
             if (!Properties.Settings.Default.autoShowMapTab)
             {

@@ -671,6 +671,22 @@ namespace TarkovMonitor
             public List<TaskFailCondition> failConditions { get; set; } = new();
             public int minPlayerLevel { get; set; }
             public List<TaskRequirement> taskRequirements { get; set; } = new();
+            /// <summary>Id of the trader giving the task.</summary>
+            public string? trader { get; set; }
+            /// <summary>Id of the map the task is bound to, or null when it is not map specific.</summary>
+            public string? map { get; set; }
+            public bool kappaRequired { get; set; }
+            public List<TaskObjective> objectives { get; set; } = new();
+        }
+
+        public class TaskObjective
+        {
+            public string id { get; set; } = "";
+            public string? description { get; set; }
+            public string? type { get; set; }
+            public bool optional { get; set; }
+            /// <summary>Ids of the maps the objective can be done on (empty = anywhere).</summary>
+            public List<string> maps { get; set; } = new();
         }
 
         public class TaskRequirement

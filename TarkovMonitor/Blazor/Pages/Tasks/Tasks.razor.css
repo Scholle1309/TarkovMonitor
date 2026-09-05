@@ -1,0 +1,117 @@
+.tasks-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+::deep .tasks-search {
+    flex: 1 1 260px;
+    max-width: 420px;
+}
+
+.tasks-summary {
+    display: block;
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.tasks-group-heading {
+    margin: 12px 16px 0;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.tasks-group-count {
+    margin-left: 8px;
+    padding: 0 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 0.75rem;
+}
+
+::deep .task-card {
+    padding: 6px 10px;
+    border-left: 3px solid transparent;
+}
+
+::deep .task-card--current {
+    border-left-color: #43a047;
+}
+
+.task-card__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.task-card__toggle {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.task-card__title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+::deep .task-card__name {
+    line-height: 1.2;
+}
+
+::deep .task-card__trader {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.task-card__chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.task-card__objectives {
+    margin: 6px 0 2px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.task-objective {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+}
+
+.task-objective__icon {
+    align-self: center;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.task-objective__optional {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.8rem;
+}
+
+.task-objective__map {
+    padding: 0 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+}
+
+.task-objective__map--current {
+    background: rgba(67, 160, 71, 0.35);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+::deep .task-card__accepted {
+    margin-top: 4px;
+    color: rgba(255, 255, 255, 0.45);
+}

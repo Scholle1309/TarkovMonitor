@@ -196,6 +196,7 @@ namespace TarkovMonitor
             services.AddSingleton<TimersManager>(timersManager);
             services.AddSingleton<MapsService>(mapsService);
             services.AddSingleton<QuestLogStore>(questLogStore);
+            services.AddSingleton<TaskStateService>(new TaskStateService(questLogStore, mapsService));
             services.AddSingleton<MainBlazorUI>(this);
 
             blazorWebView1.HostPage = "wwwroot\\index.html";
