@@ -113,16 +113,16 @@ namespace TarkovMonitor
             + "html body .leaflet-control-fullscreen { display: none !important; }"
             // One visual grid for the map controls: 44px squares, 8px gaps, same glass
             // background and corner radius; the raid info box matches the id box width.
-            + "html body .leaflet-control-container .leaflet-control, html body .id-wrapper { background: rgba(0, 0, 0, 0.78) !important; border-radius: 6px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }"
+            + "html body .leaflet-control-container .leaflet-control, html body .id-wrapper { background: rgba(30, 30, 30, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; }"
             // Top-left: zoom and layers side by side; the layers panel drops down below its toggle.
             + "html body .leaflet-top.leaflet-left { display: flex !important; align-items: flex-start; }"
             + "html body .leaflet-top.leaflet-left .leaflet-control { float: none !important; clear: none !important; margin: 8px 0 0 8px !important; }"
             + "html body .leaflet-top.leaflet-left { z-index: 1010; }"
             + "html body .leaflet-bottom.leaflet-left { margin-bottom: 79px !important; }"
             + "html body .leaflet-bottom.leaflet-left .leaflet-control { margin: 0 0 8px 8px !important; }"
-            + "html body .leaflet-touch .leaflet-bar a, html body .leaflet-bar a { width: 40px !important; height: 40px !important; line-height: 40px !important; }"
-            + "html body .leaflet-control-zoom a:first-child { border-top-left-radius: 6px; border-top-right-radius: 6px; }"
-            + "html body .leaflet-control-zoom a:last-child { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }"
+            + "html body .leaflet-touch .leaflet-bar a, html body .leaflet-bar a { width: 42px !important; height: 42px !important; line-height: 42px !important; background: transparent !important; color: rgba(255, 255, 255, 0.85) !important; border-bottom-color: rgba(255, 255, 255, 0.12) !important; }"
+            + "html body .leaflet-control-zoom a:first-child { border-top-left-radius: 7px; border-top-right-radius: 7px; }"
+            + "html body .leaflet-control-zoom a:last-child { border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; }"
             // Layers, settings and search: 44px buttons in the bottom-right dock (same look as the
             // Maps tab buttons next to them); their panels open upwards, right-aligned.
             + "html body .leaflet-control-layers, html body .leaflet-control-map-settings, html body .maps-search-wrapper { width: 44px !important; height: 44px !important; padding: 0 !important; margin: 0 0 0 8px !important; box-sizing: border-box !important; overflow: visible !important; float: none !important; clear: none !important; background: rgba(30, 30, 30, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; }"
@@ -185,7 +185,10 @@ namespace TarkovMonitor
             + "html body .id-wrapper .session-id-container, html body .id-wrapper .session-id { font-size: 15px; font-weight: 600; line-height: 1; }"
             // The dock sits left of the Maps tab buttons (tasks at right 12px, bosses at 64px).
             + "html body .leaflet-bottom.leaflet-right.tarkov-monitor-dock { position: absolute; right: 116px !important; bottom: 12px !important; margin: 0 !important; z-index: 1000; pointer-events: none; display: flex; align-items: flex-end; }"
-            + "html body .tarkov-monitor-dock .leaflet-control { pointer-events: auto; }"
+            // Same colours as the Maps tab buttons; more specific than the general glass rule for Leaflet controls.
+            + "html body .leaflet-control-container .tarkov-monitor-dock .leaflet-control { pointer-events: auto; background: rgba(30, 30, 30, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.18) !important; border-radius: 8px !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important; }"
+            + "html body .leaflet-control-container .tarkov-monitor-dock .leaflet-control:hover { background: rgba(60, 60, 60, 0.95) !important; }"
+            + "html body .leaflet-control-container .tarkov-monitor-dock .leaflet-control-layers-expanded, html body .leaflet-control-container .tarkov-monitor-dock .leaflet-control-map-settings-expanded, html body .leaflet-control-container .tarkov-monitor-dock .leaflet-control-icon-search-expanded { border-color: rgba(33, 150, 243, 0.8) !important; }"
             + "html body div.leaflet-pane.leaflet-marker-pane > .pulse { animation: tarkov-monitor-pulse 1s ease-in-out infinite;"
             + " border-radius: 50%; z-index: 900 !important; opacity: 1 !important; }"
             + "</style>"
