@@ -26,7 +26,7 @@
 				<MudIconButton Class="window-control window-control-close" Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" Size="Size.Small" OnClick="CloseWindow" aria-label="Close" />
 			</div>
 		</MudAppBar>
-		<MudDrawer Class="navigation-drawer" @bind-Open="@drawerOpen" Elevation="1" Anchor="Anchor.Left" Variant="@DrawerVariant.Responsive" Breakpoint="Breakpoint.None">
+		<MudDrawer Class="navigation-drawer" @bind-Open="@drawerOpen" Elevation="1" Anchor="Anchor.Left" Variant="@DrawerVariant.Persistent" Width="175px">
 			<MudDrawerHeader Class="navigation-drawer-header">
 				<button class="navigation-brand" type="button" @onclick="@ToggleDrawer" aria-label="Collapse navigation">
 					<div class="navigation-brand-copy">
@@ -35,16 +35,19 @@
 					<MudIcon Class="drawer-collapse-cue" Icon="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
 				</button>
 			</MudDrawerHeader>
+			@* Everyday pages on top; rarely used pages pinned to the bottom. *@
 			<MudNavMenu Class="navigation-menu" Color="Color.Secondary" Bordered="false">
 				<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Message">@LocalizationService.GetString("Messages")</MudNavLink>
 				<MudNavLink Href="/maps" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Map">@LocalizationService.GetString("Maps")</MudNavLink>
 				<MudNavLink Href="/tasks" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Assignment">@LocalizationService.GetString("Tasks")</MudNavLink>
-                <!--MudNavLink Href="/group" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">@LocalizationService.GetString("Group")</!--MudNavLink-->
-				<MudNavLink Href="/settings" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Settings">@LocalizationService.GetString("Settings")</MudNavLink>
-				<MudNavLink Href="/sounds" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Speaker">@LocalizationService.GetString("Sounds")</MudNavLink>
-				<MudNavLink Href="/stats" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.BarChart">@LocalizationService.GetString("Stats")</MudNavLink>
-				<MudNavLink Href="/raw" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.RawOn">@LocalizationService.GetString("RawLogs")</MudNavLink>
 				<MudNavLink Href="/timers" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Timer">@LocalizationService.GetString("Timers")</MudNavLink>
+				<MudNavLink Href="/stats" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.BarChart">@LocalizationService.GetString("Stats")</MudNavLink>
+				<MudNavLink Href="/sounds" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Speaker">@LocalizationService.GetString("Sounds")</MudNavLink>
+			</MudNavMenu>
+			<div class="navigation-spacer"></div>
+			<MudNavMenu Class="navigation-menu navigation-menu--bottom" Color="Color.Secondary" Bordered="false">
+				<MudNavLink Href="/raw" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.RawOn">@LocalizationService.GetString("RawLogs")</MudNavLink>
+				<MudNavLink Href="/settings" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Settings">@LocalizationService.GetString("Settings")</MudNavLink>
 			</MudNavMenu>
 		</MudDrawer>
 		<MudMainContent Class="@MainContentClass" Style="box-sizing: border-box;">
@@ -112,7 +115,8 @@
 
 	// Keep the drawer under explicit user control. Automatic responsive drawer
 	// transitions can reopen it when a resize crosses a card-layout breakpoint.
-	bool drawerOpen = false;
+	// It is open by default and its last state is remembered.
+	bool drawerOpen = Properties.Settings.Default.navigationDrawerOpen;
 
 	public string CurrentPageTitle = "Tarkov Monitor";
 	private bool isWindowMaximized;
@@ -172,6 +176,8 @@
 	void ToggleDrawer()
 	{
 		drawerOpen = !drawerOpen;
+		Properties.Settings.Default.navigationDrawerOpen = drawerOpen;
+		Properties.Settings.Default.Save();
 	}
 
 	private void BeginWindowDrag(MouseEventArgs eventArgs)

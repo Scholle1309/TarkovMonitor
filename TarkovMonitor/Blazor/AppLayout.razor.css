@@ -280,3 +280,14 @@
     bottom: 0;
     cursor: nwse-resize;
 }
+
+/* pinned bottom group of the navigation */
+.navigation-spacer {
+    flex: 1 1 auto;
+}
+
+::deep .navigation-menu--bottom {
+    margin-bottom: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
