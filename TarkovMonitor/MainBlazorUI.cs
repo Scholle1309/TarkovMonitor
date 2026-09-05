@@ -583,6 +583,7 @@ namespace TarkovMonitor
         private void Eft_ProfileChanged(object? sender, ProfileEventArgs e)
         {
             var profileSnapshot = e.Profile.Snapshot();
+            mapsService.SetGameMode(profileSnapshot.SessionMode);
             if (profileSnapshot.HasTarkovDevPlayerRoute && eft.IsGameRunning)
             {
                 MarkEftSessionRecognized();
@@ -613,6 +614,7 @@ namespace TarkovMonitor
         private void Eft_ProfileReady(object? sender, ProfileEventArgs e)
         {
             var profileSnapshot = e.Profile.Snapshot();
+            mapsService.SetGameMode(profileSnapshot.SessionMode);
             if (profileSnapshot.HasTarkovDevPlayerRoute && eft.IsGameRunning)
             {
                 MarkEftSessionRecognized();
@@ -1043,6 +1045,8 @@ namespace TarkovMonitor
 
         private void TarkovTracker_ProgressRetrieved(object? sender, TarkovTracker.ProgressRetrievedEventArgs e)
         {
+            // Hand the same tracker profile to the embedded Tarkov.dev map.
+            mapsService.SetTrackerLink(e.SessionMode, e.ApiKey, Properties.Settings.Default.tarkovTrackerDomain);
             messageLog.AddMessage(
                 string.Format(
                     localizationService.GetString("RetrievedDataFromTarkovTracker"),
@@ -1140,7 +1144,7 @@ namespace TarkovMonitor
                 body.Position = 0;
                 if (string.Equals(response.Content.Headers.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase))
                 {
-                    body = InjectMapFrameContent(body);
+                    body = InjectMapFrameContent(body, mapsService.GetFrameBootstrapScript());
                 }
 
                 var headers = new StringBuilder();
@@ -1172,7 +1176,7 @@ namespace TarkovMonitor
             }
         }
 
-        private static MemoryStream InjectMapFrameContent(MemoryStream html)
+        private static MemoryStream InjectMapFrameContent(MemoryStream html, string bootstrapScript)
         {
             var text = Encoding.UTF8.GetString(html.GetBuffer(), 0, (int)html.Length);
             var headEnd = text.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
@@ -1180,7 +1184,7 @@ namespace TarkovMonitor
             {
                 return html;
             }
-            text = text.Insert(headEnd, MapFrameInjection);
+            text = text.Insert(headEnd, MapFrameInjection + bootstrapScript);
             return new MemoryStream(Encoding.UTF8.GetBytes(text));
         }
 
@@ -1461,6 +1465,7 @@ namespace TarkovMonitor
                 lastAnnouncedTrackerSession = identity;
             }
 
+            mapsService.SetGameMode(profileSnapshot.SessionMode);
             messageLog.AddMessage($"EFT session confirmed: {TarkovTracker.GetSessionDisplayName(profileSnapshot.SessionMode)}.", "info");
             /*messageLog.AddProtectedMessage(
                 $"EFT session confirmed: {TarkovTracker.GetSessionDisplayName(profileSnapshot.SessionMode)}.",

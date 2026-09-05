@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace TarkovMonitor
@@ -49,6 +50,135 @@ namespace TarkovMonitor
 
         /// <summary>True while the Tarkov.dev settings page is shown instead of the map.</summary>
         public bool SettingsOpen { get; private set; }
+
+        // Tarkov.dev keeps its own settings per game mode in the frame's local
+        // storage. These values are written there when the document loads so the
+        // site links the same TarkovTracker profile the monitor updates; that is
+        // what makes "only show markers for active tasks" match the game.
+        private string? trackerGameMode;
+        private string trackerDomain = "";
+        private string trackerToken = "";
+
+        /// <summary>Game mode as Tarkov.dev names it, or null when unknown.</summary>
+        public string? TrackerGameMode => trackerGameMode;
+
+        /// <summary>True when a TarkovTracker token is handed to the embedded page.</summary>
+        public bool TrackerLinked => !string.IsNullOrEmpty(trackerToken);
+
+        /// <summary>Remember the game mode of the active profile (from the game logs).</summary>
+        public void SetGameMode(EftSessionMode sessionMode)
+        {
+            var gameMode = ToTarkovDevGameMode(sessionMode);
+            if (gameMode == null)
+            {
+                return;
+            }
+            bool changed;
+            lock (gate)
+            {
+                changed = trackerGameMode != gameMode;
+                trackerGameMode = gameMode;
+            }
+            if (changed)
+            {
+                ApplyTrackerLinkChange();
+            }
+        }
+
+        /// <summary>
+        /// Remember the TarkovTracker token the monitor uses for the active
+        /// profile. The embedded page is reloaded when the link changes so it
+        /// fetches the matching progress.
+        /// </summary>
+        public void SetTrackerLink(EftSessionMode sessionMode, string? token, string? domain)
+        {
+            var gameMode = ToTarkovDevGameMode(sessionMode);
+            var nextToken = token?.Trim() ?? "";
+            var nextDomain = domain?.Trim() ?? "";
+            bool changed;
+            lock (gate)
+            {
+                changed = (gameMode != null && trackerGameMode != gameMode)
+                    || trackerToken != nextToken
+                    || trackerDomain != nextDomain;
+                if (gameMode != null)
+                {
+                    trackerGameMode = gameMode;
+                }
+                trackerToken = nextToken;
+                trackerDomain = nextDomain;
+            }
+            if (changed)
+            {
+                ApplyTrackerLinkChange();
+            }
+        }
+
+        private void ApplyTrackerLinkChange()
+        {
+            if (FrameLoaded)
+            {
+                // The site reads its settings only at start-up.
+                ReloadFrame();
+            }
+            else
+            {
+                RaiseChanged();
+            }
+        }
+
+        /// <summary>
+        /// Script placed in the head of the Tarkov.dev document. It seeds the
+        /// site's local-storage settings before the site's own code runs.
+        /// The defaults mirror Tarkov.dev's settings slice so a freshly created
+        /// settings object is complete.
+        /// </summary>
+        public string GetFrameBootstrapScript()
+        {
+            string? gameMode;
+            string token;
+            string domain;
+            lock (gate)
+            {
+                gameMode = trackerGameMode;
+                token = trackerToken;
+                domain = trackerDomain;
+            }
+            if (gameMode == null)
+            {
+                return "";
+            }
+            var config = JsonSerializer.Serialize(new { gameMode, token, domain });
+            return "<script id=\"tarkov-monitor-frame-tracker\">(function () { try {"
+                + " var cfg = " + config + ";"
+                + " var defaults = { playerLevel: 72, pmcFaction: \"NONE\", useTarkovTracker: false, tarkovTrackerAPIKey: \"\","
+                + " completedQuests: [], failedQuests: [], tarkovTrackerModules: [], objectivesCompleted: [], objectivesCompletionProgress: {},"
+                + " prapor: 4, therapist: 4, fence: 0, skier: 4, peacekeeper: 4, mechanic: 4, ragman: 4, jaeger: 4, ref: 4,"
+                + " \"bitcoin-farm\": 3, \"booze-generator\": 1, \"christmas-tree\": 1, \"intelligence-center\": 3, lavatory: 3, medstation: 3,"
+                + " \"nutrition-unit\": 3, \"water-collector\": 3, workbench: 3, \"solar-power\": 0, crafting: 0, \"hideout-management\": 0,"
+                + " metabolism: 0, minDogtagLevel: 1, hideDogtagBarters: false };"
+                + " localStorage.setItem(\"gameMode\", JSON.stringify(cfg.gameMode));"
+                + " if (!cfg.token) { return; }"
+                + " if (cfg.domain) { localStorage.setItem(\"tarkovTrackerDomain\", JSON.stringify(cfg.domain)); }"
+                + " var key = cfg.gameMode + \"Settings\";"
+                + " var stored = null; try { stored = JSON.parse(localStorage.getItem(key)); } catch (e) { }"
+                + " var settings = Object.assign({}, defaults, stored && typeof stored === \"object\" ? stored : {});"
+                + " settings.useTarkovTracker = true;"
+                + " settings.tarkovTrackerAPIKey = cfg.token;"
+                + " localStorage.setItem(key, JSON.stringify(settings));"
+                + " } catch (e) { } })();</script>";
+        }
+
+        private static string? ToTarkovDevGameMode(EftSessionMode sessionMode)
+        {
+            return sessionMode switch
+            {
+                EftSessionMode.PVE => "pve",
+                EftSessionMode.Regular => "regular",
+                EftSessionMode.Seasonal => "pvp-season",
+                _ => null,
+            };
+        }
 
         public string CurrentMapName => CurrentMap?.normalizedName ?? DefaultMap;
 
