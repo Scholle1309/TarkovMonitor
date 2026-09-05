@@ -228,29 +228,51 @@
                         {
                             var progress = TaskStateService.GetObjectiveProgress(objective.id);
                             var busy = busyObjectives.Contains(objective.id);
-                            <div class="@("task-objective" + (progress.Complete ? " task-objective--done" : ""))">
-                                <MudCheckBox T="bool" Value="@progress.Complete" ValueChanged="@(value => SetObjectiveComplete(objective, value))"
-                                             Disabled="@(busy || !TaskStateService.CanWriteObjectives)" Size="Size.Small" Color="Color.Success" Dense="true" Class="task-objective__check" />
-                                <span class="task-objective__text">@objective.description</span>
+                            var ready = !progress.Complete && objective.count >= 1 && progress.Count >= objective.count;
+                            var canWrite = !busy && TaskStateService.CanWriteObjectives;
+                            <div class="@("task-objective" + (progress.Complete ? " task-objective--done" : "") + (ready ? " task-objective--ready" : ""))">
+                                @* green check = handed over / completed, blue half mark = collected but not handed over *@
+                                <button type="button" class="@("task-objective__check" + (progress.Complete ? " task-objective__check--done" : ready ? " task-objective__check--ready" : ""))"
+                                        disabled="@(!canWrite)" title="@(progress.Complete ? LocalizationService.GetString("ObjectiveDone") : ready ? LocalizationService.GetString("ObjectiveReady") : "")"
+                                        @onclick="() => SetObjectiveComplete(objective, !progress.Complete)">
+                                    <MudIcon Icon="@(progress.Complete ? Icons.Material.Filled.CheckBox : ready ? Icons.Material.Filled.IndeterminateCheckBox : Icons.Material.Filled.CheckBoxOutlineBlank)" Size="Size.Small" />
+                                </button>
+                                <div class="task-objective__body">
+                                    <span class="task-objective__text">@objective.description</span>
+                                    @if (objective.optional)
+                                    {
+                                        <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
+                                    }
+                                    @foreach (var mapId in objective.maps)
+                                    {
+                                        var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
+                                        if (map != null)
+                                        {
+                                            <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                                        }
+                                    }
+                                </div>
+                                <span class="task-objective__state">
+                                    @if (progress.Complete)
+                                    {
+                                        <span class="task-objective__badge task-objective__badge--done">@LocalizationService.GetString("ObjectiveDone")</span>
+                                    }
+                                    else if (ready)
+                                    {
+                                        <span class="task-objective__badge task-objective__badge--ready">@LocalizationService.GetString("ObjectiveReady")</span>
+                                    }
+                                </span>
                                 @if (objective.count >= 1)
                                 {
                                     <span class="task-objective__counter" title="@LocalizationService.GetString("ObjectiveCountHint")">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Remove" Size="Size.Small" Color="Color.Inherit" Disabled="@(busy || !TaskStateService.CanWriteObjectives || progress.Count <= 0)" OnClick="@(() => ChangeObjectiveCount(objective, -1))" />
-                                        <span class="task-objective__count">@Math.Min(progress.Count, objective.count)/@objective.count</span>
-                                        <MudIconButton Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Inherit" Disabled="@(busy || !TaskStateService.CanWriteObjectives || progress.Count >= objective.count)" OnClick="@(() => ChangeObjectiveCount(objective, 1))" />
+                                        <button type="button" class="task-objective__step" disabled="@(!canWrite || progress.Count <= 0)" @onclick="() => ChangeObjectiveCount(objective, -1)">−</button>
+                                        <span class="task-objective__count">@Math.Min(progress.Count, objective.count)<span class="task-objective__of">/@objective.count</span></span>
+                                        <button type="button" class="task-objective__step" disabled="@(!canWrite || progress.Count >= objective.count)" @onclick="() => ChangeObjectiveCount(objective, 1)">+</button>
                                     </span>
                                 }
-                                @if (objective.optional)
+                                else
                                 {
-                                    <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
-                                }
-                                @foreach (var mapId in objective.maps)
-                                {
-                                    var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
-                                    if (map != null)
-                                    {
-                                        <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
-                                    }
+                                    <span></span>
                                 }
                             </div>
                         }

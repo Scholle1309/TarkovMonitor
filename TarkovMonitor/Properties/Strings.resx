@@ -639,4 +639,10 @@
   <data name="ObjectiveCountHint" xml:space="preserve">
     <value>Collected so far; the check mark means handed over / completed</value>
   </data>
+  <data name="ObjectiveDone" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="ObjectiveReady" xml:space="preserve">
+    <value>Ready to hand over</value>
+  </data>
 </root>

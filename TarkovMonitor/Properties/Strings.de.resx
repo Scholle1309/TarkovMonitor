@@ -575,4 +575,10 @@
   <data name="ObjectiveCountHint" xml:space="preserve">
     <value>Bisher gesammelt; der Haken bedeutet abgegeben / erledigt</value>
   </data>
+  <data name="ObjectiveDone" xml:space="preserve">
+    <value>Erledigt</value>
+  </data>
+  <data name="ObjectiveReady" xml:space="preserve">
+    <value>Bereit zur Abgabe</value>
+  </data>
 </root>
