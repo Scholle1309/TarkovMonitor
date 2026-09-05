@@ -110,6 +110,7 @@ namespace TarkovMonitor
             + " border-radius: 50%; z-index: 1000 !important; }"
             + "html body .leaflet-left .leaflet-control-raid-info { text-align: left; }"
             + "html body .leaflet-control-coordinates { display: none !important; }"
+            + "html body .leaflet-control-fullscreen { display: none !important; }"
             // One visual grid for the map controls: 44px squares, 8px gaps, same glass
             // background and corner radius; the raid info box matches the id box width.
             + "html body .leaflet-control-container .leaflet-control, html body .id-wrapper { background: rgba(0, 0, 0, 0.78) !important; border-radius: 6px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); }"
