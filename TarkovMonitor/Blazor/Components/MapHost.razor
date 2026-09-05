@@ -57,9 +57,16 @@
                         {
                             <div class="map-tasks__section">@LocalizationService.GetString("AnyLocation")</div>
                         }
-                        <div class="@("map-task" + (highlightedTaskId == view.Task.id ? " map-task--highlighted" : ""))" @onclick="() => HighlightTask(view)">
+                        <div class="@("map-task" + (highlightedTaskId == view.Task.id ? " map-task--highlighted" : "") + (view.HasMarkerOnCurrentMap ? "" : " map-task--no-marker"))"
+                             title="@(view.HasMarkerOnCurrentMap ? "" : LocalizationService.GetString("NoMarkerOnMap"))" @onclick="() => HighlightTask(view)">
                             <div class="map-task__title">
-                                <span class="map-task__name">@view.Task.name</span>
+                                <span class="map-task__name">
+                                    @if (view.HasMarkerOnCurrentMap)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="map-task__pin" />
+                                    }
+                                    @view.Task.name
+                                </span>
                                 <span class="map-task__trader">@view.TraderName</span>
                             </div>
                             @foreach (var objective in view.Task.objectives.Where(objective => IsOnCurrentMap(objective)))
@@ -202,6 +209,11 @@
     // same task again clears it.
     private async Task HighlightTask(TaskView view)
     {
+        if (!view.HasMarkerOnCurrentMap)
+        {
+            // Nothing to point at on this map; the entry is shown muted instead.
+            return;
+        }
         if (highlightedTaskId == view.Task.id)
         {
             await ClearHighlight();
@@ -274,9 +286,13 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private Task OnFrameLoaded(ProgressEventArgs args)
+    private async Task OnFrameLoaded(ProgressEventArgs args)
     {
-        return MapsService.FrameLoadedAsync();
+        var loaded = MapsService.FrameLoadedAsync();
+        // The site may restore an earlier search; start with a clean map once it has rendered.
+        await Task.Delay(TimeSpan.FromSeconds(3));
+        await SendSearch("");
+        await loaded;
     }
 
     private async Task OnMapSelected(string normalizedName)

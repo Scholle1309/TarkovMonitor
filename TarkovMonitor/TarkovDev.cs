@@ -687,6 +687,29 @@ namespace TarkovMonitor
             public bool optional { get; set; }
             /// <summary>Ids of the maps the objective can be done on (empty = anywhere).</summary>
             public List<string> maps { get; set; } = new();
+            /// <summary>Zones drawn as markers on the Tarkov.dev map.</summary>
+            public List<TaskZone> zones { get; set; } = new();
+            /// <summary>Possible item locations drawn as markers on the Tarkov.dev map.</summary>
+            public List<TaskPossibleLocation> possibleLocations { get; set; } = new();
+
+            /// <summary>Ids of the maps on which Tarkov.dev draws a marker for this objective.</summary>
+            public IEnumerable<string> MarkerMapIds =>
+                zones.Select(zone => zone.map)
+                    .Concat(possibleLocations.Where(location => location.positions.Count > 0).Select(location => location.map))
+                    .Where(mapId => !string.IsNullOrEmpty(mapId))
+                    .Select(mapId => mapId!);
+        }
+
+        public class TaskZone
+        {
+            public string? id { get; set; }
+            public string? map { get; set; }
+        }
+
+        public class TaskPossibleLocation
+        {
+            public string? map { get; set; }
+            public List<Dictionary<string, double>> positions { get; set; } = new();
         }
 
         public class TaskRequirement

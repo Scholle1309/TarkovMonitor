@@ -461,4 +461,7 @@
   <data name="ClearHighlight" xml:space="preserve">
     <value>Hervorhebung aufheben</value>
   </data>
+  <data name="NoMarkerOnMap" xml:space="preserve">
+    <value>kein Marker auf dieser Karte</value>
+  </data>
 </root>

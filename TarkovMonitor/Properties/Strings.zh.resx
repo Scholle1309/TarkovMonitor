@@ -476,4 +476,7 @@
   <data name="ClearHighlight" xml:space="preserve">
     <value>Clear highlight</value>
   </data>
+  <data name="NoMarkerOnMap" xml:space="preserve">
+    <value>no marker on this map</value>
+  </data>
 </root>

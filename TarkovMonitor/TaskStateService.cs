@@ -28,6 +28,9 @@ namespace TarkovMonitor
         public List<TarkovDev.Map> Maps { get; init; } = new();
         /// <summary>True when the task can be worked on the map currently loaded.</summary>
         public bool OnCurrentMap { get; init; }
+        /// <summary>Ids of the maps on which Tarkov.dev draws at least one marker for this task.</summary>
+        public HashSet<string> MarkerMapIds { get; init; } = new();
+        public bool HasMarkerOnCurrentMap { get; init; }
         public DateTime? AcceptedAt { get; init; }
     }
 
@@ -159,6 +162,7 @@ namespace TarkovMonitor
                     .Where(map => map != null)
                     .Select(map => map!)
                     .ToList();
+                var markerMapIds = new HashSet<string>(task.objectives.SelectMany(objective => objective.MarkerMapIds));
 
                 result.Add(new TaskView
                 {
@@ -169,6 +173,8 @@ namespace TarkovMonitor
                     TraderName = traders.Find(trader => trader.id == task.trader)?.name ?? "",
                     Maps = taskMaps,
                     OnCurrentMap = currentMapId != null && (mapIds.Count == 0 || mapIds.Contains(currentMapId)),
+                    MarkerMapIds = markerMapIds,
+                    HasMarkerOnCurrentMap = currentMapId != null && markerMapIds.Contains(currentMapId),
                     AcceptedAt = own?.Started,
                 });
             }
