@@ -472,6 +472,6 @@
     <value>No tasks to show.</value>
   </data>
   <data name="TasksNeedTracker" xml:space="preserve">
-    <value>No Tarkov Tracker progress yet. Assign an API token in Settings and start the game so the task list can be built.</value>
+    <value>No Tarkov Tracker progress loaded yet. It is fetched for the profile last seen in the game logs as soon as an API token is assigned to it in Settings.</value>
   </data>
 </root>

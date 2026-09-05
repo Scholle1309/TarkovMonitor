@@ -408,6 +408,6 @@
     <value>Keine Aufgaben anzuzeigen.</value>
   </data>
   <data name="TasksNeedTracker" xml:space="preserve">
-    <value>Noch kein Tarkov-Tracker-Fortschritt. Weise in den Einstellungen einen API-Token zu und starte das Spiel, damit die Aufgabenliste aufgebaut werden kann.</value>
+    <value>Noch kein Tarkov-Tracker-Fortschritt geladen. Er wird für das zuletzt in den Spiel-Logs gesehene Profil abgerufen, sobald ihm in den Einstellungen ein API-Token zugewiesen ist.</value>
   </data>
 </root>

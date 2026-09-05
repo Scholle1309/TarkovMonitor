@@ -260,8 +260,12 @@ namespace TarkovMonitor
                     // the user does not need to launch EFT just to verify the
                     // data connection. Tracker writes remain inactive.
                     _ = RefreshTarkovDevApiData(e.Profile, allowPersistedProfile: true);
-                    TarkovTracker.ResetActiveState();
                     TarkovDev.StopAutoUpdates();
+                    if (TryStartReadOnlyProgress(e.Profile))
+                    {
+                        return;
+                    }
+                    TarkovTracker.ResetActiveState();
                     return;
                 }
 
@@ -278,7 +282,10 @@ namespace TarkovMonitor
                 // tracker key while EFT is not running.
                 if (!eft.IsGameRunning)
                 {
-                    TarkovTracker.DeactivateProfile();
+                    if (!TryStartReadOnlyProgress(e.Profile))
+                    {
+                        TarkovTracker.DeactivateProfile();
+                    }
                     return;
                 }
 
@@ -1598,6 +1605,26 @@ namespace TarkovMonitor
         private void MarkEftSessionRecognized()
         {
             Volatile.Write(ref noActiveEftSessionNoticePublished, 0);
+        }
+
+        // EFT is not running. When the profile last seen in the logs already has
+        // its own tracker key, fetch the progress read-only so the Tasks tab and
+        // the map filter work before the game is launched. Nothing is auto-bound;
+        // writes only follow live log events, which need the game anyway.
+        private bool TryStartReadOnlyProgress(Profile profile)
+        {
+            var snapshot = profile.Snapshot();
+            if (!TarkovTracker.IsLegacyService && !string.IsNullOrEmpty(TarkovTracker.GetTokenForProfile(snapshot)))
+            {
+                _ = InitializeProgress(snapshot, announceSession: false);
+                return true;
+            }
+            if (Debugger.IsAttached || Environment.GetEnvironmentVariable("TARKOVMONITOR_MAPS_DEBUG") == "1")
+            {
+                var keys = string.Join("; ", TarkovTracker.GetOrgKeys().Select(key => $"{key.Prefix} bound={key.IsBound} verified={key.IsVerified} profileMatch={key.ProfileId == snapshot.Id} accountMatch={key.AccountId == snapshot.AccountId} mode={key.SessionMode} blocked={key.IsAutoBindBlocked} conflict={key.HasPendingConflict}"));
+                messageLog.AddMessage($"Tracker debug: no key for profile {snapshot.Id} account {snapshot.AccountId} mode {snapshot.SessionMode}; legacy={TarkovTracker.IsLegacyService}; keys: {keys}", "info");
+            }
+            return false;
         }
 
         private async Task InitializeProgress(Profile? profile = null, bool announceSession = true)
