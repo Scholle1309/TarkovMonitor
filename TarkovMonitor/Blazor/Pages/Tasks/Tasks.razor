@@ -33,6 +33,45 @@
         </MudItem>
     }
 
+    @if (recommendations.Count > 0)
+    {
+        <MudItem xs="12">
+            <MudPaper Class="app-surface recommendations pa-2 ma-2 mx-4" Elevation="3">
+                <MudText Typo="Typo.subtitle1" Class="d-flex align-center">
+                    <MudIcon Icon="@Icons.Material.Filled.Recommend" Class="mr-2" Color="Color.Warning" />
+                    <span>@LocalizationService.GetString("RecommendedTasks")</span>
+                </MudText>
+                <MudText Typo="Typo.caption" Class="recommendations__hint">@LocalizationService.GetString("RecommendedTasksHint")</MudText>
+                <div class="recommendations__list">
+                    @foreach (var item in recommendations)
+                    {
+                        <div class="@("recommendation" + (item.View.OnCurrentMap && currentMap != null ? " recommendation--current" : ""))">
+                            <div class="recommendation__title">
+                                <MudText Typo="Typo.subtitle2">@item.View.Task.name</MudText>
+                                <MudText Typo="Typo.caption" Class="recommendation__trader">@item.View.TraderName</MudText>
+                            </div>
+                            <div class="recommendation__maps">
+                                @if (item.View.Maps.Count == 0)
+                                {
+                                    <span class="task-objective__map">@LocalizationService.GetString("AnyLocation")</span>
+                                }
+                                @foreach (var map in item.View.Maps)
+                                {
+                                    <span class="@("task-objective__map" + (currentMap != null && map.id == currentMap.id ? " task-objective__map--current" : ""))">@map.name</span>
+                                }
+                            </div>
+                            <MudText Typo="Typo.body2" Class="recommendation__unlocks">@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</MudText>
+                            @if (item.DirectUnlocks.Count > 0)
+                            {
+                                <MudText Typo="Typo.caption" Class="recommendation__next">@string.Join(", ", item.DirectUnlocks.Take(4).Select(task => task.name))@(item.DirectUnlocks.Count > 4 ? ", …" : "")</MudText>
+                            }
+                        </div>
+                    }
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+
     @if (visible.Count == 0)
     {
         <MudItem xs="12">
@@ -182,10 +221,13 @@
 
     // The current map only counts while a raid is running or loading; outside
     // of a raid the list is sorted by trader and name.
+    private List<TaskRecommendation> recommendations = new();
+
     private void Refresh()
     {
         currentMap = MapsService.RaidActive || TimersManager.IsRaidActive ? MapsService.CurrentMap : null;
         all = TaskStateService.GetTasks();
+        recommendations = TaskStateService.GetRecommendations(all, 3);
         ApplyFilter();
     }
 

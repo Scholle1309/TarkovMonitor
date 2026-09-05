@@ -1335,11 +1335,17 @@ namespace TarkovMonitor
                     tasksProgress.Add(new JsonObject { ["id"] = id, ["complete"] = false, ["failed"] = true });
                 }
             }
-            messageLog.AddMessage($"Map: hiding {hidden.Count} available task(s) the game logs show as never accepted.", "info");
+            // The page refetches its progress every few minutes; only report changes.
+            if (hidden.Count != lastHiddenTaskCount)
+            {
+                lastHiddenTaskCount = hidden.Count;
+                messageLog.AddMessage($"Map: hiding {hidden.Count} available task(s) the game logs show as never accepted.", "info");
+            }
             return new MemoryStream(Encoding.UTF8.GetBytes(root.ToJsonString()));
         }
 
         private bool questLogScanStarted;
+        private int lastHiddenTaskCount = -1;
 
         private void ScanQuestLogsInBackground()
         {

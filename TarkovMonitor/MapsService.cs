@@ -182,6 +182,9 @@ namespace TarkovMonitor
 
         public string CurrentMapName => CurrentMap?.normalizedName ?? DefaultMap;
 
+        /// <summary>The map shown in the view, falling back to the default map's data when the game has not loaded one yet.</summary>
+        public TarkovDev.Map? ShownMap => CurrentMap ?? TarkovDev.Maps.Find(map => map.normalizedName == DefaultMap);
+
         public string FrameUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(CurrentMapName)}?connection={Uri.EscapeDataString(SessionId)}";
 
         public string ExternalUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(CurrentMapName)}";

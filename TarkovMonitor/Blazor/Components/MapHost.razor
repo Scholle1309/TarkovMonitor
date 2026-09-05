@@ -1,5 +1,7 @@
 @using System.Diagnostics
 @inject MapsService MapsService
+@inject TaskStateService TaskStateService
+@inject QuestLogStore QuestLogStore
 @inject LocalizationService LocalizationService
 @inject MessageLog MessageLog
 @implements IDisposable
@@ -18,6 +20,10 @@
             }
         </MudSelect>
         <MudSpacer />
+        <MudBadge Content="@mapTasks.Count" Color="Color.Success" Overlap="true" Visible="@(mapTasks.Count > 0)" Class="map-host__tasks-badge">
+            <MudIconButton Icon="@Icons.Material.Filled.Assignment" Size="Size.Small" Color="@(tasksPanelOpen ? Color.Info : Color.Inherit)"
+                           Title="@LocalizationService.GetString("ShowMapTasks")" OnClick="ToggleTasksPanel" />
+        </MudBadge>
         <MudText Typo="Typo.caption" Class="map-host__status">@LocalizationService.GetString("MapSessionId"): @MapsService.SessionId</MudText>
         @* Replaces the gear of the hidden Tarkov.dev header: opens the site settings (language etc.) inside the frame. *@
         <MudIconButton Icon="@(MapsService.SettingsOpen ? Icons.Material.Filled.Map : Icons.Material.Filled.Settings)" Size="Size.Small" Color="@(MapsService.SettingsOpen ? Color.Info : Color.Inherit)" Disabled="@(!MapsService.FrameLoaded)"
@@ -26,6 +32,42 @@
         <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
     </div>
     <div class="map-host__frame">
+        @if (tasksPanelOpen)
+        {
+            <div class="map-tasks">
+                <div class="map-tasks__header">
+                    <MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("TasksOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText>
+                    <span class="map-tasks__count">@mapTasks.Count</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Inherit" OnClick="ToggleTasksPanel" />
+                </div>
+                <div class="map-tasks__list">
+                    @if (mapTasks.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoTasksOnThisMap")</MudText>
+                    }
+                    @foreach (var view in mapTasks)
+                    {
+                        <div class="map-task">
+                            <div class="map-task__title">
+                                <span class="map-task__name">@view.Task.name</span>
+                                <span class="map-task__trader">@view.TraderName</span>
+                            </div>
+                            @foreach (var objective in view.Task.objectives.Where(objective => IsOnCurrentMap(objective)))
+                            {
+                                <div class="map-task__objective">
+                                    <span class="map-task__bullet">•</span>
+                                    <span>@objective.description</span>
+                                    @if (objective.optional)
+                                    {
+                                        <span class="map-task__optional">(@LocalizationService.GetString("Optional"))</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
         @if (frameUrl != null)
         {
             <iframe @key="frameGeneration" src="@frameUrl" title="Tarkov.dev map" @onload="OnFrameLoaded" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
@@ -67,18 +109,77 @@
         }
     }
 
+    // Tasks that can be worked on the map currently shown; the panel opens by
+    // itself when a raid loads and can be toggled from the toolbar.
+    private List<TaskView> mapTasks = new();
+    private bool tasksPanelOpen;
+    private bool raidWasActive;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
         MapsService.Changed += OnMapsChanged;
         LocalizationService.LanguageChanged += OnLanguageChanged;
         TarkovDev.ApiDataLoaded += OnApiDataLoaded;
+        QuestLogStore.Changed += OnQuestDataChanged;
+        TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         SyncFrame();
+        RefreshMapTasks();
     }
 
     private void OnApiDataLoaded(object? sender, EventArgs e)
     {
-        _ = InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(() =>
+        {
+            RefreshMapTasks();
+            StateHasChanged();
+        });
+    }
+
+    private void OnQuestDataChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            RefreshMapTasks();
+            StateHasChanged();
+        });
+    }
+
+    private void OnProgressRetrieved(object? sender, TarkovTracker.ProgressRetrievedEventArgs e)
+    {
+        OnQuestDataChanged(sender, EventArgs.Empty);
+    }
+
+    private void RefreshMapTasks()
+    {
+        try
+        {
+            mapTasks = TaskStateService.GetTasks()
+                .Where(view => view.State == TaskState.Accepted && view.OnCurrentMap)
+                .OrderBy(view => view.TraderName)
+                .ThenBy(view => view.Task.name)
+                .ToList();
+        }
+        catch
+        {
+            mapTasks = new List<TaskView>();
+        }
+        if (MapsService.RaidActive && !raidWasActive)
+        {
+            tasksPanelOpen = true;
+        }
+        raidWasActive = MapsService.RaidActive;
+    }
+
+    private bool IsOnCurrentMap(TarkovDev.TaskObjective objective)
+    {
+        var currentMapId = MapsService.ShownMap?.id;
+        return objective.maps.Count == 0 || (currentMapId != null && objective.maps.Contains(currentMapId));
+    }
+
+    private void ToggleTasksPanel()
+    {
+        tasksPanelOpen = !tasksPanelOpen;
     }
 
     protected override void OnParametersSet()
@@ -112,6 +213,7 @@
         _ = InvokeAsync(() =>
         {
             SyncFrame();
+            RefreshMapTasks();
             StateHasChanged();
         });
     }
@@ -172,5 +274,7 @@
         MapsService.Changed -= OnMapsChanged;
         LocalizationService.LanguageChanged -= OnLanguageChanged;
         TarkovDev.ApiDataLoaded -= OnApiDataLoaded;
+        QuestLogStore.Changed -= OnQuestDataChanged;
+        TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
     }
 }

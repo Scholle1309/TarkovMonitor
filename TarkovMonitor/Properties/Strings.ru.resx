@@ -450,4 +450,19 @@
   <data name="TasksNeedTracker" xml:space="preserve">
     <value>No Tarkov Tracker progress loaded yet. It is fetched for the profile last seen in the game logs as soon as an API token is assigned to it in Settings.</value>
   </data>
+  <data name="RecommendedTasks" xml:space="preserve">
+    <value>Do these next</value>
+  </data>
+  <data name="RecommendedTasksHint" xml:space="preserve">
+    <value>Accepted tasks whose completion unlocks the most other tasks. During a raid, tasks on the current map come first.</value>
+  </data>
+  <data name="UnlocksTasks" xml:space="preserve">
+    <value>Unlocks {0} tasks right away, {1} further down the chain.</value>
+  </data>
+  <data name="ShowMapTasks" xml:space="preserve">
+    <value>Tasks on this map</value>
+  </data>
+  <data name="NoTasksOnThisMap" xml:space="preserve">
+    <value>None of your accepted tasks can be done on this map.</value>
+  </data>
 </root>

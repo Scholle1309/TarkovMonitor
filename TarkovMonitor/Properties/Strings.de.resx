@@ -410,4 +410,19 @@
   <data name="TasksNeedTracker" xml:space="preserve">
     <value>Noch kein Tarkov-Tracker-Fortschritt geladen. Er wird für das zuletzt in den Spiel-Logs gesehene Profil abgerufen, sobald ihm in den Einstellungen ein API-Token zugewiesen ist.</value>
   </data>
+  <data name="RecommendedTasks" xml:space="preserve">
+    <value>Als Nächstes erledigen</value>
+  </data>
+  <data name="RecommendedTasksHint" xml:space="preserve">
+    <value>Angenommene Aufgaben, deren Abschluss die meisten weiteren Aufgaben freischaltet. Im Raid stehen Aufgaben der aktuellen Karte vorn.</value>
+  </data>
+  <data name="UnlocksTasks" xml:space="preserve">
+    <value>Schaltet sofort {0} Aufgaben frei, {1} weitere in der Kette.</value>
+  </data>
+  <data name="ShowMapTasks" xml:space="preserve">
+    <value>Aufgaben auf dieser Karte</value>
+  </data>
+  <data name="NoTasksOnThisMap" xml:space="preserve">
+    <value>Keine deiner angenommenen Aufgaben ist auf dieser Karte machbar.</value>
+  </data>
 </root>

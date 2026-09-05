@@ -26,6 +26,8 @@ namespace TarkovMonitor
         public DateTime? AcceptedAt { get; init; }
     }
 
+    public record TaskRecommendation(TaskView View, List<TarkovDev.Task> DirectUnlocks, int TotalUnlocks);
+
     /// <summary>
     /// Combines the Tarkov.dev task catalogue, the TarkovTracker progress and
     /// the quest events from the game logs into one state per task. Used by the
@@ -80,7 +82,7 @@ namespace TarkovMonitor
             }
             var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, tasks, completed);
             var playerLevel = progress?.playerLevel ?? 0;
-            var currentMapId = mapsService.CurrentMap?.id;
+            var currentMapId = mapsService.ShownMap?.id;
 
             var result = new List<TaskView>(tasks.Count);
             foreach (var task in tasks)
@@ -146,7 +148,114 @@ namespace TarkovMonitor
             return result;
         }
 
-        private static bool PrerequisitesMet(TarkovDev.Task task, HashSet<string> completed, HashSet<string> failed, QuestHistory history, int playerLevel)
+        /// <summary>
+        /// Accepted tasks worth doing next: the ones whose completion unlocks the
+        /// most other tasks. Direct unlocks are tasks that become available right
+        /// away; the total counts everything further down the chain. While a raid
+        /// is running, tasks on the current map are preferred.
+        /// </summary>
+        public List<TaskRecommendation> GetRecommendations(List<TaskView> views, int count)
+        {
+            var progress = TarkovTracker.Progress?.data;
+            var playerLevel = progress?.playerLevel ?? 0;
+            var completed = new HashSet<string>();
+            var failed = new HashSet<string>();
+            foreach (var entry in progress?.tasksProgress ?? new())
+            {
+                if (entry.complete)
+                {
+                    completed.Add(entry.id);
+                }
+                else if (entry.failed || entry.invalid)
+                {
+                    failed.Add(entry.id);
+                }
+            }
+            var (profileId, sessionMode) = ResolveProfile();
+            var history = questLogStore.GetHistory(profileId, sessionMode);
+
+            // prerequisite id -> tasks that need it completed
+            var dependents = new Dictionary<string, List<TarkovDev.Task>>();
+            foreach (var task in TarkovDev.Tasks)
+            {
+                foreach (var requirement in task.taskRequirements)
+                {
+                    if (string.IsNullOrEmpty(requirement.task) || !requirement.status.Contains("complete"))
+                    {
+                        continue;
+                    }
+                    if (!dependents.TryGetValue(requirement.task, out var list))
+                    {
+                        list = new List<TarkovDev.Task>();
+                        dependents[requirement.task] = list;
+                    }
+                    list.Add(task);
+                }
+            }
+
+            var stateById = views.ToDictionary(view => view.Task.id, view => view.State);
+            var preferCurrentMap = mapsService.RaidActive;
+            var result = new List<TaskRecommendation>();
+            foreach (var view in views.Where(view => view.State == TaskState.Accepted))
+            {
+                var direct = new List<TarkovDev.Task>();
+                if (dependents.TryGetValue(view.Task.id, out var next))
+                {
+                    foreach (var candidate in next)
+                    {
+                        if (stateById.TryGetValue(candidate.id, out var state)
+                            && state is TaskState.Completed or TaskState.Failed or TaskState.Accepted)
+                        {
+                            continue;
+                        }
+                        if (PrerequisitesMet(candidate, completed, failed, history, playerLevel, assumeComplete: view.Task.id))
+                        {
+                            direct.Add(candidate);
+                        }
+                    }
+                }
+                var total = CountDownstream(view.Task.id, dependents, completed);
+                if (direct.Count == 0 && total == 0)
+                {
+                    continue;
+                }
+                result.Add(new TaskRecommendation(view, direct, total));
+            }
+
+            return result
+                .OrderByDescending(item => preferCurrentMap && item.View.OnCurrentMap)
+                .ThenByDescending(item => item.DirectUnlocks.Count)
+                .ThenByDescending(item => item.TotalUnlocks)
+                .ThenBy(item => item.View.Task.name)
+                .Take(count)
+                .ToList();
+        }
+
+        private static int CountDownstream(string taskId, Dictionary<string, List<TarkovDev.Task>> dependents, HashSet<string> completed)
+        {
+            var seen = new HashSet<string>();
+            var queue = new Queue<string>();
+            queue.Enqueue(taskId);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (!dependents.TryGetValue(current, out var next))
+                {
+                    continue;
+                }
+                foreach (var task in next)
+                {
+                    if (completed.Contains(task.id) || !seen.Add(task.id))
+                    {
+                        continue;
+                    }
+                    queue.Enqueue(task.id);
+                }
+            }
+            return seen.Count;
+        }
+
+        private static bool PrerequisitesMet(TarkovDev.Task task, HashSet<string> completed, HashSet<string> failed, QuestHistory history, int playerLevel, string? assumeComplete = null)
         {
             if (playerLevel > 0 && task.minPlayerLevel > playerLevel)
             {
@@ -163,7 +272,7 @@ namespace TarkovMonitor
                 {
                     satisfied = status switch
                     {
-                        "complete" => completed.Contains(requirement.task),
+                        "complete" => completed.Contains(requirement.task) || requirement.task == assumeComplete,
                         "failed" => failed.Contains(requirement.task),
                         "active" => history.Tasks.TryGetValue(requirement.task, out var entry) && entry.IsOpen,
                         _ => false,
