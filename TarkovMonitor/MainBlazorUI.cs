@@ -90,6 +90,13 @@ namespace TarkovMonitor
             + "nav.navigation, .CookieConsent { display: none !important; }"
             // Quest markers on another floor or underground are faded to 20% by the site,
             // which makes them nearly invisible. Keep them visible and tint them light blue.
+            // Everything on another level is faded to 20% by the site; 70% keeps the
+            // other floors readable.
+            + "html body .leaflet-layer.off-level > .leaflet-tile-container,"
+            + " html body div.leaflet-pane.leaflet-overlay-pane > img.off-level,"
+            + " html body div.leaflet-pane.leaflet-overlay-pane > svg.off-level g.base-layer,"
+            + " html body div.leaflet-pane.leaflet-marker-pane > .off-level { opacity: 0.7; }"
+            + "html body div.leaflet-overlay-pane > svg.leaflet-zoom-animated > g > path.off-level { stroke-opacity: 0.7; fill-opacity: 0.07; }"
             + "html body div.leaflet-pane.leaflet-marker-pane > .off-level.active-quest-marker {"
             + " opacity: 0.95 !important; z-index: 600 !important;"
             + " filter: sepia(1) saturate(5) hue-rotate(165deg) brightness(1.15) drop-shadow(0 0 2px #4fc3f7); }"
