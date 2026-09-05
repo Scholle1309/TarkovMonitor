@@ -359,6 +359,9 @@
                 <MudSwitch @bind-Value="@MapHideUnacceptedTasksSwitch" Label="@LocalizationService.GetString("HideUnacceptedTasksOnMap")" Color="Color.Info" />
             </div>
             <div>
+                <MudSwitch @bind-Value="@MapStrictAcceptedTasksSwitch" Label="@LocalizationService.GetString("StrictAcceptedTasksOnMap")" Color="Color.Info" />
+            </div>
+            <div>
                 <MudSwitch @bind-Value="@AutomaticallyDeleteScreenshotsAfterRaid" Label="@LocalizationService.GetString("AutomaticallyDeleteScreenshotsAfterRaid")" Color="Color.Info" />
             </div>
             <MudSelect @bind-Value="@MapOverrideSelect" T="string" Label="@LocalizationService.GetString("OfflineMap")" RelativeWidth="DropdownWidth.Adaptive" ShrinkLabel="true" HelperText="@LocalizationService.GetString("MapToUseForOfflineRaids")" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list" xs="3">
@@ -1496,6 +1499,18 @@
         set
         {
             Properties.Settings.Default.remoteId = value;
+            Properties.Settings.Default.Save();
+        }
+    }
+    public bool MapStrictAcceptedTasksSwitch
+    {
+        get
+        {
+            return Properties.Settings.Default.mapStrictAcceptedTasks;
+        }
+        set
+        {
+            Properties.Settings.Default.mapStrictAcceptedTasks = value;
             Properties.Settings.Default.Save();
         }
     }

@@ -440,4 +440,34 @@
   <data name="NoTasksOnThisMap" xml:space="preserve">
     <value>None of your accepted tasks can be done on this map.</value>
   </data>
+  <data name="StrictAcceptedTasksOnMap" xml:space="preserve">
+    <value>Only count tasks as active on the map when the logs, tracker progress or you confirm they are accepted</value>
+  </data>
+  <data name="ShowHiddenTasks" xml:space="preserve">
+    <value>Show hidden and never-accepted tasks</value>
+  </data>
+  <data name="MarkTaskAccepted" xml:space="preserve">
+    <value>Mark as accepted</value>
+  </data>
+  <data name="HideTask" xml:space="preserve">
+    <value>Hide task</value>
+  </data>
+  <data name="ResetTaskOverride" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="TaskStateHidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="TaskStateNeverAccepted" xml:space="preserve">
+    <value>Never accepted</value>
+  </data>
+  <data name="AcceptedReasonLog" xml:space="preserve">
+    <value>accepted per game log</value>
+  </data>
+  <data name="AcceptedReasonProgress" xml:space="preserve">
+    <value>accepted per tracker progress</value>
+  </data>
+  <data name="AcceptedReasonUser" xml:space="preserve">
+    <value>marked accepted by you</value>
+  </data>
 </root>

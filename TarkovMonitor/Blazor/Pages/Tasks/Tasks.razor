@@ -21,6 +21,7 @@
                               Placeholder="@LocalizationService.GetString("SearchTasks")" Variant="Variant.Outlined" Margin="Margin.Dense"
                               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="tm-input tasks-search" />
                 <MudSwitch T="bool" Value="@includeAvailable" ValueChanged="OnIncludeAvailableChanged" Color="Color.Info" Label="@LocalizationService.GetString("IncludeAvailableTasks")" />
+                <MudSwitch T="bool" Value="@showHidden" ValueChanged="OnShowHiddenChanged" Color="Color.Default" Label="@LocalizationService.GetString("ShowHiddenTasks")" />
             </div>
             <MudText Typo="Typo.caption" Class="tasks-summary">@SummaryText</MudText>
         </MudPaper>
@@ -113,9 +114,26 @@
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Kappa</MudChip>
                             }
-                            <MudChip T="string" Size="Size.Small" Color="@(view.State == TaskState.Accepted ? Color.Info : Color.Default)">@StateLabel(view.State)</MudChip>
+                            <MudChip T="string" Size="Size.Small" Color="@StateColor(view.State)" Title="@ReasonLabel(view)">@StateLabel(view.State)</MudChip>
                         </div>
-                        <span @onclick:stopPropagation="true">
+                        <span class="task-card__actions" @onclick:stopPropagation="true">
+                            @if (view.Override != QuestOverride.None)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Undo" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("ResetTaskOverride")"
+                                               OnClick="@(() => SetOverride(view, QuestOverride.None))" />
+                            }
+                            else if (view.State == TaskState.Accepted)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")"
+                                               OnClick="@(() => SetOverride(view, QuestOverride.Hidden))" />
+                            }
+                            else
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("MarkTaskAccepted")"
+                                               OnClick="@(() => SetOverride(view, QuestOverride.Accepted))" />
+                                <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")"
+                                               OnClick="@(() => SetOverride(view, QuestOverride.Hidden))" />
+                            }
                             <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev"
                                            OnClick="@(() => OpenTask(view.Task))" />
                         </span>
@@ -231,9 +249,41 @@
         ApplyFilter();
     }
 
+    private bool showHidden;
+
+    private void OnShowHiddenChanged(bool value)
+    {
+        showHidden = value;
+        ApplyFilter();
+    }
+
+    private void SetOverride(TaskView view, QuestOverride kind)
+    {
+        TaskStateService.SetOverride(view.Task.id, kind);
+        Refresh();
+    }
+
+    private Color StateColor(TaskState state) => state switch
+    {
+        TaskState.Accepted => Color.Info,
+        TaskState.Hidden => Color.Dark,
+        TaskState.NeverAccepted => Color.Dark,
+        _ => Color.Default,
+    };
+
+    private string ReasonLabel(TaskView view) => view.AcceptedReason switch
+    {
+        "log" => LocalizationService.GetString("AcceptedReasonLog"),
+        "progress" => LocalizationService.GetString("AcceptedReasonProgress"),
+        "user" => LocalizationService.GetString("AcceptedReasonUser"),
+        _ => "",
+    };
+
     private void ApplyFilter()
     {
-        var query = all.Where(view => view.State == TaskState.Accepted || (includeAvailable && view.State == TaskState.Available));
+        var query = all.Where(view => view.State == TaskState.Accepted
+            || (includeAvailable && view.State == TaskState.Available)
+            || (showHidden && view.State is TaskState.Hidden or TaskState.NeverAccepted));
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
@@ -275,6 +325,8 @@
     {
         TaskState.Accepted => LocalizationService.GetString("TaskStateAccepted"),
         TaskState.Available => LocalizationService.GetString("TaskStateAvailable"),
+        TaskState.Hidden => LocalizationService.GetString("TaskStateHidden"),
+        TaskState.NeverAccepted => LocalizationService.GetString("TaskStateNeverAccepted"),
         _ => state.ToString(),
     };
 

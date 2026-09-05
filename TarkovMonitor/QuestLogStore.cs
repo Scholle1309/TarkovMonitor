@@ -61,8 +61,69 @@ namespace TarkovMonitor
                     session_mode TEXT NOT NULL,
                     horizon TEXT NOT NULL,
                     PRIMARY KEY (profile_id, session_mode)
+                );
+                CREATE TABLE IF NOT EXISTS quest_overrides (
+                    profile_id TEXT NOT NULL,
+                    session_mode TEXT NOT NULL,
+                    task_id TEXT NOT NULL,
+                    kind TEXT NOT NULL,
+                    PRIMARY KEY (profile_id, session_mode, task_id)
                 );";
             command.ExecuteNonQuery();
+        }
+
+        /// <summary>Manual decision for a task: accepted (treat as open) or hidden.</summary>
+        public void SetOverride(string profileId, EftSessionMode sessionMode, string taskId, QuestOverride kind)
+        {
+            if (string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(taskId))
+            {
+                return;
+            }
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                if (kind == QuestOverride.None)
+                {
+                    command.CommandText = "DELETE FROM quest_overrides WHERE profile_id = @profile AND session_mode = @mode AND task_id = @task;";
+                }
+                else
+                {
+                    command.CommandText = @"
+                        INSERT INTO quest_overrides (profile_id, session_mode, task_id, kind) VALUES (@profile, @mode, @task, @kind)
+                        ON CONFLICT(profile_id, session_mode, task_id) DO UPDATE SET kind = excluded.kind;";
+                    command.Parameters.AddWithValue("@kind", kind.ToString());
+                }
+                command.Parameters.AddWithValue("@profile", profileId);
+                command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                command.Parameters.AddWithValue("@task", taskId);
+                command.ExecuteNonQuery();
+            }
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        public Dictionary<string, QuestOverride> GetOverrides(string profileId, EftSessionMode sessionMode)
+        {
+            var result = new Dictionary<string, QuestOverride>();
+            if (string.IsNullOrEmpty(profileId))
+            {
+                return result;
+            }
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT task_id, kind FROM quest_overrides WHERE profile_id = @profile AND session_mode = @mode;";
+                command.Parameters.AddWithValue("@profile", profileId);
+                command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (Enum.TryParse<QuestOverride>(reader.GetString(1), out var kind))
+                    {
+                        result[reader.GetString(0)] = kind;
+                    }
+                }
+            }
+            return result;
         }
 
         /// <summary>Record a quest event seen live by the game watcher.</summary>
@@ -317,14 +378,14 @@ namespace TarkovMonitor
             string profileId,
             EftSessionMode sessionMode,
             IReadOnlyCollection<TarkovDev.Task> tasks,
-            IReadOnlySet<string> completedByTracker)
+            IReadOnlySet<string> completedByTracker,
+            IReadOnlySet<string>? acceptedEvidence = null,
+            bool strict = false)
         {
             var hidden = new HashSet<string>();
             var history = GetHistory(profileId, sessionMode);
-            if (history.Horizon == null || history.Tasks.Count == 0)
-            {
-                return hidden;
-            }
+            var overrides = GetOverrides(profileId, sessionMode);
+            acceptedEvidence ??= new HashSet<string>();
 
             foreach (var task in tasks)
             {
@@ -332,10 +393,28 @@ namespace TarkovMonitor
                 {
                     continue;
                 }
-                history.Tasks.TryGetValue(task.id, out var own);
-                if (own?.IsOpen == true)
+                if (overrides.TryGetValue(task.id, out var decision))
                 {
-                    // Accepted in game and not finished since: keep.
+                    if (decision == QuestOverride.Hidden)
+                    {
+                        hidden.Add(task.id);
+                    }
+                    continue;
+                }
+                history.Tasks.TryGetValue(task.id, out var own);
+                if (own?.IsOpen == true || acceptedEvidence.Contains(task.id))
+                {
+                    // Accepted in game (logged, or objective progress on the tracker): keep.
+                    continue;
+                }
+                if (strict)
+                {
+                    // Only proven acceptances count.
+                    hidden.Add(task.id);
+                    continue;
+                }
+                if (history.Horizon == null || history.Tasks.Count == 0)
+                {
                     continue;
                 }
                 if (task.taskRequirements.Count == 0)
@@ -397,6 +476,15 @@ namespace TarkovMonitor
         private static DateTime ParseIso(string value) => DateTime.ParseExact(value, "yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture);
 
         private sealed record QuestLogEvent(string TaskId, TaskStatus Status, DateTime Time);
+    }
+
+    public enum QuestOverride
+    {
+        None,
+        /// <summary>Treat the task as accepted and open.</summary>
+        Accepted,
+        /// <summary>Never show the task as active.</summary>
+        Hidden,
     }
 
     public class QuestLogScanResult

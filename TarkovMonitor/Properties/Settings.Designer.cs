@@ -169,6 +169,18 @@ namespace TarkovMonitor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool mapStrictAcceptedTasks {
+            get {
+                return ((bool)(this["mapStrictAcceptedTasks"]));
+            }
+            set {
+                this["mapStrictAcceptedTasks"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
         public bool autoNavigateMap {
             get {

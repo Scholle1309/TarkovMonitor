@@ -1317,8 +1317,38 @@ namespace TarkovMonitor
                 }
             }
 
+            // Objective progress proves acceptance even before the logged period.
+            var objectiveToTask = new Dictionary<string, string>();
+            foreach (var task in TarkovDev.Tasks)
+            {
+                foreach (var objective in task.objectives)
+                {
+                    if (!string.IsNullOrEmpty(objective.id))
+                    {
+                        objectiveToTask[objective.id] = task.id;
+                    }
+                }
+            }
+            var evidence = new HashSet<string>();
+            if (root["data"]?["taskObjectivesProgress"] is JsonArray objectivesProgress)
+            {
+                foreach (var node in objectivesProgress)
+                {
+                    if (node is not JsonObject entry || entry["id"]?.GetValue<string>() is not string objectiveId)
+                    {
+                        continue;
+                    }
+                    var complete = entry["complete"]?.GetValue<bool>() == true;
+                    var count = entry["count"] is JsonValue value && value.TryGetValue<int>(out var parsed) ? parsed : 0;
+                    if ((complete || count > 0) && objectiveToTask.TryGetValue(objectiveId, out var taskId))
+                    {
+                        evidence.Add(taskId);
+                    }
+                }
+            }
+
             var (profileId, sessionMode) = ResolveQuestHistoryProfile();
-            var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, TarkovDev.Tasks, completed);
+            var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, TarkovDev.Tasks, completed, evidence, Properties.Settings.Default.mapStrictAcceptedTasks);
             if (hidden.Count == 0)
             {
                 json.Position = 0;

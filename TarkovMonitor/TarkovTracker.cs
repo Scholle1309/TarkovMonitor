@@ -2353,6 +2353,7 @@ namespace TarkovMonitor
         public class ProgressResponseData
         {
             public List<ProgressResponseTask> tasksProgress { get; set; } = new();
+            public List<ProgressResponseObjective> taskObjectivesProgress { get; set; } = new();
             public List<ProgressResponseHideoutModules> hideoutModulesProgress { get; set; } = new();
             public string? displayName { get; set; }
             public string userId { get; set; }
@@ -2367,6 +2368,12 @@ namespace TarkovMonitor
             public bool complete { get; set; }
             public bool invalid { get; set; }
             public bool failed { get; set; }
+        }
+        public class ProgressResponseObjective
+        {
+            public string? id { get; set; }
+            public bool complete { get; set; }
+            public int count { get; set; }
         }
         public class ProgressResponseHideoutModules    
         {

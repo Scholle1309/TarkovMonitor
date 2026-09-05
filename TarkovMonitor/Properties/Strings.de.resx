@@ -425,4 +425,34 @@
   <data name="NoTasksOnThisMap" xml:space="preserve">
     <value>Keine deiner angenommenen Aufgaben ist auf dieser Karte machbar.</value>
   </data>
+  <data name="StrictAcceptedTasksOnMap" xml:space="preserve">
+    <value>Auf der Karte nur Aufgaben als aktiv zählen, deren Annahme Logs, Tracker-Fortschritt oder du bestätigen</value>
+  </data>
+  <data name="ShowHiddenTasks" xml:space="preserve">
+    <value>Ausgeblendete und nie angenommene Aufgaben zeigen</value>
+  </data>
+  <data name="MarkTaskAccepted" xml:space="preserve">
+    <value>Als angenommen markieren</value>
+  </data>
+  <data name="HideTask" xml:space="preserve">
+    <value>Aufgabe ausblenden</value>
+  </data>
+  <data name="ResetTaskOverride" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="TaskStateHidden" xml:space="preserve">
+    <value>Ausgeblendet</value>
+  </data>
+  <data name="TaskStateNeverAccepted" xml:space="preserve">
+    <value>Nie angenommen</value>
+  </data>
+  <data name="AcceptedReasonLog" xml:space="preserve">
+    <value>laut Spiel-Log angenommen</value>
+  </data>
+  <data name="AcceptedReasonProgress" xml:space="preserve">
+    <value>laut Tracker-Fortschritt angenommen</value>
+  </data>
+  <data name="AcceptedReasonUser" xml:space="preserve">
+    <value>von dir als angenommen markiert</value>
+  </data>
 </root>

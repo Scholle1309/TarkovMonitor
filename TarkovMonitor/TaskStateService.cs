@@ -12,12 +12,17 @@ namespace TarkovMonitor
         Locked,
         Completed,
         Failed,
+        /// <summary>Hidden by the user.</summary>
+        Hidden,
     }
 
     public class TaskView
     {
         public TarkovDev.Task Task { get; init; } = default!;
         public TaskState State { get; init; }
+        public QuestOverride Override { get; init; }
+        /// <summary>Why the task counts as accepted: log, tracker objective progress or the user.</summary>
+        public string AcceptedReason { get; init; } = "";
         public string TraderName { get; init; } = "";
         /// <summary>Maps the task or one of its objectives takes place on (empty = anywhere).</summary>
         public List<TarkovDev.Map> Maps { get; init; } = new();
@@ -80,7 +85,10 @@ namespace TarkovMonitor
                     failed.Add(entry.id);
                 }
             }
-            var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, tasks, completed);
+            var evidence = GetAcceptedEvidence(tasks);
+            var overrides = questLogStore.GetOverrides(profileId, sessionMode);
+            var strict = Properties.Settings.Default.mapStrictAcceptedTasks;
+            var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, tasks, completed, evidence, strict);
             var playerLevel = progress?.playerLevel ?? 0;
             var currentMapId = mapsService.ShownMap?.id;
 
@@ -88,18 +96,35 @@ namespace TarkovMonitor
             foreach (var task in tasks)
             {
                 history.Tasks.TryGetValue(task.id, out var own);
+                overrides.TryGetValue(task.id, out var decision);
                 TaskState state;
+                var reason = "";
                 if (completed.Contains(task.id))
                 {
                     state = TaskState.Completed;
                 }
-                else if (failed.Contains(task.id) && own?.IsOpen != true)
+                else if (decision == QuestOverride.Hidden)
+                {
+                    state = TaskState.Hidden;
+                }
+                else if (failed.Contains(task.id) && own?.IsOpen != true && decision != QuestOverride.Accepted)
                 {
                     state = TaskState.Failed;
+                }
+                else if (decision == QuestOverride.Accepted)
+                {
+                    state = TaskState.Accepted;
+                    reason = "user";
                 }
                 else if (own?.IsOpen == true)
                 {
                     state = TaskState.Accepted;
+                    reason = "log";
+                }
+                else if (evidence.Contains(task.id))
+                {
+                    state = TaskState.Accepted;
+                    reason = "progress";
                 }
                 else if (hidden.Contains(task.id))
                 {
@@ -139,6 +164,8 @@ namespace TarkovMonitor
                 {
                     Task = task,
                     State = state,
+                    Override = decision,
+                    AcceptedReason = reason,
                     TraderName = traders.Find(trader => trader.id == task.trader)?.name ?? "",
                     Maps = taskMaps,
                     OnCurrentMap = currentMapId != null && (mapIds.Count == 0 || mapIds.Contains(currentMapId)),
@@ -146,6 +173,49 @@ namespace TarkovMonitor
                 });
             }
             return result;
+        }
+
+        /// <summary>
+        /// Tasks with objective progress on the tracker. Objectives only advance
+        /// while a task is active, so progress proves the task was accepted even
+        /// when the acceptance predates the game logs.
+        /// </summary>
+        public static HashSet<string> GetAcceptedEvidence(IReadOnlyCollection<TarkovDev.Task> tasks)
+        {
+            var result = new HashSet<string>();
+            var objectives = TarkovTracker.Progress?.data?.taskObjectivesProgress;
+            if (objectives == null || objectives.Count == 0)
+            {
+                return result;
+            }
+            var objectiveToTask = new Dictionary<string, string>();
+            foreach (var task in tasks)
+            {
+                foreach (var objective in task.objectives)
+                {
+                    if (!string.IsNullOrEmpty(objective.id))
+                    {
+                        objectiveToTask[objective.id] = task.id;
+                    }
+                }
+            }
+            foreach (var objective in objectives)
+            {
+                if ((objective.complete || objective.count > 0)
+                    && objective.id != null
+                    && objectiveToTask.TryGetValue(objective.id, out var taskId))
+                {
+                    result.Add(taskId);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>Manual decision by the user for the active profile.</summary>
+        public void SetOverride(string taskId, QuestOverride kind)
+        {
+            var (profileId, sessionMode) = ResolveProfile();
+            questLogStore.SetOverride(profileId, sessionMode, taskId, kind);
         }
 
         /// <summary>
