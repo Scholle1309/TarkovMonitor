@@ -137,6 +137,16 @@ namespace TarkovMonitor
             lock (gate)
             {
                 inserted = Insert(profile.Id, profile.SessionMode, taskId, status, eventTime, null);
+                // The game is the authority: an acceptance lifts a manual "hidden",
+                // a finish or failure lifts a manual "accepted".
+                var obsolete = status == TaskStatus.Started ? QuestOverride.Hidden : QuestOverride.Accepted;
+                using var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM quest_overrides WHERE profile_id = @profile AND session_mode = @mode AND task_id = @task AND kind = @kind;";
+                command.Parameters.AddWithValue("@profile", profile.Id);
+                command.Parameters.AddWithValue("@mode", profile.SessionMode.ToString());
+                command.Parameters.AddWithValue("@task", taskId);
+                command.Parameters.AddWithValue("@kind", obsolete.ToString());
+                inserted |= command.ExecuteNonQuery() > 0;
             }
             if (inserted)
             {
