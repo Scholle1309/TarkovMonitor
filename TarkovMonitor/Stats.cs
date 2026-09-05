@@ -392,6 +392,8 @@ namespace TarkovMonitor
             EnsureColumn("raids", "profile_id", "VARCHAR(24)");
             EnsureColumn("flea_sales", "profile_id", "VARCHAR(24)");
             EnsureColumn("raids", "ended", "TIMESTAMP");
+            // An older release wrote the map object's type name instead of its id; those rows have no usable map.
+            ExecuteNonQuery("UPDATE raids SET map = NULL WHERE map LIKE 'TarkovMonitor.%';");
         }
 
         private void EnsureColumn(string tableName, string columnName, string definition)
