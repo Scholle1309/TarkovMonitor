@@ -319,12 +319,8 @@ namespace TarkovMonitor
                     // the user does not need to launch EFT just to verify the
                     // data connection. Tracker writes remain inactive.
                     _ = RefreshTarkovDevApiData(e.Profile, allowPersistedProfile: true);
-                    TarkovDev.StopAutoUpdates();
-                    if (TryStartReadOnlyProgress(e.Profile))
-                    {
-                        return;
-                    }
                     TarkovTracker.ResetActiveState();
+                    TarkovDev.StopAutoUpdates();
                     return;
                 }
 
@@ -341,10 +337,7 @@ namespace TarkovMonitor
                 // tracker key while EFT is not running.
                 if (!eft.IsGameRunning)
                 {
-                    if (!TryStartReadOnlyProgress(e.Profile))
-                    {
-                        TarkovTracker.DeactivateProfile();
-                    }
+                    TarkovTracker.DeactivateProfile();
                     return;
                 }
 
@@ -391,10 +384,56 @@ namespace TarkovMonitor
 
         public bool IsMaximized => WindowState == FormWindowState.Maximized;
 
+        // Default window size in logical pixels; the last size and state are remembered.
+        private const int DefaultWindowWidth = 1100;
+        private const int DefaultWindowHeight = 720;
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
             MinimumSize = new System.Drawing.Size(MinimumWindowWidth, MinimumWindowHeight);
+            RestoreWindowSize();
+        }
+
+        private void RestoreWindowSize()
+        {
+            var scale = DeviceDpi / 96f;
+            var width = Properties.Settings.Default.windowWidth > 0 ? Properties.Settings.Default.windowWidth : DefaultWindowWidth;
+            var height = Properties.Settings.Default.windowHeight > 0 ? Properties.Settings.Default.windowHeight : DefaultWindowHeight;
+            var area = Screen.FromControl(this).WorkingArea;
+            var size = new System.Drawing.Size(
+                Math.Clamp((int)(width * scale), MinimumWindowWidth, area.Width),
+                Math.Clamp((int)(height * scale), MinimumWindowHeight, area.Height));
+            ClientSize = size;
+            // Keep the window on screen after the resize.
+            Location = new System.Drawing.Point(
+                Math.Max(area.Left, Math.Min(Location.X, area.Right - Width)),
+                Math.Max(area.Top, Math.Min(Location.Y, area.Bottom - Height)));
+            if (Properties.Settings.Default.windowMaximized)
+            {
+                WindowState = FormWindowState.Maximized;
+            }
+        }
+
+        private void SaveWindowSize()
+        {
+            try
+            {
+                var scale = DeviceDpi / 96f;
+                var maximized = WindowState == FormWindowState.Maximized;
+                var client = maximized ? RestoreBounds.Size - (Size - ClientSize) : ClientSize;
+                if (client.Width >= MinimumWindowWidth && client.Height >= MinimumWindowHeight)
+                {
+                    Properties.Settings.Default.windowWidth = (int)Math.Round(client.Width / scale);
+                    Properties.Settings.Default.windowHeight = (int)Math.Round(client.Height / scale);
+                }
+                Properties.Settings.Default.windowMaximized = maximized;
+                Properties.Settings.Default.Save();
+            }
+            catch
+            {
+                // Remembering the size is a convenience only.
+            }
         }
 
         public void MinimizeWindow() => WindowState = FormWindowState.Minimized;
@@ -934,6 +973,7 @@ namespace TarkovMonitor
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             closing = true;
+            SaveWindowSize();
             SocketClient.ConnectionInterrupted -= SocketClient_ConnectionInterrupted;
             _ = SocketClient.StopAsync();
             base.OnFormClosed(e);
@@ -1702,26 +1742,6 @@ namespace TarkovMonitor
         private void MarkEftSessionRecognized()
         {
             Volatile.Write(ref noActiveEftSessionNoticePublished, 0);
-        }
-
-        // EFT is not running. When the profile last seen in the logs already has
-        // its own tracker key, fetch the progress read-only so the Tasks tab and
-        // the map filter work before the game is launched. Nothing is auto-bound;
-        // writes only follow live log events, which need the game anyway.
-        private bool TryStartReadOnlyProgress(Profile profile)
-        {
-            var snapshot = profile.Snapshot();
-            if (!TarkovTracker.IsLegacyService && !string.IsNullOrEmpty(TarkovTracker.GetTokenForProfile(snapshot)))
-            {
-                _ = InitializeProgress(snapshot, announceSession: false);
-                return true;
-            }
-            if (Debugger.IsAttached || Environment.GetEnvironmentVariable("TARKOVMONITOR_MAPS_DEBUG") == "1")
-            {
-                var keys = string.Join("; ", TarkovTracker.GetOrgKeys().Select(key => $"{key.Prefix} bound={key.IsBound} verified={key.IsVerified} profileMatch={key.ProfileId == snapshot.Id} accountMatch={key.AccountId == snapshot.AccountId} mode={key.SessionMode} blocked={key.IsAutoBindBlocked} conflict={key.HasPendingConflict}"));
-                messageLog.AddMessage($"Tracker debug: no key for profile {snapshot.Id} account {snapshot.AccountId} mode {snapshot.SessionMode}; legacy={TarkovTracker.IsLegacyService}; keys: {keys}", "info");
-            }
-            return false;
         }
 
         private async Task InitializeProgress(Profile? profile = null, bool announceSession = true)

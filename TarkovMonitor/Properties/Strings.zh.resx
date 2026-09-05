@@ -423,7 +423,7 @@
     <value>No tasks to show.</value>
   </data>
   <data name="TasksNeedTracker" xml:space="preserve">
-    <value>No Tarkov Tracker progress loaded yet. It is fetched for the profile last seen in the game logs as soon as an API token is assigned to it in Settings.</value>
+    <value>No Tarkov Tracker token is assigned to this profile. Assign one in Settings to load your progress.</value>
   </data>
   <data name="RecommendedTasks" xml:space="preserve">
     <value>Do these next</value>
@@ -595,5 +595,8 @@
   </data>
   <data name="ObjectiveReady" xml:space="preserve">
     <value>Ready to hand over</value>
+  </data>
+  <data name="TasksNeedGame" xml:space="preserve">
+    <value>Start Escape from Tarkov to load your Tarkov Tracker progress. The task list fills in once the game session is recognised.</value>
   </data>
 </root>

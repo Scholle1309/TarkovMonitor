@@ -7,6 +7,7 @@
 @inject LocalizationService LocalizationService
 @inject MessageLog MessageLog
 @inject ISnackbar Snackbar
+@inject GameWatcher GameWatcher
 @layout AppLayout
 @implements IDisposable
 
@@ -74,7 +75,12 @@
 
     @if (!TaskStateService.HasTrackerProgress)
     {
-        <MudAlert Severity="Severity.Info" Dense="true" Class="tasks-alert">@LocalizationService.GetString("TasksNeedTracker")</MudAlert>
+        @* Progress is only fetched while the game runs; say which of the two is missing. *@
+        <MudAlert Severity="Severity.Info" Dense="true" Class="tasks-alert">
+            @(string.IsNullOrEmpty(TarkovTracker.GetTokenForProfile(GameWatcher.CurrentProfile.Snapshot()))
+                ? LocalizationService.GetString("TasksNeedTracker")
+                : LocalizationService.GetString("TasksNeedGame"))
+        </MudAlert>
     }
 
     @if (view == TaskListView.Accepted && accepted.Count > 0)
@@ -374,6 +380,8 @@
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         TarkovTracker.ObjectiveProgressChanged += OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged += OnDataChanged;
+        GameWatcher.GameStarted += OnDataChanged;
+        GameWatcher.GameStopped += OnDataChanged;
         Refresh();
     }
 
@@ -634,5 +642,7 @@
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
         TarkovTracker.ObjectiveProgressChanged -= OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged -= OnDataChanged;
+        GameWatcher.GameStarted -= OnDataChanged;
+        GameWatcher.GameStopped -= OnDataChanged;
     }
 }

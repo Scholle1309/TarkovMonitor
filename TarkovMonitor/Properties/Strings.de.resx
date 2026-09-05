@@ -408,7 +408,7 @@
     <value>Keine Aufgaben anzuzeigen.</value>
   </data>
   <data name="TasksNeedTracker" xml:space="preserve">
-    <value>Noch kein Tarkov-Tracker-Fortschritt geladen. Er wird für das zuletzt in den Spiel-Logs gesehene Profil abgerufen, sobald ihm in den Einstellungen ein API-Token zugewiesen ist.</value>
+    <value>Diesem Profil ist kein Tarkov-Tracker-Token zugewiesen. Weise in den Einstellungen einen zu, damit der Fortschritt geladen wird.</value>
   </data>
   <data name="RecommendedTasks" xml:space="preserve">
     <value>Als Nächstes erledigen</value>
@@ -580,5 +580,8 @@
   </data>
   <data name="ObjectiveReady" xml:space="preserve">
     <value>Bereit zur Abgabe</value>
+  </data>
+  <data name="TasksNeedGame" xml:space="preserve">
+    <value>Starte Escape from Tarkov, damit dein Tarkov-Tracker-Fortschritt geladen wird. Die Aufgabenliste füllt sich, sobald die Spielsitzung erkannt ist.</value>
   </data>
 </root>
