@@ -863,6 +863,15 @@ namespace TarkovMonitor
                             }
                         }
                     }
+                    if (raidInfo.Map == null && eventLine.Contains("application|[Transit]"))
+                    {
+                        // "[Transit] Flag:Common, RaidId:..., Count:0, Locations:bigmap -> "
+                        var transitMap = Regex.Match(eventLine, @"Locations:(?<map>[A-Za-z0-9_]+)").Groups["map"].Value;
+                        if (!string.IsNullOrEmpty(transitMap))
+                        {
+                            raidInfo.Map = TarkovDev.Maps.Find(map => map.nameId == transitMap);
+                        }
+                    }
                     if (eventLine.Contains("application|LocationLoaded"))
                     {
                         // The map has been loaded and the game is searching for a match
@@ -1272,7 +1281,8 @@ namespace TarkovMonitor
                     raidInfo = new();
                     GameStopped?.Invoke(this, EventArgs.Empty);
                 }
-                raidInfo = new();
+                // The log may already describe a raid (map, queue time) before the
+                // process poll sees the game; keep that information.
                 var processes = Process.GetProcessesByName("EscapeFromTarkov");
                 if (processes.Length == 0)
                 {

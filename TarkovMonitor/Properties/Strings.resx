@@ -825,4 +825,7 @@
   <data name="DashboardNeedsSession" xml:space="preserve">
     <value>Start Escape from Tarkov and pick a mode. Progress and statistics load once the game session is recognised.</value>
   </data>
+  <data name="RepeatableTask" xml:space="preserve">
+    <value>Daily/weekly task ({0})</value>
+  </data>
 </root>

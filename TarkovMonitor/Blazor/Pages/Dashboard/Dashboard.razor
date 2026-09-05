@@ -577,7 +577,30 @@ else
 
     private static string ItemName(string itemId) => TarkovDev.Items.Find(item => item.id == itemId)?.name ?? itemId;
 
-    private string TaskName(string taskId) => TarkovDev.Tasks.Find(task => task.id == taskId)?.name ?? LocalizationService.GetString("UnknownTask");
+    // Daily and weekly operational tasks share fixed template ids that Tarkov.dev does not list.
+    private static readonly Dictionary<string, string> RepeatableTaskKinds = new()
+    {
+        ["616041eb031af660100c9967"] = "Exploration",
+        ["61604635c725987e815b1a46"] = "Completion",
+        ["616052ea3054fc0e2c24ce6e"] = "Elimination",
+        ["62825ef60e88d037dc1eb42c"] = "Scav · Exploration",
+        ["628f588ebb558574b2260fe5"] = "Scav · Completion",
+        ["62825ef60e88d037dc1eb428"] = "Scav · Elimination",
+    };
+
+    private string TaskName(string taskId)
+    {
+        var task = TarkovDev.Tasks.Find(task => task.id == taskId);
+        if (task != null)
+        {
+            return task.name;
+        }
+        if (RepeatableTaskKinds.TryGetValue(taskId, out var kind))
+        {
+            return string.Format(LocalizationService.GetString("RepeatableTask"), kind);
+        }
+        return LocalizationService.GetString("UnknownTask");
+    }
 
     private static string Percent(int part, int total) => total > 0 ? Math.Round(100.0 * part / total).ToString(CultureInfo.InvariantCulture) : "0";
 

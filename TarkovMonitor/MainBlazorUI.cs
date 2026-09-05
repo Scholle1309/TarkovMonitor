@@ -2230,6 +2230,7 @@ namespace TarkovMonitor
                             return;
                         }
                         e.RaidInfo.Map = TarkovDev.Maps.Find(m => m.id == select.Selected.Value);
+                        Stats.SetRaidMap(e.Profile?.Id, e.RaidInfo.RaidId, e.RaidInfo.Map?.nameId);
                         monMessage.Message = $"Starting a {e.RaidInfo.RaidType} raid on {select.Selected.Text}.";
                         monMessage.Buttons.Clear();
                         monMessage.Selects.Clear();

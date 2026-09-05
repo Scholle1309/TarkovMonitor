@@ -27,8 +27,19 @@ namespace TarkovMonitor
 
         public static void AddRaid(RaidInfoEventArgs e)
         {
-            Database.Value.AddRaid(e);
-            Changed?.Invoke(null, EventArgs.Empty);
+            if (Database.Value.AddRaid(e))
+            {
+                Changed?.Invoke(null, EventArgs.Empty);
+            }
+        }
+
+        /// <summary>Sets the map of the latest raid of the profile that was stored without one.</summary>
+        public static void SetRaidMap(string? profileId, string? raidId, string? mapNameId)
+        {
+            if (Database.Value.SetRaidMap(profileId, raidId, mapNameId))
+            {
+                Changed?.Invoke(null, EventArgs.Empty);
+            }
         }
 
         /// <summary>Stores the end time of the latest open raid of the profile (optionally matched by raid id).</summary>
@@ -146,17 +157,60 @@ namespace TarkovMonitor
                 new Dictionary<string, object?> { ["currency"] = currency });
         }
 
-        internal void AddRaid(RaidInfoEventArgs e)
+        internal bool AddRaid(RaidInfoEventArgs e)
         {
-            const string sql = "INSERT INTO raids(profile_id, map, raid_type, queue_time, raid_id) VALUES (@profile_id, @map, @raid_type, @queue_time, @raid_id);";
-            ExecuteNonQuery(sql, new Dictionary<string, object?>
+            lock (gate)
             {
-                ["profile_id"] = e.Profile.Id,
-                ["map"] = e.RaidInfo.Map?.nameId,
-                ["raid_type"] = (int)e.RaidInfo.RaidType,
-                ["queue_time"] = e.RaidInfo.QueueTime,
-                ["raid_id"] = e.RaidInfo.RaidId,
-            });
+                // A second monitor instance or a repeated log line must not create a second row.
+                const string duplicateSql = "SELECT COUNT(id) FROM raids WHERE profile_id = @profile_id AND ended IS NULL"
+                    + " AND ((@raid_id <> '' AND raid_id = @raid_id) OR (time >= @since AND COALESCE(map, '') = COALESCE(@map, '')));";
+                using (var check = CreateCommand(duplicateSql, parameters: new Dictionary<string, object?>
+                {
+                    ["profile_id"] = e.Profile.Id,
+                    ["raid_id"] = e.RaidInfo.RaidId ?? "",
+                    ["map"] = e.RaidInfo.Map?.nameId,
+                    ["since"] = DateTime.UtcNow.AddSeconds(-90).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                }))
+                {
+                    if (Convert.ToInt32(check.ExecuteScalar()) > 0)
+                    {
+                        return false;
+                    }
+                }
+                const string sql = "INSERT INTO raids(profile_id, map, raid_type, queue_time, raid_id) VALUES (@profile_id, @map, @raid_type, @queue_time, @raid_id);";
+                using var command = CreateCommand(sql, parameters: new Dictionary<string, object?>
+                {
+                    ["profile_id"] = e.Profile.Id,
+                    ["map"] = e.RaidInfo.Map?.nameId,
+                    ["raid_type"] = (int)e.RaidInfo.RaidType,
+                    ["queue_time"] = e.RaidInfo.QueueTime,
+                    ["raid_id"] = e.RaidInfo.RaidId,
+                });
+                command.ExecuteNonQuery();
+                return true;
+            }
+        }
+
+        internal bool SetRaidMap(string? profileId, string? raidId, string? mapNameId)
+        {
+            if (string.IsNullOrEmpty(mapNameId))
+            {
+                return false;
+            }
+            const string sql = "UPDATE raids SET map = @map WHERE id = (SELECT id FROM raids WHERE (map IS NULL OR map = '')"
+                + " AND (@profile_id IS NULL OR profile_id = @profile_id)"
+                + " AND (@raid_id IS NULL OR raid_id = @raid_id OR raid_id = '')"
+                + " ORDER BY id DESC LIMIT 1);";
+            lock (gate)
+            {
+                using var command = CreateCommand(sql, parameters: new Dictionary<string, object?>
+                {
+                    ["map"] = mapNameId,
+                    ["profile_id"] = string.IsNullOrEmpty(profileId) ? null : profileId,
+                    ["raid_id"] = string.IsNullOrEmpty(raidId) ? null : raidId,
+                });
+                return command.ExecuteNonQuery() > 0;
+            }
         }
 
         internal bool EndRaid(string? profileId, string? raidId)
