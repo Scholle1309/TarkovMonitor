@@ -41,7 +41,7 @@
         {
             <div class="map-tasks">
                 <div class="map-tasks__header">
-                    <MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("TasksOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText>
+                    <span class="map-tasks__title"><MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("TasksOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText></span>
                     <span class="map-tasks__count">@mapTasks.Count</span>
                     @if (highlightedTaskId != null)
                     {

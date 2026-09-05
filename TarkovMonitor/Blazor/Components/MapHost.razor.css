@@ -122,11 +122,13 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.map-tasks__header > :first-child {
-    flex: 1 1 auto;
+.map-tasks__title {
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .map-tasks__count {
+    margin-right: auto;
     padding: 0 8px;
     border-radius: 10px;
     background: rgba(67, 160, 71, 0.5);
