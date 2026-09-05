@@ -101,6 +101,16 @@
     gap: 8px;
 }
 
+.map-tasks__section {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
 ::deep .map-tasks__empty {
     color: rgba(255, 255, 255, 0.5);
 }

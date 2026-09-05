@@ -293,8 +293,10 @@
                 || view.Maps.Any(map => map.name.Contains(term, StringComparison.OrdinalIgnoreCase))
                 || view.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
         }
+        // Within the current-map group, tasks bound to that map come before tasks doable anywhere.
         visible = query
             .OrderByDescending(view => currentMap != null && view.OnCurrentMap)
+            .ThenBy(view => currentMap != null && view.OnCurrentMap && view.Maps.Count == 0 ? 1 : 0)
             .ThenBy(view => view.State)
             .ThenBy(view => view.TraderName)
             .ThenBy(view => view.Task.name)

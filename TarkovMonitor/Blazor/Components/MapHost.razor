@@ -47,6 +47,10 @@
                     }
                     @foreach (var view in mapTasks)
                     {
+                        @if (view.Maps.Count == 0 && mapTasks.IndexOf(view) == mapTasks.FindIndex(candidate => candidate.Maps.Count == 0))
+                        {
+                            <div class="map-tasks__section">@LocalizationService.GetString("AnyLocation")</div>
+                        }
                         <div class="map-task">
                             <div class="map-task__title">
                                 <span class="map-task__name">@view.Task.name</span>
@@ -154,9 +158,11 @@
     {
         try
         {
+            // Tasks bound to this map first, tasks that can be done anywhere after them.
             mapTasks = TaskStateService.GetTasks()
                 .Where(view => view.State == TaskState.Accepted && view.OnCurrentMap)
-                .OrderBy(view => view.TraderName)
+                .OrderBy(view => view.Maps.Count == 0 ? 1 : 0)
+                .ThenBy(view => view.TraderName)
                 .ThenBy(view => view.Task.name)
                 .ToList();
         }
