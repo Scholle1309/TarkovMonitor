@@ -21,6 +21,18 @@ window.mapHost = (() => {
         // Let the player position marker pulse for the given time.
         pulsePosition(frameId, durationMs) {
             return post(frameId, { type: "tarkov-monitor-position", duration: durationMs || 5000 });
+        },
+        // Close the layer, settings and search panels of the page (one panel at a time).
+        closePanels(frameId) {
+            return post(frameId, { type: "tarkov-monitor-close-panels" });
+        },
+        // The page reports when one of its panels opened, so the Maps tab closes its own.
+        register(dotNetRef) {
+            window.addEventListener("message", (event) => {
+                if (event.origin === targetOrigin && event.data && event.data.type === "tarkov-monitor-panel-opened") {
+                    dotNetRef.invokeMethodAsync("OnFramePanelOpened");
+                }
+            });
         }
     };
 })();

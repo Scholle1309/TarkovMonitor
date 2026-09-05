@@ -212,6 +212,8 @@
         _ = InvokeAsync(async () =>
         {
             tasksPanelOpen = true;
+            bossesPanelOpen = false;
+            CloseFramePanels();
             highlightedTaskId = view.Task.id;
             StateHasChanged();
             for (var attempt = 0; attempt < 20 && !MapsService.FrameLoaded; attempt++)
@@ -312,7 +314,41 @@
         if (tasksPanelOpen)
         {
             bossesPanelOpen = false;
+            CloseFramePanels();
         }
+    }
+    // One panel at a time across both sides: opening ours closes the page's, and vice versa.
+    private DotNetObjectReference<MapHost>? selfReference;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            selfReference = DotNetObjectReference.Create(this);
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("mapHost.register", selfReference);
+            }
+            catch
+            {
+                // The script is not available yet; the panels then simply do not close each other.
+            }
+        }
+    }
+    private void CloseFramePanels()
+    {
+        _ = JSRuntime.InvokeVoidAsync("mapHost.closePanels", FrameElementId).AsTask();
+    }
+    [JSInvokable]
+    public void OnFramePanelOpened()
+    {
+        if (!tasksPanelOpen && !bossesPanelOpen)
+        {
+            return;
+        }
+        tasksPanelOpen = false;
+        bossesPanelOpen = false;
+        _ = InvokeAsync(StateHasChanged);
     }
     // Rifle silhouette for the bosses button (the Material set has no weapon icon).
     private const string RifleIcon = "<path d=\"M1 9.5 6 9v4l-5 1zM6 9h9v4H6zM15 10h8v1.5h-8zM16 8.5h1.5V10H16zM9 13h3l2 6-2.5.5zM7 13h2l-.5 4H6.5z\"/>";
@@ -344,6 +380,7 @@
         if (bossesPanelOpen)
         {
             tasksPanelOpen = false;
+            CloseFramePanels();
         }
     }
     private static string FormatChance(double chance) => chance <= 0 ? "" : $"{Math.Round(chance * 100)} %";
@@ -510,6 +547,7 @@
         eft.GameStarted -= OnQuestDataChanged;
         eft.GameStopped -= OnQuestDataChanged;
         eft.ProfileChanged -= OnProfileChanged;
+        selfReference?.Dispose();
     }
     private void OnProfileChanged(object? sender, ProfileEventArgs e) => OnQuestDataChanged(sender, EventArgs.Empty);
 }
