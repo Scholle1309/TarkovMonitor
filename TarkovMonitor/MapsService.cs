@@ -293,6 +293,31 @@ namespace TarkovMonitor
         /// <summary>Raised after a new player position was sent to the map.</summary>
         public event EventHandler? PositionUpdated;
 
+        /// <summary>Raised when another tab asks the map to highlight a task's markers.</summary>
+        public event EventHandler<TaskView>? HighlightRequested;
+
+        /// <summary>
+        /// Show the Maps tab and highlight the given task there. When the map
+        /// shown has no marker for the task, the view switches to the task's
+        /// map first (the task's own map when it has one).
+        /// </summary>
+        public void RequestHighlight(TaskView view)
+        {
+            RequestFrame();
+            NavigationRequested?.Invoke(this, new MapsNavigationRequestedEventArgs(MapsRoute, onlyFromMaps: false));
+            var shownMapId = ShownMap?.id ?? "";
+            if (!view.MarkerMapIds.Contains(shownMapId))
+            {
+                var target = TarkovDev.Maps.Find(map => map.id == view.Task.map && view.MarkerMapIds.Contains(map.id))
+                    ?? TarkovDev.Maps.Find(map => view.MarkerMapIds.Contains(map.id));
+                if (target != null)
+                {
+                    _ = NavigateAsync(target);
+                }
+            }
+            HighlightRequested?.Invoke(this, view);
+        }
+
         /// <summary>Keep the newest position so it can be replayed after a (re)load.</summary>
         public void RememberPosition(JsonObject positionMessage)
         {

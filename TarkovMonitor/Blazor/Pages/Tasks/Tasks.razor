@@ -9,198 +9,293 @@
 @layout AppLayout
 @implements IDisposable
 
-<MudGrid Class="pa-0" Spacing="0">
-    <MudItem xs="12">
-        <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
-            <MudText Typo="Typo.h6" Class="d-flex align-center">
+<div class="tasks-page">
+    <MudPaper Class="app-surface tasks-head" Elevation="3">
+        <div class="tasks-head__row">
+            <MudText Typo="Typo.h6" Class="d-flex align-center tasks-head__title">
                 <MudIcon Icon="@Icons.Material.Filled.Assignment" Class="mr-2" />
                 <span class="tm-card-heading-text">@LocalizationService.GetString("Tasks")</span>
             </MudText>
-            <div class="tasks-toolbar">
-                <MudTextField T="string" Value="@search" ValueChanged="OnSearchChanged" Immediate="true" DebounceInterval="150"
-                              Placeholder="@LocalizationService.GetString("SearchTasks")" Variant="Variant.Outlined" Margin="Margin.Dense"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="tm-input tasks-search" />
-                <MudSwitch T="bool" Value="@includeAvailable" ValueChanged="OnIncludeAvailableChanged" Color="Color.Info" Label="@LocalizationService.GetString("IncludeAvailableTasks")" />
-                <MudSwitch T="bool" Value="@showHidden" ValueChanged="OnShowHiddenChanged" Color="Color.Default" Label="@LocalizationService.GetString("ShowHiddenTasks")" />
+            <MudTextField T="string" Value="@search" ValueChanged="OnSearchChanged" Immediate="true" DebounceInterval="150"
+                          Placeholder="@LocalizationService.GetString("SearchTasks")" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Class="tm-input tasks-search" />
+            <div class="tasks-seg">
+                @foreach (var option in ViewOptions)
+                {
+                    <button type="button" class="@("tasks-seg__btn" + (view == option ? " tasks-seg__btn--on" : ""))" @onclick="() => SetView(option)">
+                        @ViewLabel(option)<span class="tasks-seg__count">@CountFor(option)</span>
+                    </button>
+                }
             </div>
-            <MudText Typo="Typo.caption" Class="tasks-summary">@SummaryText</MudText>
-        </MudPaper>
-    </MudItem>
+            <MudSelect T="string" Value="@mapFilter" ValueChanged="OnMapFilterChanged" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                       Label="@LocalizationService.GetString("Map")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="320"
+                       Class="tm-select tasks-select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("AllMaps")</MudSelectItem>
+                @foreach (var map in MapChoices)
+                {
+                    <MudSelectItem T="string" Value="@map.id">@map.name</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="TaskSort" Value="@sort" ValueChanged="OnSortChanged" Dense="true" Margin="Margin.Dense" Variant="Variant.Outlined"
+                       Label="@LocalizationService.GetString("SortBy")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false"
+                       Class="tm-select tasks-select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                <MudSelectItem T="TaskSort" Value="TaskSort.Default">@LocalizationService.GetString("SortDefault")</MudSelectItem>
+                <MudSelectItem T="TaskSort" Value="TaskSort.Name">@LocalizationService.GetString("SortName")</MudSelectItem>
+                <MudSelectItem T="TaskSort" Value="TaskSort.Trader">@LocalizationService.GetString("SortTrader")</MudSelectItem>
+                <MudSelectItem T="TaskSort" Value="TaskSort.Experience">@LocalizationService.GetString("SortExperience")</MudSelectItem>
+                <MudSelectItem T="TaskSort" Value="TaskSort.Level">@LocalizationService.GetString("SortLevel")</MudSelectItem>
+            </MudSelect>
+        </div>
+        <div class="tasks-stats">
+            <span><b>@accepted.Count</b> @LocalizationService.GetString("StatAccepted")</span>
+            @if (currentMap != null)
+            {
+                <span><b>@accepted.Count(item => item.OnCurrentMap)</b> @string.Format(LocalizationService.GetString("StatDoableOn"), currentMap.name)</span>
+            }
+            <span><b>@accepted.Count(item => item.Task.kappaRequired)</b> Kappa</span>
+            <span><b>@accepted.Sum(item => item.Task.experience).ToString("N0")</b> @LocalizationService.GetString("StatOpenXp")</span>
+        </div>
+        <div class="tasks-traders">
+            <button type="button" class="@("tasks-chip" + (traderFilter == null ? " tasks-chip--on" : ""))" @onclick="() => SetTrader(null)">@LocalizationService.GetString("AllTraders")</button>
+            @foreach (var trader in TraderChoices)
+            {
+                <button type="button" class="@("tasks-chip" + (traderFilter == trader ? " tasks-chip--on" : ""))" @onclick="() => SetTrader(trader)">@trader</button>
+            }
+            <button type="button" class="@("tasks-chip tasks-chip--kappa" + (kappaOnly ? " tasks-chip--on" : ""))" @onclick="ToggleKappa">@LocalizationService.GetString("KappaOnly")</button>
+        </div>
+    </MudPaper>
 
     @if (!TaskStateService.HasTrackerProgress)
     {
-        <MudItem xs="12">
-            <MudAlert Severity="Severity.Info" Dense="true" Class="ma-2 mx-4">@LocalizationService.GetString("TasksNeedTracker")</MudAlert>
-        </MudItem>
+        <MudAlert Severity="Severity.Info" Dense="true" Class="tasks-alert">@LocalizationService.GetString("TasksNeedTracker")</MudAlert>
     }
 
-    @if (recommendations.Count > 0)
+    @if (view == TaskListView.Accepted && accepted.Count > 0)
     {
-        <MudItem xs="12">
-            <MudPaper Class="app-surface recommendations pa-2 ma-2 mx-4" Elevation="3">
+        <MudPaper Class="app-surface tasks-reco" Elevation="3">
+            <div class="tasks-reco__head">
                 <MudText Typo="Typo.subtitle1" Class="d-flex align-center">
                     <MudIcon Icon="@Icons.Material.Filled.Recommend" Class="mr-2" Color="Color.Warning" />
                     <span>@LocalizationService.GetString("RecommendedTasks")</span>
                 </MudText>
-                <MudText Typo="Typo.caption" Class="recommendations__hint">@LocalizationService.GetString("RecommendedTasksHint")</MudText>
-                <div class="recommendations__list">
-                    @foreach (var item in recommendations)
+                <span class="tasks-reco__hint">@ModeHint(recommendationMode)</span>
+                <div class="tasks-reco__modes">
+                    @foreach (var mode in ModeOptions)
                     {
-                        <div class="@("recommendation" + (item.View.OnCurrentMap && currentMap != null ? " recommendation--current" : ""))">
-                            <div class="recommendation__title">
-                                <MudText Typo="Typo.subtitle2">@item.View.Task.name</MudText>
-                                <MudText Typo="Typo.caption" Class="recommendation__trader">@item.View.TraderName</MudText>
-                            </div>
-                            <div class="recommendation__maps">
-                                @if (item.View.Maps.Count == 0)
-                                {
-                                    <span class="task-objective__map">@LocalizationService.GetString("AnyLocation")</span>
-                                }
-                                @foreach (var map in item.View.Maps)
-                                {
-                                    <span class="@("task-objective__map" + (currentMap != null && map.id == currentMap.id ? " task-objective__map--current" : ""))">@map.name</span>
-                                }
-                            </div>
-                            <MudText Typo="Typo.body2" Class="recommendation__unlocks">@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</MudText>
-                            @if (item.DirectUnlocks.Count > 0)
-                            {
-                                <MudText Typo="Typo.caption" Class="recommendation__next">@string.Join(", ", item.DirectUnlocks.Take(4).Select(task => task.name))@(item.DirectUnlocks.Count > 4 ? ", …" : "")</MudText>
-                            }
-                        </div>
+                        <button type="button" class="@("tasks-chip tasks-chip--mode" + (recommendationMode == mode ? " tasks-chip--on" : "") + (mode == RecommendationMode.CurrentMap ? " tasks-chip--current" : ""))" @onclick="() => SetMode(mode)">@ModeLabel(mode)</button>
                     }
                 </div>
-            </MudPaper>
-        </MudItem>
+            </div>
+            @if (recommendations.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Class="tasks-reco__empty">@LocalizationService.GetString("NoRecommendations")</MudText>
+            }
+            <div class="tasks-reco__cards">
+                @foreach (var (item, index) in recommendations.Select((item, index) => (item, index)))
+                {
+                    <div class="@("reco-card" + (currentMap != null && item.View.OnCurrentMap ? " reco-card--current" : ""))">
+                        <span class="reco-card__rank">@(index + 1)</span>
+                        <div class="reco-card__title">@item.View.Task.name</div>
+                        <div class="reco-card__trader">@item.View.TraderName</div>
+                        <div class="tasks-maps">
+                            @if (item.View.Maps.Count == 0)
+                            {
+                                <span class="task-map">@LocalizationService.GetString("AnyLocation")</span>
+                            }
+                            @foreach (var map in item.View.Maps)
+                            {
+                                <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                            }
+                            @if (item.View.Task.kappaRequired)
+                            {
+                                <span class="task-map task-map--kappa">Kappa</span>
+                            }
+                        </div>
+                        <div class="reco-card__metric">@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</div>
+                        <div class="reco-card__kv">
+                            <span>XP <b>@item.Experience.ToString("N0")</b></span>
+                            <span>@LocalizationService.GetString("Level") <b>@item.View.Task.minPlayerLevel</b></span>
+                        </div>
+                        @if (item.DirectUnlocks.Count > 0)
+                        {
+                            <div class="reco-card__next">→ @string.Join(", ", item.DirectUnlocks.Take(4).Select(task => task.name))@(item.DirectUnlocks.Count > 4 ? ", …" : "")</div>
+                        }
+                    </div>
+                }
+            </div>
+        </MudPaper>
     }
 
     @if (visible.Count == 0)
     {
-        <MudItem xs="12">
-            <MudText Class="ma-4" Typo="Typo.body2">@LocalizationService.GetString("NoTasks")</MudText>
-        </MudItem>
+        <MudText Class="tasks-empty" Typo="Typo.body2">@LocalizationService.GetString("NoTasks")</MudText>
     }
 
-    @foreach (var group in visible.GroupBy(view => view.OnCurrentMap && currentMap != null))
+    @foreach (var group in visible.GroupBy(item => currentMap != null && item.OnCurrentMap))
     {
         @if (currentMap != null)
         {
-            <MudItem xs="12">
-                <MudText Typo="Typo.subtitle2" Class="tasks-group-heading">
-                    @(group.Key ? string.Format(LocalizationService.GetString("TasksOnMap"), currentMap.name) : LocalizationService.GetString("TasksElsewhere"))
-                    <span class="tasks-group-count">@group.Count()</span>
-                </MudText>
-            </MudItem>
+            <div class="@("tasks-group" + (group.Key ? " tasks-group--current" : ""))">
+                @(group.Key ? string.Format(LocalizationService.GetString("TasksOnMap"), currentMap.name) : LocalizationService.GetString("TasksElsewhere"))
+                <span class="tasks-group__count">@group.Count()</span>
+            </div>
         }
-        @foreach (var view in group)
+        <div class="tasks-cols">
+            <span></span>
+            <span>@LocalizationService.GetString("ColumnTask")</span>
+            <span>@LocalizationService.GetString("ColumnMaps")</span>
+            <span class="tasks-cols__num">XP</span>
+            <span>@LocalizationService.GetString("ColumnStatus")</span>
+            <span class="tasks-cols__actions">@LocalizationService.GetString("ColumnActions")</span>
+        </div>
+        @foreach (var item in group)
         {
-            <MudItem xs="12">
-                <MudPaper Class="@("app-surface task-card ma-2 mx-4" + (view.OnCurrentMap && currentMap != null ? " task-card--current" : ""))" Elevation="2">
-                    <div class="task-card__header" @onclick="() => ToggleExpanded(view.Task.id)">
-                        <MudIcon Icon="@(expanded.Contains(view.Task.id) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" Class="task-card__toggle" />
-                        <div class="task-card__title">
-                            <MudText Typo="Typo.subtitle1" Class="task-card__name">@view.Task.name</MudText>
-                            <MudText Typo="Typo.caption" Class="task-card__trader">@view.TraderName</MudText>
-                        </div>
-                        <div class="task-card__chips">
-                            @if (view.Maps.Count == 0)
-                            {
-                                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@LocalizationService.GetString("AnyLocation")</MudChip>
-                            }
-                            @foreach (var map in view.Maps)
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="@(currentMap != null && map.id == currentMap.id ? Color.Success : Color.Default)" Variant="@(currentMap != null && map.id == currentMap.id ? Variant.Filled : Variant.Outlined)">@map.name</MudChip>
-                            }
-                            @if (view.Task.kappaRequired)
-                            {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Kappa</MudChip>
-                            }
-                            <MudChip T="string" Size="Size.Small" Color="@StateColor(view.State)" Title="@ReasonLabel(view)">@StateLabel(view.State)</MudChip>
-                        </div>
-                        <span class="task-card__actions" @onclick:stopPropagation="true">
-                            @if (view.Override != QuestOverride.None)
-                            {
-                                <MudIconButton Icon="@Icons.Material.Filled.Undo" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("ResetTaskOverride")"
-                                               OnClick="@(() => SetOverride(view, QuestOverride.None))" />
-                            }
-                            else if (view.State == TaskState.Accepted)
-                            {
-                                <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")"
-                                               OnClick="@(() => SetOverride(view, QuestOverride.Hidden))" />
-                            }
-                            else
-                            {
-                                <MudIconButton Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("MarkTaskAccepted")"
-                                               OnClick="@(() => SetOverride(view, QuestOverride.Accepted))" />
-                                <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")"
-                                               OnClick="@(() => SetOverride(view, QuestOverride.Hidden))" />
-                            }
-                            <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev"
-                                           OnClick="@(() => OpenTask(view.Task))" />
-                        </span>
+            var isOpen = expanded.Contains(item.Task.id);
+            <div class="@("task-row" + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
+                <button type="button" class="task-row__toggle" @onclick="() => ToggleExpanded(item.Task.id)">
+                    <MudIcon Icon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
+                </button>
+                <div class="task-row__title" @onclick="() => ToggleExpanded(item.Task.id)">
+                    <div class="task-row__name">
+                        @if (item.HasMarkerOnCurrentMap && currentMap != null)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="task-row__pin" />
+                        }
+                        @item.Task.name
                     </div>
-                    @if (expanded.Contains(view.Task.id))
+                    <div class="task-row__sub">@item.TraderName@(item.AcceptedAt != null ? " · " + string.Format(LocalizationService.GetString("TaskAcceptedOn"), item.AcceptedAt.Value.ToString("d")) : "")</div>
+                </div>
+                <div class="tasks-maps">
+                    @if (item.Maps.Count == 0)
                     {
-                        <div class="task-card__objectives">
-                            @if (view.Task.objectives.Count == 0)
-                            {
-                                <MudText Typo="Typo.body2">-</MudText>
-                            }
-                            @foreach (var objective in view.Task.objectives)
-                            {
-                                <div class="task-objective">
-                                    <MudIcon Icon="@Icons.Material.Outlined.Circle" Size="Size.Small" Class="task-objective__icon" />
-                                    <span class="task-objective__text">@objective.description</span>
-                                    @if (objective.optional)
+                        <span class="task-map">@LocalizationService.GetString("AnyLocation")</span>
+                    }
+                    @foreach (var map in item.Maps)
+                    {
+                        <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                    }
+                    @if (item.Task.kappaRequired)
+                    {
+                        <span class="task-map task-map--kappa">Kappa</span>
+                    }
+                </div>
+                <div class="task-row__xp">@(item.Task.experience > 0 ? item.Task.experience.ToString("N0") : "–")</div>
+                <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())" title="@ReasonLabel(item)">@StateLabel(item.State)</span></div>
+                <div class="task-row__actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.MyLocation" Size="Size.Small" Color="@(item.MarkerMapIds.Count > 0 ? Color.Inherit : Color.Default)"
+                                   Disabled="@(item.MarkerMapIds.Count == 0)" Title="@LocalizationService.GetString("ShowOnMap")" OnClick="@(() => ShowOnMap(item))" />
+                    @if (item.Override != QuestOverride.None)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Undo" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("ResetTaskOverride")" OnClick="@(() => SetOverride(item, QuestOverride.None))" />
+                    }
+                    else if (item.State == TaskState.Accepted)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")" OnClick="@(() => SetOverride(item, QuestOverride.Hidden))" />
+                    }
+                    else if (item.State != TaskState.Completed)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("MarkTaskAccepted")" OnClick="@(() => SetOverride(item, QuestOverride.Accepted))" />
+                        @if (item.State != TaskState.Hidden)
+                        {
+                            <MudIconButton Icon="@Icons.Material.Filled.VisibilityOff" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("HideTask")" OnClick="@(() => SetOverride(item, QuestOverride.Hidden))" />
+                        }
+                    }
+                    <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev" OnClick="@(() => OpenTask(item.Task))" />
+                </div>
+                @if (isOpen)
+                {
+                    <div class="task-row__details">
+                        @foreach (var objective in item.Task.objectives)
+                        {
+                            <div class="task-objective">
+                                <MudIcon Icon="@Icons.Material.Outlined.Circle" Size="Size.Small" Class="task-objective__icon" />
+                                <span>@objective.description</span>
+                                @if (objective.optional)
+                                {
+                                    <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
+                                }
+                                @foreach (var mapId in objective.maps)
+                                {
+                                    var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
+                                    if (map != null)
                                     {
-                                        <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
+                                        <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
                                     }
-                                    @foreach (var mapId in objective.maps)
-                                    {
-                                        var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
-                                        if (map != null)
-                                        {
-                                            <span class="@("task-objective__map" + (currentMap != null && map.id == currentMap.id ? " task-objective__map--current" : ""))">@map.name</span>
-                                        }
-                                    }
-                                </div>
-                            }
-                            @if (view.AcceptedAt != null)
+                                }
+                            </div>
+                        }
+                        <div class="task-row__meta">
+                            @if (UnlocksOf(item).Count > 0)
                             {
-                                <MudText Typo="Typo.caption" Class="task-card__accepted">@string.Format(LocalizationService.GetString("TaskAcceptedOn"), view.AcceptedAt.Value.ToString("g"))</MudText>
+                                <span>@LocalizationService.GetString("Unlocks"): @string.Join(", ", UnlocksOf(item).Select(task => task.name))</span>
+                            }
+                            @if (item.Task.minPlayerLevel > 0)
+                            {
+                                <span>@LocalizationService.GetString("Level") @item.Task.minPlayerLevel</span>
+                            }
+                            @if (item.AcceptedReason != "")
+                            {
+                                <span>@ReasonLabel(item)</span>
                             }
                         </div>
-                    }
-                </MudPaper>
-            </MudItem>
+                    </div>
+                }
+            </div>
         }
     }
-</MudGrid>
+</div>
 
 @code {
     [CascadingParameter(Name = "AppLayout")]
     public AppLayout AppLayout { get; set; } = default!;
 
+    private enum TaskListView { Accepted, Available, Hidden, Completed }
+    private enum TaskSort { Default, Name, Trader, Experience, Level }
+
+    private static readonly TaskListView[] ViewOptions = { TaskListView.Accepted, TaskListView.Available, TaskListView.Hidden, TaskListView.Completed };
+
     private List<TaskView> all = new();
+    private List<TaskView> accepted = new();
     private List<TaskView> visible = new();
+    private List<TaskRecommendation> recommendations = new();
+    private Dictionary<string, List<TarkovDev.Task>> dependents = new();
     private TarkovDev.Map? currentMap;
     private string search = "";
-    private bool includeAvailable;
+    private string mapFilter = "";
+    private string? traderFilter;
+    private bool kappaOnly;
+    private TaskListView view = TaskListView.Accepted;
+    private TaskSort sort = TaskSort.Default;
+    private RecommendationMode recommendationMode = RecommendationMode.Unlocks;
     private readonly HashSet<string> expanded = new();
 
-    private string SummaryText
+    private IEnumerable<RecommendationMode> ModeOptions
     {
         get
         {
-            var accepted = all.Count(view => view.State == TaskState.Accepted);
-            var available = all.Count(view => view.State == TaskState.Available);
-            var text = string.Format(LocalizationService.GetString("TasksSummary"), accepted, available);
+            yield return RecommendationMode.Unlocks;
+            yield return RecommendationMode.Experience;
+            yield return RecommendationMode.Kappa;
             if (currentMap != null)
             {
-                text += " " + string.Format(LocalizationService.GetString("TasksSortedForMap"), currentMap.name);
+                yield return RecommendationMode.CurrentMap;
             }
-            return text;
+            yield return RecommendationMode.Mix;
         }
     }
+
+    private IEnumerable<TarkovDev.Map> MapChoices => TarkovDev.Maps
+        .Where(map => !string.IsNullOrEmpty(map.normalizedName))
+        .GroupBy(map => map.normalizedName)
+        .Select(group => group.First())
+        .OrderBy(map => map.name);
+
+    private IEnumerable<string> TraderChoices => all
+        .Where(item => item.State == StateFor(view) || (view == TaskListView.Hidden && item.State is TaskState.Hidden or TaskState.NeverAccepted))
+        .Select(item => item.TraderName)
+        .Where(name => name != "")
+        .Distinct()
+        .OrderBy(name => name);
 
     protected override void OnInitialized()
     {
@@ -237,82 +332,106 @@
         OnDataChanged(sender, EventArgs.Empty);
     }
 
-    // The current map only counts while a raid is running or loading; outside
-    // of a raid the list is sorted by trader and name.
-    private List<TaskRecommendation> recommendations = new();
-
     private void Refresh()
     {
         currentMap = MapsService.RaidActive || TimersManager.IsRaidActive ? MapsService.CurrentMap : null;
+        if (currentMap == null && recommendationMode == RecommendationMode.CurrentMap)
+        {
+            recommendationMode = RecommendationMode.Unlocks;
+        }
         all = TaskStateService.GetTasks();
-        recommendations = TaskStateService.GetRecommendations(all, 3);
+        accepted = all.Where(item => item.State == TaskState.Accepted).ToList();
+        recommendations = TaskStateService.GetRecommendations(all, 3, recommendationMode);
+        dependents = new Dictionary<string, List<TarkovDev.Task>>();
+        foreach (var task in TarkovDev.Tasks)
+        {
+            foreach (var requirement in task.taskRequirements)
+            {
+                if (string.IsNullOrEmpty(requirement.task) || !requirement.status.Contains("complete"))
+                {
+                    continue;
+                }
+                if (!dependents.TryGetValue(requirement.task, out var list))
+                {
+                    list = new List<TarkovDev.Task>();
+                    dependents[requirement.task] = list;
+                }
+                list.Add(task);
+            }
+        }
         ApplyFilter();
     }
 
-    private bool showHidden;
-
-    private void OnShowHiddenChanged(bool value)
+    private static TaskState StateFor(TaskListView option) => option switch
     {
-        showHidden = value;
-        ApplyFilter();
-    }
-
-    private void SetOverride(TaskView view, QuestOverride kind)
-    {
-        TaskStateService.SetOverride(view.Task.id, kind);
-        Refresh();
-    }
-
-    private Color StateColor(TaskState state) => state switch
-    {
-        TaskState.Accepted => Color.Info,
-        TaskState.Hidden => Color.Dark,
-        TaskState.NeverAccepted => Color.Dark,
-        _ => Color.Default,
+        TaskListView.Available => TaskState.Available,
+        TaskListView.Hidden => TaskState.Hidden,
+        TaskListView.Completed => TaskState.Completed,
+        _ => TaskState.Accepted,
     };
 
-    private string ReasonLabel(TaskView view) => view.AcceptedReason switch
-    {
-        "log" => LocalizationService.GetString("AcceptedReasonLog"),
-        "progress" => LocalizationService.GetString("AcceptedReasonProgress"),
-        "user" => LocalizationService.GetString("AcceptedReasonUser"),
-        _ => "",
-    };
+    private int CountFor(TaskListView option) => option == TaskListView.Hidden
+        ? all.Count(item => item.State is TaskState.Hidden or TaskState.NeverAccepted)
+        : all.Count(item => item.State == StateFor(option));
 
     private void ApplyFilter()
     {
-        var query = all.Where(view => view.State == TaskState.Accepted
-            || (includeAvailable && view.State == TaskState.Available)
-            || (showHidden && view.State is TaskState.Hidden or TaskState.NeverAccepted));
+        IEnumerable<TaskView> query = view == TaskListView.Hidden
+            ? all.Where(item => item.State is TaskState.Hidden or TaskState.NeverAccepted)
+            : all.Where(item => item.State == StateFor(view));
+        if (traderFilter != null)
+        {
+            query = query.Where(item => item.TraderName == traderFilter);
+        }
+        if (kappaOnly)
+        {
+            query = query.Where(item => item.Task.kappaRequired);
+        }
+        if (!string.IsNullOrEmpty(mapFilter))
+        {
+            query = query.Where(item => item.Maps.Count == 0 || item.Maps.Any(map => map.id == mapFilter));
+        }
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
-            query = query.Where(view =>
-                view.Task.name.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || view.TraderName.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || view.Maps.Any(map => map.name.Contains(term, StringComparison.OrdinalIgnoreCase))
-                || view.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
+            query = query.Where(item =>
+                item.Task.name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || item.TraderName.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || item.Maps.Any(map => map.name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                || item.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
         }
-        // Within the current-map group, tasks bound to that map come before tasks doable anywhere.
-        visible = query
-            .OrderByDescending(view => currentMap != null && view.OnCurrentMap)
-            .ThenBy(view => currentMap != null && view.OnCurrentMap && view.Maps.Count == 0 ? 1 : 0)
-            .ThenBy(view => view.State)
-            .ThenBy(view => view.TraderName)
-            .ThenBy(view => view.Task.name)
-            .ToList();
+
+        var ordered = query.OrderByDescending(item => currentMap != null && item.OnCurrentMap)
+            .ThenBy(item => currentMap != null && item.OnCurrentMap && item.Maps.Count == 0 ? 1 : 0);
+        visible = (sort switch
+        {
+            TaskSort.Name => ordered.ThenBy(item => item.Task.name),
+            TaskSort.Trader => ordered.ThenBy(item => item.TraderName).ThenBy(item => item.Task.name),
+            TaskSort.Experience => ordered.ThenByDescending(item => item.Task.experience).ThenBy(item => item.Task.name),
+            TaskSort.Level => ordered.ThenBy(item => item.Task.minPlayerLevel).ThenBy(item => item.Task.name),
+            _ => ordered.ThenBy(item => item.TraderName).ThenBy(item => item.Task.name),
+        }).ToList();
     }
 
-    private void OnSearchChanged(string value)
+    private List<TarkovDev.Task> UnlocksOf(TaskView item) => dependents.TryGetValue(item.Task.id, out var list) ? list : new List<TarkovDev.Task>();
+
+    private void SetView(TaskListView option) { view = option; traderFilter = null; ApplyFilter(); }
+    private void SetTrader(string? trader) { traderFilter = trader; ApplyFilter(); }
+    private void ToggleKappa() { kappaOnly = !kappaOnly; ApplyFilter(); }
+    private void OnSearchChanged(string value) { search = value ?? ""; ApplyFilter(); }
+    private void OnMapFilterChanged(string value) { mapFilter = value ?? ""; ApplyFilter(); }
+    private void OnSortChanged(TaskSort value) { sort = value; ApplyFilter(); }
+
+    private void SetMode(RecommendationMode mode)
     {
-        search = value ?? "";
-        ApplyFilter();
+        recommendationMode = mode;
+        recommendations = TaskStateService.GetRecommendations(all, 3, recommendationMode);
     }
 
-    private void OnIncludeAvailableChanged(bool value)
+    private void SetOverride(TaskView item, QuestOverride kind)
     {
-        includeAvailable = value;
-        ApplyFilter();
+        TaskStateService.SetOverride(item.Task.id, kind);
+        Refresh();
     }
 
     private void ToggleExpanded(string taskId)
@@ -323,13 +442,53 @@
         }
     }
 
+    private void ShowOnMap(TaskView item)
+    {
+        MapsService.RequestHighlight(item);
+    }
+
+    private string ViewLabel(TaskListView option) => option switch
+    {
+        TaskListView.Available => LocalizationService.GetString("TaskStateAvailable"),
+        TaskListView.Hidden => LocalizationService.GetString("TaskStateHidden"),
+        TaskListView.Completed => LocalizationService.GetString("TaskStateCompleted"),
+        _ => LocalizationService.GetString("TaskStateAccepted"),
+    };
+
     private string StateLabel(TaskState state) => state switch
     {
         TaskState.Accepted => LocalizationService.GetString("TaskStateAccepted"),
         TaskState.Available => LocalizationService.GetString("TaskStateAvailable"),
         TaskState.Hidden => LocalizationService.GetString("TaskStateHidden"),
         TaskState.NeverAccepted => LocalizationService.GetString("TaskStateNeverAccepted"),
+        TaskState.Completed => LocalizationService.GetString("TaskStateCompleted"),
         _ => state.ToString(),
+    };
+
+    private string ReasonLabel(TaskView item) => item.AcceptedReason switch
+    {
+        "log" => LocalizationService.GetString("AcceptedReasonLog"),
+        "progress" => LocalizationService.GetString("AcceptedReasonProgress"),
+        "user" => LocalizationService.GetString("AcceptedReasonUser"),
+        _ => "",
+    };
+
+    private string ModeLabel(RecommendationMode mode) => mode switch
+    {
+        RecommendationMode.Experience => LocalizationService.GetString("ModeExperience"),
+        RecommendationMode.Kappa => LocalizationService.GetString("ModeKappa"),
+        RecommendationMode.CurrentMap => string.Format(LocalizationService.GetString("ModeCurrentMap"), currentMap?.name),
+        RecommendationMode.Mix => LocalizationService.GetString("ModeMix"),
+        _ => LocalizationService.GetString("ModeUnlocks"),
+    };
+
+    private string ModeHint(RecommendationMode mode) => mode switch
+    {
+        RecommendationMode.Experience => LocalizationService.GetString("ModeExperienceHint"),
+        RecommendationMode.Kappa => LocalizationService.GetString("ModeKappaHint"),
+        RecommendationMode.CurrentMap => LocalizationService.GetString("ModeCurrentMapHint"),
+        RecommendationMode.Mix => LocalizationService.GetString("ModeMixHint"),
+        _ => LocalizationService.GetString("ModeUnlocksHint"),
     };
 
     private void OpenTask(TarkovDev.Task task)

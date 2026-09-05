@@ -464,4 +464,100 @@
   <data name="NoMarkerOnMap" xml:space="preserve">
     <value>kein Marker auf dieser Karte</value>
   </data>
+  <data name="Map" xml:space="preserve">
+    <value>Karte</value>
+  </data>
+  <data name="AllMaps" xml:space="preserve">
+    <value>Alle Karten</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Sortierung</value>
+  </data>
+  <data name="SortDefault" xml:space="preserve">
+    <value>Aktuelle Karte, Händler</value>
+  </data>
+  <data name="SortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SortTrader" xml:space="preserve">
+    <value>Händler</value>
+  </data>
+  <data name="SortExperience" xml:space="preserve">
+    <value>Erfahrung</value>
+  </data>
+  <data name="SortLevel" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="StatAccepted" xml:space="preserve">
+    <value>angenommen</value>
+  </data>
+  <data name="StatDoableOn" xml:space="preserve">
+    <value>machbar auf {0}</value>
+  </data>
+  <data name="StatOpenXp" xml:space="preserve">
+    <value>XP offen</value>
+  </data>
+  <data name="AllTraders" xml:space="preserve">
+    <value>Alle Händler</value>
+  </data>
+  <data name="KappaOnly" xml:space="preserve">
+    <value>Nur Kappa</value>
+  </data>
+  <data name="NoRecommendations" xml:space="preserve">
+    <value>Keine Aufgabe passt zu diesem Modus.</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="ColumnTask" xml:space="preserve">
+    <value>Aufgabe</value>
+  </data>
+  <data name="ColumnMaps" xml:space="preserve">
+    <value>Karten</value>
+  </data>
+  <data name="ColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColumnActions" xml:space="preserve">
+    <value>Aktionen</value>
+  </data>
+  <data name="ShowOnMap" xml:space="preserve">
+    <value>Auf der Karte zeigen</value>
+  </data>
+  <data name="Unlocks" xml:space="preserve">
+    <value>Schaltet frei</value>
+  </data>
+  <data name="TaskStateCompleted" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="ModeUnlocks" xml:space="preserve">
+    <value>Meiste Freischaltungen</value>
+  </data>
+  <data name="ModeExperience" xml:space="preserve">
+    <value>Meiste XP</value>
+  </data>
+  <data name="ModeKappa" xml:space="preserve">
+    <value>Kappa-Pfad</value>
+  </data>
+  <data name="ModeCurrentMap" xml:space="preserve">
+    <value>Jetzt auf {0}</value>
+  </data>
+  <data name="ModeMix" xml:space="preserve">
+    <value>Beste Mischung</value>
+  </data>
+  <data name="ModeUnlocksHint" xml:space="preserve">
+    <value>Der Abschluss schaltet die meisten weiteren Aufgaben frei.</value>
+  </data>
+  <data name="ModeExperienceHint" xml:space="preserve">
+    <value>Höchste Erfahrungsbelohnung.</value>
+  </data>
+  <data name="ModeKappaHint" xml:space="preserve">
+    <value>Kappa-relevante Aufgaben, sortiert nach Freischaltungen.</value>
+  </data>
+  <data name="ModeCurrentMapHint" xml:space="preserve">
+    <value>Nur Aufgaben, die auf der aktuellen Karte machbar sind, kartengebundene zuerst.</value>
+  </data>
+  <data name="ModeMixHint" xml:space="preserve">
+    <value>Ausgewogene Bewertung aus Freischaltungen und Erfahrung.</value>
+  </data>
 </root>

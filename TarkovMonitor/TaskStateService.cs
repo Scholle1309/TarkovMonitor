@@ -34,7 +34,25 @@ namespace TarkovMonitor
         public DateTime? AcceptedAt { get; init; }
     }
 
-    public record TaskRecommendation(TaskView View, List<TarkovDev.Task> DirectUnlocks, int TotalUnlocks);
+    public record TaskRecommendation(TaskView View, List<TarkovDev.Task> DirectUnlocks, int TotalUnlocks)
+    {
+        public int Experience => View.Task.experience;
+        public double MixScore { get; set; }
+    }
+
+    public enum RecommendationMode
+    {
+        /// <summary>Completion unlocks the most other tasks.</summary>
+        Unlocks,
+        /// <summary>Highest experience reward.</summary>
+        Experience,
+        /// <summary>Kappa-relevant tasks, ordered by unlocks.</summary>
+        Kappa,
+        /// <summary>Only tasks doable on the current map.</summary>
+        CurrentMap,
+        /// <summary>Balanced score of unlocks and experience.</summary>
+        Mix,
+    }
 
     /// <summary>
     /// Combines the Tarkov.dev task catalogue, the TarkovTracker progress and
@@ -230,7 +248,7 @@ namespace TarkovMonitor
         /// away; the total counts everything further down the chain. While a raid
         /// is running, tasks on the current map are preferred.
         /// </summary>
-        public List<TaskRecommendation> GetRecommendations(List<TaskView> views, int count)
+        public List<TaskRecommendation> GetRecommendations(List<TaskView> views, int count, RecommendationMode mode = RecommendationMode.Unlocks)
         {
             var progress = TarkovTracker.Progress?.data;
             var playerLevel = progress?.playerLevel ?? 0;
@@ -291,20 +309,45 @@ namespace TarkovMonitor
                     }
                 }
                 var total = CountDownstream(view.Task.id, dependents, completed);
-                if (direct.Count == 0 && total == 0)
-                {
-                    continue;
-                }
                 result.Add(new TaskRecommendation(view, direct, total));
             }
 
-            return result
-                .OrderByDescending(item => preferCurrentMap && item.View.OnCurrentMap)
-                .ThenByDescending(item => item.DirectUnlocks.Count)
-                .ThenByDescending(item => item.TotalUnlocks)
-                .ThenBy(item => item.View.Task.name)
-                .Take(count)
-                .ToList();
+            // Balanced score: unlocks and experience each normalised to 0..1.
+            var maxUnlocks = result.Count == 0 ? 1.0 : Math.Max(1.0, result.Max(item => item.DirectUnlocks.Count + item.TotalUnlocks * 0.5));
+            var maxExperience = result.Count == 0 ? 1.0 : Math.Max(1.0, result.Max(item => (double)item.Experience));
+            foreach (var item in result)
+            {
+                item.MixScore = (item.DirectUnlocks.Count + item.TotalUnlocks * 0.5) / maxUnlocks + item.Experience / maxExperience;
+            }
+
+            IOrderedEnumerable<TaskRecommendation> ordered = mode switch
+            {
+                RecommendationMode.Experience => result
+                    .Where(item => item.Experience > 0)
+                    .OrderByDescending(item => item.Experience)
+                    .ThenByDescending(item => item.DirectUnlocks.Count),
+                RecommendationMode.Kappa => result
+                    .Where(item => item.View.Task.kappaRequired)
+                    .OrderByDescending(item => item.DirectUnlocks.Count)
+                    .ThenByDescending(item => item.TotalUnlocks)
+                    .ThenByDescending(item => item.Experience),
+                RecommendationMode.CurrentMap => result
+                    .Where(item => item.View.OnCurrentMap)
+                    .OrderByDescending(item => item.View.Maps.Count > 0)
+                    .ThenByDescending(item => item.DirectUnlocks.Count)
+                    .ThenByDescending(item => item.TotalUnlocks)
+                    .ThenByDescending(item => item.Experience),
+                RecommendationMode.Mix => result
+                    .OrderByDescending(item => preferCurrentMap && item.View.OnCurrentMap)
+                    .ThenByDescending(item => item.MixScore),
+                _ => result
+                    .Where(item => item.DirectUnlocks.Count > 0 || item.TotalUnlocks > 0)
+                    .OrderByDescending(item => preferCurrentMap && item.View.OnCurrentMap)
+                    .ThenByDescending(item => item.DirectUnlocks.Count)
+                    .ThenByDescending(item => item.TotalUnlocks)
+                    .ThenByDescending(item => item.Experience),
+            };
+            return ordered.ThenBy(item => item.View.Task.name).Take(count).ToList();
         }
 
         private static int CountDownstream(string taskId, Dictionary<string, List<TarkovDev.Task>> dependents, HashSet<string> completed)

@@ -676,6 +676,9 @@ namespace TarkovMonitor
             /// <summary>Id of the map the task is bound to, or null when it is not map specific.</summary>
             public string? map { get; set; }
             public bool kappaRequired { get; set; }
+            public bool lightkeeperRequired { get; set; }
+            /// <summary>Experience reward for completing the task.</summary>
+            public int experience { get; set; }
             public List<TaskObjective> objectives { get; set; } = new();
         }
 

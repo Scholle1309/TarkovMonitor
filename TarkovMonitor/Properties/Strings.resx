@@ -528,4 +528,100 @@
   <data name="NoMarkerOnMap" xml:space="preserve">
     <value>no marker on this map</value>
   </data>
+  <data name="Map" xml:space="preserve">
+    <value>Map</value>
+  </data>
+  <data name="AllMaps" xml:space="preserve">
+    <value>All maps</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="SortDefault" xml:space="preserve">
+    <value>Current map, trader</value>
+  </data>
+  <data name="SortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SortTrader" xml:space="preserve">
+    <value>Trader</value>
+  </data>
+  <data name="SortExperience" xml:space="preserve">
+    <value>Experience</value>
+  </data>
+  <data name="SortLevel" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="StatAccepted" xml:space="preserve">
+    <value>accepted</value>
+  </data>
+  <data name="StatDoableOn" xml:space="preserve">
+    <value>doable on {0}</value>
+  </data>
+  <data name="StatOpenXp" xml:space="preserve">
+    <value>XP open</value>
+  </data>
+  <data name="AllTraders" xml:space="preserve">
+    <value>All traders</value>
+  </data>
+  <data name="KappaOnly" xml:space="preserve">
+    <value>Kappa only</value>
+  </data>
+  <data name="NoRecommendations" xml:space="preserve">
+    <value>No task matches this mode.</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="ColumnTask" xml:space="preserve">
+    <value>Task</value>
+  </data>
+  <data name="ColumnMaps" xml:space="preserve">
+    <value>Maps</value>
+  </data>
+  <data name="ColumnStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColumnActions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="ShowOnMap" xml:space="preserve">
+    <value>Show on the map</value>
+  </data>
+  <data name="Unlocks" xml:space="preserve">
+    <value>Unlocks</value>
+  </data>
+  <data name="TaskStateCompleted" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="ModeUnlocks" xml:space="preserve">
+    <value>Unlocks most</value>
+  </data>
+  <data name="ModeExperience" xml:space="preserve">
+    <value>Most XP</value>
+  </data>
+  <data name="ModeKappa" xml:space="preserve">
+    <value>Kappa path</value>
+  </data>
+  <data name="ModeCurrentMap" xml:space="preserve">
+    <value>On {0} now</value>
+  </data>
+  <data name="ModeMix" xml:space="preserve">
+    <value>Best mix</value>
+  </data>
+  <data name="ModeUnlocksHint" xml:space="preserve">
+    <value>Completion unlocks the most other tasks.</value>
+  </data>
+  <data name="ModeExperienceHint" xml:space="preserve">
+    <value>Highest experience reward.</value>
+  </data>
+  <data name="ModeKappaHint" xml:space="preserve">
+    <value>Kappa-relevant tasks, ordered by what they unlock.</value>
+  </data>
+  <data name="ModeCurrentMapHint" xml:space="preserve">
+    <value>Only tasks you can work on the current map, map-bound first.</value>
+  </data>
+  <data name="ModeMixHint" xml:space="preserve">
+    <value>Balanced score of unlocks and experience.</value>
+  </data>
 </root>

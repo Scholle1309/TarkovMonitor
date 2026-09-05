@@ -141,8 +141,37 @@
         QuestLogStore.Changed += OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         MapsService.PositionUpdated += OnPositionUpdated;
+        MapsService.HighlightRequested += OnHighlightRequested;
         SyncFrame();
         RefreshMapTasks();
+    }
+
+    // The Tasks tab asked to point at a task: open the panel and run the marker
+    // search once the frame is there (it may still be loading).
+    private void OnHighlightRequested(object? sender, TaskView view)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            tasksPanelOpen = true;
+            highlightedTaskId = view.Task.id;
+            StateHasChanged();
+            for (var attempt = 0; attempt < 20 && !MapsService.FrameLoaded; attempt++)
+            {
+                await Task.Delay(500);
+            }
+            // The page may still be switching maps or reloading; the search is
+            // idempotent inside the page, so send it a few times while the
+            // highlight is still wanted.
+            foreach (var delay in new[] { 1500, 2500, 3000, 4000, 5000 })
+            {
+                await Task.Delay(delay);
+                if (highlightedTaskId != view.Task.id)
+                {
+                    return;
+                }
+                await SendSearch(view.Task.name);
+            }
+        });
     }
 
     // A screenshot moved the player marker: let it pulse for a few seconds so
@@ -364,5 +393,6 @@
         QuestLogStore.Changed -= OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
         MapsService.PositionUpdated -= OnPositionUpdated;
+        MapsService.HighlightRequested -= OnHighlightRequested;
     }
 }
