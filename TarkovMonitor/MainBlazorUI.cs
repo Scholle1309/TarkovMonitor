@@ -436,6 +436,13 @@ namespace TarkovMonitor
             services.AddSingleton<TaskStateService>(new TaskStateService(questLogStore, mapsService));
             services.AddSingleton<MainBlazorUI>(this);
 
+            // The embedded Tarkov.dev page asks its api for names in the browser language
+            // (Accept-Language); that language follows the app language, not Windows.
+            blazorWebView1.BlazorWebViewInitializing += (_, e) =>
+            {
+                e.EnvironmentOptions ??= new CoreWebView2EnvironmentOptions();
+                e.EnvironmentOptions.Language = ToBrowserLanguage(Properties.Settings.Default.language);
+            };
             blazorWebView1.HostPage = "wwwroot\\index.html";
             var serviceProvider = services.BuildServiceProvider();
             blazorWebView1.Services = serviceProvider;
@@ -1510,6 +1517,20 @@ namespace TarkovMonitor
         // The answer passes through here so quests the game logs prove were
         // never accepted can be marked failed: Tarkov.dev then treats them as
         // inactive and "only show markers for active tasks" matches the game.
+        private static string ToBrowserLanguage(string? appLanguage) => (appLanguage ?? "en").Trim().ToLowerInvariant() switch
+        {
+            "de" => "de-DE",
+            "es" => "es-ES",
+            "fr" => "fr-FR",
+            "pl" => "pl-PL",
+            "pt" => "pt-BR",
+            "ru" => "ru-RU",
+            "zh" => "zh-CN",
+            "" => "en-US",
+            "en" => "en-US",
+            var other => other,
+        };
+
         private bool SessionRecognised => eft.IsGameRunning && GameWatcher.CurrentProfile.Snapshot().SessionMode != EftSessionMode.Unknown;
 
         private async Task HandleTrackerProgressRequest(CoreWebView2 core, CoreWebView2WebResourceRequestedEventArgs e, Uri uri)
