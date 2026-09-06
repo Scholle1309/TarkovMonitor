@@ -212,7 +212,17 @@ namespace TarkovMonitor
             // re-applied while the pulse is running and removed afterwards.
             + " var pendingSearch = '', pendingUntil = 0, lastBar = null;"
             + " function applySearch(text) {"
-            + "  pendingSearch = text; pendingUntil = Date.now() + 15000; lastBar = null; pushSearch();"
+            + "  pendingSearch = text; pendingUntil = Date.now() + 15000; lastBar = null; unhideTask(text); pushSearch();"
+            + " }"
+            // The site's task filter (All / None) hides tasks with a saved list; a task the
+            // Maps tab points at is taken off that list first, or its markers would stay hidden.
+            + " function unhideTask(text) {"
+            + "  var wanted = (text || '').trim().toLowerCase();"
+            + "  if (!wanted) { return; }"
+            + "  document.querySelectorAll('.maps-search-wrapper-task-label').forEach(function (label) {"
+            + "   var name = label.querySelector('.maps-search-task-name-label'), box = label.querySelector('input[type=checkbox]');"
+            + "   if (name && box && !box.checked && name.textContent.trim().toLowerCase() === wanted) { box.click(); }"
+            + "  });"
             + " }"
             + " function pushSearch() {"
             + "  var bar = document.querySelector('input.maps-search-wrapper-search-bar');"
