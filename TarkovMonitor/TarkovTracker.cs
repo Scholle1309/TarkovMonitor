@@ -1922,12 +1922,18 @@ namespace TarkovMonitor
                     TaskStatusBody.From(status),
                     Bearer(request.Token),
                     request.CancellationToken);
+                var mirrored = false;
                 lock (stateLock)
                 {
                     if (IsCurrent(request))
                     {
                         SyncStoredStatus(questId, status);
+                        mirrored = true;
                     }
+                }
+                if (mirrored)
+                {
+                    ProgressChanged?.Invoke(null, EventArgs.Empty);
                 }
             }
             catch (ApiException ex)
@@ -1950,6 +1956,8 @@ namespace TarkovMonitor
 
         /// <summary>Raised after an objective was updated on the tracker and in the cached progress.</summary>
         public static event EventHandler? ObjectiveProgressChanged;
+        /// <summary>Raised after a task status sent to the tracker was mirrored into the in-memory progress.</summary>
+        public static event EventHandler? ProgressChanged;
 
         /// <summary>
         /// Update one task objective on Tarkov Tracker (completed / uncompleted
@@ -2148,6 +2156,7 @@ namespace TarkovMonitor
             try
             {
                 await request.Api.SetTaskStatuses(body, Bearer(request.Token), request.CancellationToken);
+                var mirrored = false;
                 lock (stateLock)
                 {
                     if (IsCurrent(request))
@@ -2156,7 +2165,12 @@ namespace TarkovMonitor
                         {
                             SyncStoredStatus(kvp.Key, kvp.Value);
                         }
+                        mirrored = true;
                     }
+                }
+                if (mirrored)
+                {
+                    ProgressChanged?.Invoke(null, EventArgs.Empty);
                 }
             }
             catch (ApiException ex)

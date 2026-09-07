@@ -402,6 +402,7 @@
         TimersManager.RaidActiveChanged += OnDataChanged;
         TarkovDev.ApiDataLoaded += OnDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        TarkovTracker.ProgressChanged += OnDataChanged;
         TarkovTracker.ObjectiveProgressChanged += OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged += OnDataChanged;
         GameWatcher.GameStarted += OnDataChanged;
@@ -674,6 +675,7 @@
         TimersManager.RaidActiveChanged -= OnDataChanged;
         TarkovDev.ApiDataLoaded -= OnDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        TarkovTracker.ProgressChanged -= OnDataChanged;
         TarkovTracker.ObjectiveProgressChanged -= OnObjectiveProgressChanged;
         LocalizationService.LanguageChanged -= OnDataChanged;
         GameWatcher.GameStarted -= OnDataChanged;

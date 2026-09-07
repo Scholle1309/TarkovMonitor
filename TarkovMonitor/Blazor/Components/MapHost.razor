@@ -196,6 +196,7 @@
         TarkovDev.ApiDataLoaded += OnApiDataLoaded;
         QuestLogStore.Changed += OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        TarkovTracker.ProgressChanged += OnQuestDataChanged;
         MapsService.PositionUpdated += OnPositionUpdated;
         MapsService.HighlightRequested += OnHighlightRequested;
         eft.GameStarted += OnQuestDataChanged;
@@ -542,6 +543,7 @@
         TarkovDev.ApiDataLoaded -= OnApiDataLoaded;
         QuestLogStore.Changed -= OnQuestDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        TarkovTracker.ProgressChanged -= OnQuestDataChanged;
         MapsService.PositionUpdated -= OnPositionUpdated;
         MapsService.HighlightRequested -= OnHighlightRequested;
         eft.GameStarted -= OnQuestDataChanged;

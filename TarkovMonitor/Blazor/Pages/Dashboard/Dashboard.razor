@@ -370,6 +370,7 @@ else
         base.OnInitialized();
         Stats.Changed += OnDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
+        TarkovTracker.ProgressChanged += OnDataChanged;
         TarkovDev.ApiDataLoaded += OnDataChanged;
         QuestLogStore.Changed += OnDataChanged;
         MapsService.Changed += OnDataChanged;
@@ -396,6 +397,7 @@ else
         clock?.Dispose();
         Stats.Changed -= OnDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
+        TarkovTracker.ProgressChanged -= OnDataChanged;
         TarkovDev.ApiDataLoaded -= OnDataChanged;
         QuestLogStore.Changed -= OnDataChanged;
         MapsService.Changed -= OnDataChanged;
@@ -463,6 +465,22 @@ else
         {
             var tasks = TarkovDev.Tasks;
             var completed = progress.tasksProgress.Where(entry => entry.complete).Select(entry => entry.id).ToHashSet();
+            // A task the game logs show as finished counts right away, even before the tracker confirms it.
+            try
+            {
+                var (logProfile, logMode) = TaskStateService.ResolveProfile();
+                foreach (var (taskId, entry) in QuestLogStore.GetHistory(logProfile, logMode).Tasks)
+                {
+                    if (entry.Finished != null && (entry.Started == null || entry.Finished >= entry.Started) && (entry.Failed == null || entry.Finished >= entry.Failed))
+                    {
+                        completed.Add(taskId);
+                    }
+                }
+            }
+            catch
+            {
+                // Log history is optional here.
+            }
             tasksTotal = tasks.Count;
             tasksDone = tasks.Count(task => completed.Contains(task.id));
             kappaTotal = tasks.Count(task => task.kappaRequired);
