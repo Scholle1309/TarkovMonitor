@@ -704,6 +704,8 @@ namespace TarkovMonitor
             /// <summary>Id of the map the task is bound to, or null when it is not map specific.</summary>
             public string? map { get; set; }
             public bool kappaRequired { get; set; }
+            /// <summary>"Any", "USEC" or "BEAR": tasks of the other faction can never be taken.</summary>
+            public string? factionName { get; set; }
             public bool lightkeeperRequired { get; set; }
             /// <summary>Experience reward for completing the task.</summary>
             public int experience { get; set; }
