@@ -71,6 +71,137 @@ namespace TarkovMonitor
         }
 
         /// <summary>Profile whose history applies (tracker session first, then the logs).</summary>
+        /// <summary>
+        /// Task figures the way tarkovtracker.org counts them: tasks of the player's
+        /// faction that are done, or neither failed nor permanently blocked. A task is
+        /// blocked when an alternative branch was completed, a prerequisite failed, or
+        /// a task it depends on is blocked itself.
+        /// </summary>
+        public ProgressBasis GetProgressBasis(IReadOnlyCollection<TarkovDev.Task> tasks, TarkovTracker.ProgressResponseData progress, IReadOnlySet<string>? alsoCompleted = null)
+        {
+            var byId = tasks.Where(task => !string.IsNullOrEmpty(task.id)).ToDictionary(task => task.id);
+            var complete = new HashSet<string>(alsoCompleted ?? new HashSet<string>());
+            var failed = new HashSet<string>();
+            foreach (var entry in progress.tasksProgress)
+            {
+                if (string.IsNullOrEmpty(entry.id))
+                {
+                    continue;
+                }
+                if (entry.failed)
+                {
+                    failed.Add(entry.id);
+                }
+                else if (entry.complete)
+                {
+                    complete.Add(entry.id);
+                }
+            }
+            bool Done(string id) => complete.Contains(id) && !failed.Contains(id);
+
+            var faction = (progress.pmcFaction ?? "").Trim();
+            bool OwnFaction(TarkovDev.Task task) => string.IsNullOrEmpty(task.factionName)
+                || task.factionName.Equals("Any", StringComparison.OrdinalIgnoreCase)
+                || faction == ""
+                || task.factionName.Equals(faction, StringComparison.OrdinalIgnoreCase);
+
+            static bool WantsFailed(List<string> status) => status.Any(s => s.Equals("failed", StringComparison.OrdinalIgnoreCase));
+            static bool WantsDoneOrActive(List<string> status) => status.Count == 0
+                || status.Any(s => s is "complete" or "completed" or "active" or "accept" or "accepted");
+            static bool OnlyFailed(List<string> status) => status.Count > 0 && WantsFailed(status) && !WantsDoneOrActive(status);
+
+            // prerequisite -> tasks that need it done or active
+            var dependents = new Dictionary<string, List<TarkovDev.Task>>();
+            foreach (var task in byId.Values)
+            {
+                foreach (var requirement in task.taskRequirements)
+                {
+                    if (string.IsNullOrEmpty(requirement.task) || !WantsDoneOrActive(requirement.status))
+                    {
+                        continue;
+                    }
+                    if (!dependents.TryGetValue(requirement.task, out var list))
+                    {
+                        list = new List<TarkovDev.Task>();
+                        dependents[requirement.task] = list;
+                    }
+                    list.Add(task);
+                }
+            }
+
+            var invalid = new HashSet<string>();
+            var visited = new HashSet<string>();
+            void Block(string id)
+            {
+                if (!byId.ContainsKey(id))
+                {
+                    return;
+                }
+                var done = Done(id);
+                if (!done)
+                {
+                    invalid.Add(id);
+                }
+                if (!visited.Add(id) || done)
+                {
+                    return;
+                }
+                if (!dependents.TryGetValue(id, out var list))
+                {
+                    return;
+                }
+                foreach (var dependent in list)
+                {
+                    var requirement = dependent.taskRequirements.Find(r => r.task == id);
+                    if (requirement != null && WantsFailed(requirement.status))
+                    {
+                        continue;
+                    }
+                    Block(dependent.id);
+                }
+            }
+
+            foreach (var task in byId.Values)
+            {
+                if (!OwnFaction(task))
+                {
+                    invalid.Add(task.id);
+                }
+            }
+            foreach (var task in byId.Values)
+            {
+                // needs another task failed, but that one was completed
+                if (task.taskRequirements.Any(r => !string.IsNullOrEmpty(r.task) && OnlyFailed(r.status) && Done(r.task)))
+                {
+                    Block(task.id);
+                }
+            }
+            foreach (var task in byId.Values)
+            {
+                // needs another task done or active, but that one failed
+                if (task.taskRequirements.Any(r => !string.IsNullOrEmpty(r.task) && !WantsFailed(r.status) && WantsDoneOrActive(r.status) && failed.Contains(r.task)))
+                {
+                    Block(task.id);
+                }
+            }
+            foreach (var task in byId.Values)
+            {
+                // an alternative branch: this task fails once the other one is completed
+                if (task.failConditions.Any(c => !string.IsNullOrEmpty(c.task) && (c.status?.Any(s => s.Contains("complete", StringComparison.OrdinalIgnoreCase)) ?? false) && Done(c.task)))
+                {
+                    Block(task.id);
+                }
+            }
+
+            var relevant = byId.Values.Where(OwnFaction).ToList();
+            bool Counts(TarkovDev.Task task) => Done(task.id) || (!failed.Contains(task.id) && !invalid.Contains(task.id));
+            return new ProgressBasis(
+                relevant.Count(Counts),
+                relevant.Count(task => Done(task.id)),
+                relevant.Count(task => task.kappaRequired && Counts(task)),
+                relevant.Count(task => task.kappaRequired && Done(task.id)));
+        }
+
         public static (string ProfileId, EftSessionMode SessionMode) ResolveProfile()
         {
             var profileId = TarkovTracker.CurrentProfileId;
@@ -432,4 +563,7 @@ namespace TarkovMonitor
             return true;
         }
     }
+
+    /// <summary>Task counts on the tarkovtracker.org basis.</summary>
+    public record ProgressBasis(int Total, int Done, int KappaTotal, int KappaDone);
 }

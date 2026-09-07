@@ -481,19 +481,12 @@ else
             {
                 // Log history is optional here.
             }
-            // The basis is what this profile can actually do: not the other faction's tasks and
-            // not tasks the tracker marks invalid (branches ruled out by an earlier choice).
-            var faction = (progress.pmcFaction ?? "").Trim().ToUpperInvariant();
-            var invalid = progress.tasksProgress.Where(entry => entry.invalid && !entry.complete).Select(entry => entry.id).ToHashSet();
-            var relevant = tasks.Where(task =>
-                    !invalid.Contains(task.id)
-                    && (string.IsNullOrEmpty(task.factionName) || task.factionName.Equals("Any", StringComparison.OrdinalIgnoreCase)
-                        || faction == "" || task.factionName.Equals(faction, StringComparison.OrdinalIgnoreCase)))
-                .ToList();
-            tasksTotal = relevant.Count;
-            tasksDone = relevant.Count(task => completed.Contains(task.id));
-            kappaTotal = relevant.Count(task => task.kappaRequired);
-            kappaDone = relevant.Count(task => task.kappaRequired && completed.Contains(task.id));
+            // Same basis as tarkovtracker.org: own faction, without failed or permanently blocked tasks.
+            var basis = TaskStateService.GetProgressBasis(tasks, progress, completed);
+            tasksTotal = basis.Total;
+            tasksDone = basis.Done;
+            kappaTotal = basis.KappaTotal;
+            kappaDone = basis.KappaDone;
 
             var moduleIds = TarkovDev.Stations.SelectMany(station => station.levels.Select(level => level.id)).ToHashSet();
             var builtModules = progress.hideoutModulesProgress.Where(entry => entry.complete && moduleIds.Contains(entry.id)).Select(entry => entry.id).ToHashSet();
