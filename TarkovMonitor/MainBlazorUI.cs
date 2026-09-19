@@ -210,6 +210,33 @@ namespace TarkovMonitor
             + " function positionMarker() { var img = document.querySelector('.leaflet-marker-pane img[src*=\"player-position\"]'); return img && img.closest('.leaflet-marker-icon'); }"
             // The site re-creates the marker when the position arrives, so the class is
             // re-applied while the pulse is running and removed afterwards.
+            // A variant map cannot be opened directly on the site; once the base map has settled
+            // (marker count stable for a second), switch to it the way the site's own links do
+            // (router navigation, no reload). A switch that leaves the map empty starts over
+            // from the base map, at most twice.
+            + " if (window.tarkovMonitorVariant) {"
+            + "  var variant = window.tarkovMonitorVariant, baseHref = location.href;"
+            + "  window.tarkovMonitorVariant = null;"
+            + "  var whenSettled = function (maxTries, done) {"
+            + "   var last = -1, same = 0, tries = 0, timer = setInterval(function () {"
+            + "    tries++;"
+            + "    var count = document.querySelector('.leaflet-pane') ? document.querySelectorAll('.leaflet-marker-icon').length : 0;"
+            + "    same = count > 0 && count === last ? same + 1 : 0; last = count;"
+            + "    if (same >= 4) { clearInterval(timer); done(true); } else if (tries >= maxTries) { clearInterval(timer); done(false); }"
+            + "   }, 250);"
+            + "  };"
+            + "  whenSettled(120, function (ready) {"
+            + "   if (!ready) { return; }"
+            + "   history.pushState({}, '', '/map/' + variant); window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));"
+            + "   setTimeout(function () { whenSettled(40, function (shown) {"
+            + "    var retries = 0; try { retries = parseInt(sessionStorage.getItem('tarkovMonitorVariantRetries') || '0', 10); } catch (e) { }"
+            + "    if (shown) { try { sessionStorage.removeItem('tarkovMonitorVariantRetries'); } catch (e) { } return; }"
+            + "    if (retries >= 2) { return; }"
+            + "    try { sessionStorage.setItem('tarkovMonitorVariantRetries', String(retries + 1)); } catch (e) { }"
+            + "    location.replace(baseHref);"
+            + "   }); }, 750);"
+            + "  });"
+            + " }"
             + " var pendingSearch = '', pendingUntil = 0, lastBar = null;"
             + " function applySearch(text) {"
             + "  pendingSearch = text; pendingUntil = Date.now() + 15000; lastBar = null; unhideTask(text); pushSearch();"
@@ -1519,7 +1546,8 @@ namespace TarkovMonitor
             {
                 return html;
             }
-            text = text.Insert(headEnd, MapFrameInjection + bootstrapScript);
+            // The bootstrap goes first: the bridge script reads what it sets (the variant map).
+            text = text.Insert(headEnd, bootstrapScript + MapFrameInjection);
             return new MemoryStream(Encoding.UTF8.GetBytes(text));
         }
 

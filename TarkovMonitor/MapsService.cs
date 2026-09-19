@@ -152,7 +152,20 @@ namespace TarkovMonitor
         /// The defaults mirror Tarkov.dev's settings slice so a freshly created
         /// settings object is complete.
         /// </summary>
+        /// <summary>
+        /// Scripts placed into the page before it starts: the tracker link and, for a
+        /// variant map, the name the bridge switches to once the base map is up.
+        /// </summary>
         public string GetFrameBootstrapScript()
+        {
+            var variant = CurrentMapName;
+            var variantScript = FrameMapName == variant
+                ? ""
+                : "<script id=\"tarkov-monitor-frame-variant\">window.tarkovMonitorVariant = " + JsonSerializer.Serialize(variant) + ";</script>";
+            return GetTrackerBootstrapScript() + variantScript;
+        }
+
+        private string GetTrackerBootstrapScript()
         {
             string? gameMode;
             string token;
@@ -204,9 +217,30 @@ namespace TarkovMonitor
         /// <summary>The map shown in the view, falling back to the default map's data when the game has not loaded one yet.</summary>
         public TarkovDev.Map? ShownMap => CurrentMap ?? TarkovDev.Maps.Find(map => map.normalizedName == DefaultMap);
 
-        public string FrameUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(CurrentMapName)}?connection={Uri.EscapeDataString(SessionId)}";
+        /// <summary>
+        /// Map to load the page with. Tarkov.dev fails with "Map container not found" when a
+        /// variant map (Night Factory, Ground Zero 21+, The Lab dark) is opened directly, while
+        /// switching to it inside the page works; so the base map is loaded and the bridge
+        /// script switches to the variant afterwards.
+        /// </summary>
+        public string FrameMapName
+        {
+            get
+            {
+                var name = CurrentMapName;
+                var baseMap = TarkovDev.Maps
+                    .Select(map => map.normalizedName)
+                    .Where(other => !string.IsNullOrEmpty(other) && other != name
+                        && (name.StartsWith(other + "-", StringComparison.Ordinal) || name.EndsWith("-" + other, StringComparison.Ordinal)))
+                    .OrderByDescending(other => other.Length)
+                    .FirstOrDefault();
+                return baseMap ?? name;
+            }
+        }
 
-        public string ExternalUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(CurrentMapName)}";
+        public string FrameUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(FrameMapName)}?connection={Uri.EscapeDataString(SessionId)}";
+
+        public string ExternalUrl => $"https://tarkov.dev/map/{Uri.EscapeDataString(FrameMapName)}";
 
         /// <summary>Ask the view to load Tarkov.dev if it has not been loaded yet.</summary>
         public void RequestFrame()
