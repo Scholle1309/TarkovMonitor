@@ -13,21 +13,46 @@ window.mapHost = (() => {
         return true;
     }
 
+    const resizing = { host: null, timer: 0 };
+
+    function applyHostSize(host) {
+        const area = host.parentElement;
+        host.style.width = area.clientWidth + "px";
+        host.style.height = area.clientHeight + "px";
+    }
+
+    function onResizeStep() {
+        if (resizing.timer) {
+            return;
+        }
+        resizing.timer = setTimeout(() => {
+            resizing.timer = 0;
+            if (resizing.host) {
+                applyHostSize(resizing.host);
+            }
+        }, 100);
+    }
+
     return {
-        // Keeps the map area at its size while the window is dragged to a new size,
-        // so the embedded page reflows once at the end instead of on every frame.
+        // While the window is dragged to a new size, the map area follows in steps of
+        // about 100 ms instead of on every frame: it still grows and shrinks with the
+        // window, but the embedded page reflows a few times a second, not 60 times.
         freeze(on) {
             const host = document.querySelector(".map-host");
             if (!host) {
                 return;
             }
             if (on) {
-                const rect = host.getBoundingClientRect();
+                resizing.host = host;
                 host.style.right = "auto";
                 host.style.bottom = "auto";
-                host.style.width = rect.width + "px";
-                host.style.height = rect.height + "px";
+                applyHostSize(host);
+                window.addEventListener("resize", onResizeStep);
             } else {
+                window.removeEventListener("resize", onResizeStep);
+                clearTimeout(resizing.timer);
+                resizing.timer = 0;
+                resizing.host = null;
                 host.style.right = "";
                 host.style.bottom = "";
                 host.style.width = "";
