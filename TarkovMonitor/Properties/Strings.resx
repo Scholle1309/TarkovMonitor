@@ -870,4 +870,13 @@
   <data name="PrestigeBadge" xml:space="preserve">
     <value>Prestige {0}</value>
   </data>
+  <data name="Period" xml:space="preserve">
+    <value>Period</value>
+  </data>
+  <data name="PeriodAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="PeriodBeforePrestige" xml:space="preserve">
+    <value>Before prestige</value>
+  </data>
 </root>

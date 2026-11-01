@@ -206,6 +206,30 @@ namespace TarkovMonitor.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string prestigeEvents {
+            get {
+                return ((string)(this["prestigeEvents"]));
+            }
+            set {
+                this["prestigeEvents"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-2")]
+        public int dashboardPeriod {
+            get {
+                return ((int)(this["dashboardPeriod"]));
+            }
+            set {
+                this["dashboardPeriod"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string prestigeStart {
             get {
                 return ((string)(this["prestigeStart"]));

@@ -806,4 +806,13 @@
   <data name="PrestigeBadge" xml:space="preserve">
     <value>Prestige {0}</value>
   </data>
+  <data name="Period" xml:space="preserve">
+    <value>Zeitraum</value>
+  </data>
+  <data name="PeriodAll" xml:space="preserve">
+    <value>Alles</value>
+  </data>
+  <data name="PeriodBeforePrestige" xml:space="preserve">
+    <value>Vor Prestige</value>
+  </data>
 </root>

@@ -566,3 +566,24 @@ button.dash-chip {
     border: 1px solid rgba(255, 213, 79, 0.6);
     background: rgba(255, 213, 79, 0.12);
 }
+
+.dash__periods {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.dash__periods-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 4px;
+}
+
+.dash__periods .dash-chip {
+    padding: 3px 12px;
+    font-size: 0.78rem;
+}

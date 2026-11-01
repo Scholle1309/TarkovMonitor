@@ -1742,7 +1742,7 @@ namespace TarkovMonitor
                     {
                         var since = result.Horizon?.ToString("yyyy-MM-dd") ?? "unknown";
                         messageLog.AddMessage($"Quest history: {result.Events} quest events found in {result.Folders} log sessions since {since}.", "info");
-                        if (result.LatestPrestige is { } prestige)
+                        foreach (var prestige in result.PrestigeEvents.OrderBy(time => time))
                         {
                             ApplyPrestige(prestige, Math.Max(result.PrestigeLevel, HistoryStart.PrestigeLevel), announce: HistoryStart.PrestigeStart == null || prestige > HistoryStart.PrestigeStart);
                         }
@@ -1771,12 +1771,16 @@ namespace TarkovMonitor
         // that moment, manual accepted/hidden decisions are dropped, the map reloads.
         private void ApplyPrestige(DateTime time, int? level, bool announce)
         {
-            var current = HistoryStart.PrestigeStart;
-            if (current != null && time <= current)
+            var latest = HistoryStart.PrestigeStart;
+            var isNewest = latest == null || time > latest;
+            if (!HistoryStart.AddPrestige(time, level))
             {
                 return;
             }
-            HistoryStart.SetPrestige(time, level);
+            if (!isNewest)
+            {
+                return;
+            }
             questLogStore.ClearOverrides();
             if (announce)
             {

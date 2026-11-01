@@ -59,8 +59,8 @@ namespace TarkovMonitor
             Database.Value.GetTotalRaidsPerMap(raidType, TarkovDev.Maps);
 
         /// <summary>Everything the dashboard shows from the local database.</summary>
-        public static DashboardStats GetDashboardStats(string? profileId, DateTime? mapsSinceUtc) =>
-            Database.Value.GetDashboardStats(profileId, mapsSinceUtc);
+        public static DashboardStats GetDashboardStats(string? profileId, DateTime? fromUtc, DateTime? toUtc) =>
+            Database.Value.GetDashboardStats(profileId, fromUtc, toUtc);
     }
 
     internal sealed record RaidRecord(string? MapNameId, RaidType Type, double QueueSeconds, DateTime TimeUtc, DateTime? EndedUtc)
@@ -263,7 +263,7 @@ namespace TarkovMonitor
                 map => mapTotals.TryGetValue(map.nameId, out var total) ? total : 0);
         }
 
-        internal DashboardStats GetDashboardStats(string? profileId, DateTime? mapsSinceUtc)
+        internal DashboardStats GetDashboardStats(string? profileId, DateTime? fromUtc, DateTime? toUtc)
         {
             lock (gate)
             {
@@ -274,7 +274,18 @@ namespace TarkovMonitor
                     raids = raids.Where(raid => raid.TimeUtc >= startUtc).ToList();
                     sales = sales.Where(sale => sale.TimeUtc >= startUtc).ToList();
                 }
-                var mapRaids = mapsSinceUtc.HasValue ? raids.Where(raid => raid.TimeUtc >= mapsSinceUtc.Value).ToList() : raids;
+                // The dashboard period (everything, before the first prestige, or one prestige).
+                if (fromUtc.HasValue)
+                {
+                    raids = raids.Where(raid => raid.TimeUtc >= fromUtc.Value).ToList();
+                    sales = sales.Where(sale => sale.TimeUtc >= fromUtc.Value).ToList();
+                }
+                if (toUtc.HasValue)
+                {
+                    raids = raids.Where(raid => raid.TimeUtc < toUtc.Value).ToList();
+                    sales = sales.Where(sale => sale.TimeUtc < toUtc.Value).ToList();
+                }
+                var mapRaids = raids;
 
                 var byType = raids.GroupBy(raid => raid.Type).ToDictionary(group => group.Key, group => group.Count());
                 var queued = raids.Where(raid => raid.QueueSeconds > 0).ToList();

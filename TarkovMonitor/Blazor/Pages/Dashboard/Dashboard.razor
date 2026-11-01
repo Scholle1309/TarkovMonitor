@@ -26,6 +26,18 @@
 }
 else
 {
+    @* Period filter: everything, before the first prestige, or one prestige; the choice is kept. *@
+    @if (HistoryStart.Periods.Count > 0)
+    {
+        <div class="dash__periods">
+            <span class="dash__periods-label">@LocalizationService.GetString("Period")</span>
+            <button type="button" class="@("dash-chip" + (selectedPeriod == null ? " dash-chip--on" : ""))" @onclick="() => SelectPeriod(-1)">@LocalizationService.GetString("PeriodAll")</button>
+            @foreach (var period in HistoryStart.Periods)
+            {
+                <button type="button" class="@("dash-chip" + (selectedPeriod?.Index == period.Index ? " dash-chip--on" : ""))" @onclick="() => SelectPeriod(period.Index)" title="@PeriodRange(period)">@PeriodLabel(period)</button>
+            }
+        </div>
+    }
     @* Status line: what the monitor is connected to right now. *@
     <div class="dash__status">
         <span class="dash-pill"><span class="@("dash-dot" + (gameRunning ? " dash-dot--ok" : ""))"></span>@(gameRunning ? LocalizationService.GetString("GameRunning") : LocalizationService.GetString("GameNotRunning"))</span>
@@ -233,14 +245,6 @@ else
                     {
                         <span><i class="@TypeBarClass(type)"></i>@TypeLabel(type) @stats.RaidsByType[type]</span>
                     }
-                    <span class="dash-legend__period">
-                        @if (HistoryStart.PrestigeStart != null)
-                        {
-                            <button type="button" class="@("dash-chip" + (mapsPeriodDays == -1 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(-1)">@LocalizationService.GetString("SincePrestige")</button>
-                        }
-                        <button type="button" class="@("dash-chip" + (mapsPeriodDays == 30 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(30)">@LocalizationService.GetString("Last30Days")</button>
-                        <button type="button" class="@("dash-chip" + (mapsPeriodDays == 0 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(0)">@LocalizationService.GetString("AllTime")</button>
-                    </span>
                 </div>
             </div>
 
@@ -366,8 +370,7 @@ else
     private bool apiLoaded;
     private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
     private int questDone, questStarted, questFailed;
-    // -1 = since the last prestige, 0 = all time, otherwise a number of days
-    private int mapsPeriodDays = HistoryStart.PrestigeStart != null ? -1 : 30;
+    private HistoryStart.PrestigePeriod? selectedPeriod;
     private System.Threading.Timer? clock;
 
     protected override void OnInitialized()
@@ -426,10 +429,21 @@ else
         });
     }
 
-    private void SetPeriod(int days)
+    private void SelectPeriod(int index)
     {
-        mapsPeriodDays = days;
+        HistoryStart.DashboardPeriod = index;
         Refresh();
+    }
+
+    private string PeriodLabel(HistoryStart.PrestigePeriod period) => period.Index == 0
+        ? LocalizationService.GetString("PeriodBeforePrestige")
+        : string.Format(LocalizationService.GetString("PrestigeBadge"), period.Level);
+
+    private static string PeriodRange(HistoryStart.PrestigePeriod period)
+    {
+        var from = period.FromLocal?.ToString("g") ?? "…";
+        var to = period.ToLocal?.ToString("g") ?? "…";
+        return $"{from} – {to}";
     }
 
     private void Refresh()
@@ -454,17 +468,8 @@ else
 
         try
         {
-            if (mapsPeriodDays == -1 && HistoryStart.PrestigeStart == null)
-            {
-                mapsPeriodDays = 30;
-            }
-            var mapsSince = mapsPeriodDays switch
-            {
-                -1 => HistoryStart.PrestigeStartUtc,
-                > 0 => DateTime.UtcNow.AddDays(-mapsPeriodDays),
-                _ => null,
-            };
-            stats = Stats.GetDashboardStats(profile.Id, mapsSince);
+            selectedPeriod = HistoryStart.SelectedPeriod;
+            stats = Stats.GetDashboardStats(profile.Id, selectedPeriod?.FromUtc, selectedPeriod?.ToUtc);
         }
         catch (Exception exception)
         {

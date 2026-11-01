@@ -233,7 +233,12 @@ namespace TarkovMonitor
                     {
                         foreach (var prestige in GameWatcher.ReadPrestigeEvents(file))
                         {
-                            if ((start == null || prestige >= start) && (result.LatestPrestige == null || prestige > result.LatestPrestige))
+                            if (start != null && prestige < start)
+                            {
+                                continue;
+                            }
+                            result.PrestigeEvents.Add(prestige);
+                            if (result.LatestPrestige == null || prestige > result.LatestPrestige)
                             {
                                 result.LatestPrestige = prestige;
                             }
@@ -591,6 +596,8 @@ namespace TarkovMonitor
         public DateTime? Horizon { get; set; }
         /// <summary>Most recent prestige found in the backend logs.</summary>
         public DateTime? LatestPrestige { get; set; }
+        /// <summary>Every prestige found in the backend logs.</summary>
+        public List<DateTime> PrestigeEvents { get; } = new();
         /// <summary>Highest prestige level the game reported in the scanned logs.</summary>
         public int PrestigeLevel { get; set; }
     }

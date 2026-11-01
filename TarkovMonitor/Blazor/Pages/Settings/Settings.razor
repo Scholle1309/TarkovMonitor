@@ -434,16 +434,16 @@
     {
         if (date == null)
         {
-            HistoryStart.SetPrestige(null, 0);
+            HistoryStart.ClearPrestige();
             return;
         }
-        HistoryStart.SetPrestige(date.Value.Date, Math.Max(1, HistoryStart.PrestigeLevel));
+        HistoryStart.ReplaceLatestPrestige(date.Value.Date);
         questLogStore.ClearOverrides();
     }
 
     private void PrestigeNow()
     {
-        HistoryStart.SetPrestige(DateTime.Now, HistoryStart.PrestigeLevel + 1);
+        HistoryStart.AddPrestige(DateTime.Now, HistoryStart.PrestigeLevel + 1);
         questLogStore.ClearOverrides();
     }
 
