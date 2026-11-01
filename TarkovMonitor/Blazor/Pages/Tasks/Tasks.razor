@@ -97,30 +97,38 @@
                 {
                     <div class="@("reco-card" + (currentMap != null && item.View.OnCurrentMap ? " reco-card--current" : ""))">
                         <span class="reco-card__rank">@(index + 1)</span>
-                        <div class="reco-card__title">@item.View.Task.name</div>
-                        <div class="reco-card__trader">@item.View.TraderName</div>
+                        <div>
+                            <div class="reco-card__title">@item.View.Task.name</div>
+                            <div class="reco-card__trader">@item.View.TraderName · @(item.View.Task.minPlayerLevel > 0 ? string.Format(LocalizationService.GetString("LevelShort"), item.View.Task.minPlayerLevel) : LocalizationService.GetString("AnyLevel"))</div>
+                        </div>
+                        <div class="reco-card__stats">
+                            <div class="reco-stat reco-stat--key" title="@LocalizationService.GetString("UnlocksNowHint")"><small>@LocalizationService.GetString("UnlocksNow")</small><span>@TaskCount(item.DirectUnlocks.Count)</span></div>
+                            <div class="reco-stat reco-stat--key" title="@LocalizationService.GetString("LaterInChainHint")"><small>@LocalizationService.GetString("LaterInChain")</small><span>+@TaskCount(Math.Max(0, item.TotalUnlocks - item.DirectUnlocks.Count))</span></div>
+                            <div class="reco-stat"><small>XP</small><span>@item.Experience.ToString("N0")</span></div>
+                            <div class="reco-stat"><small>@LocalizationService.GetString("ColumnMaps")</small><span>@(item.View.Maps.Count == 0 ? LocalizationService.GetString("AnyShort") : item.View.Maps.Count.ToString())</span></div>
+                        </div>
                         <div class="tasks-maps">
                             @if (item.View.Maps.Count == 0)
                             {
                                 <span class="task-map">@LocalizationService.GetString("AnyLocation")</span>
                             }
-                            @foreach (var map in item.View.Maps)
+                            @* Three maps at most; the current map always shows. *@
+                            @foreach (var map in item.View.Maps.OrderBy(map => currentMap != null && map.id == currentMap.id ? 0 : 1).Take(3))
                             {
                                 <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                            }
+                            @if (item.View.Maps.Count > 3)
+                            {
+                                <span class="task-map task-map--more" title="@string.Join(", ", item.View.Maps.Skip(3).Select(map => map.name))">+@(item.View.Maps.Count - 3)</span>
                             }
                             @if (item.View.Task.kappaRequired)
                             {
                                 <span class="task-map task-map--kappa">Kappa</span>
                             }
                         </div>
-                        <div class="reco-card__metric">@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</div>
-                        <div class="reco-card__kv">
-                            <span>XP <b>@item.Experience.ToString("N0")</b></span>
-                            <span>@LocalizationService.GetString("Level") <b>@item.View.Task.minPlayerLevel</b></span>
-                        </div>
                         @if (item.DirectUnlocks.Count > 0)
                         {
-                            <div class="reco-card__next">→ @string.Join(", ", item.DirectUnlocks.Take(4).Select(task => task.name))@(item.DirectUnlocks.Count > 4 ? ", …" : "")</div>
+                            <div class="reco-card__next" title="@string.Join(", ", item.DirectUnlocks.Select(task => task.name))"><b>@LocalizationService.GetString("LeadsTo")</b> @string.Join(", ", item.DirectUnlocks.Select(task => task.name))</div>
                         }
                     </div>
                 }
@@ -629,6 +637,8 @@
         "user" => LocalizationService.GetString("AcceptedReasonUser"),
         _ => "",
     };
+
+    private string TaskCount(int count) => string.Format(LocalizationService.GetString(count == 1 ? "TaskCountOne" : "TaskCountMany"), count);
 
     private string ModeLabel(RecommendationMode mode) => mode switch
     {

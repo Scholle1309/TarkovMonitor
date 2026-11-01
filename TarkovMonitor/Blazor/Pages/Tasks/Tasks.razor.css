@@ -260,13 +260,14 @@
 
 .reco-card {
     position: relative;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-    padding: 10px 12px;
+    background: #111a2e;
+    border: 1px solid rgba(84, 128, 200, 0.38);
+    border-radius: 8px;
+    padding: 14px 14px 12px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
+    min-width: 0;
 }
 
 .reco-card--current {
@@ -289,35 +290,69 @@
 }
 
 .reco-card__title {
-    font-weight: 600;
+    color: #e3eeff;
+    font-size: var(--tm-fs-base);
+    font-weight: 500;
+    line-height: 1.3;
 }
 
 .reco-card__trader {
+    margin-top: 2px;
     color: rgba(255, 255, 255, 0.5);
-    font-size: var(--tm-fs-md);
-    margin-top: -4px;
+    font-size: var(--tm-fs-sm);
 }
 
-.reco-card__metric {
-    color: #ffd54f;
-    font-size: var(--tm-fs-base);
+/* Four in a row when the card is wide, two by two when it is narrow. */
+.reco-card__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+    gap: 6px;
 }
 
-.reco-card__kv {
+/* Label above the value, so neither has to wrap. */
+.reco-stat {
     display: flex;
-    gap: 12px;
-    font-size: var(--tm-fs-md);
-    color: rgba(255, 255, 255, 0.5);
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
 }
 
-.reco-card__kv b {
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 600;
+.reco-stat small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-xs);
+}
+
+.reco-stat span {
+    color: #e3eeff;
+    font-size: var(--tm-fs-base);
+    font-weight: 500;
+}
+
+.reco-stat--key span {
+    color: #8fb8f5;
+}
+
+.task-map--more {
+    border-style: dashed;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: help;
 }
 
 .reco-card__next {
-    color: rgba(255, 255, 255, 0.55);
-    font-size: var(--tm-fs-md);
+    overflow: hidden;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reco-card__next b {
+    color: rgba(255, 255, 255, 0.65);
+    font-weight: 500;
 }
 
 /* list */

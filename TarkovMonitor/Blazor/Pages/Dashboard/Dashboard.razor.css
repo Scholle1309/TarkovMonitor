@@ -347,12 +347,18 @@
     text-overflow: ellipsis;
 }
 
-.dash-reco__card em {
-    display: block;
-    margin-top: 3px;
-    font-style: normal;
+.dash-reco__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin-top: 5px;
+    color: rgba(255, 255, 255, 0.5);
     font-size: var(--tm-fs-sm);
-    color: #ffb300;
+}
+
+.dash-reco__stats b {
+    color: #8fb8f5;
+    font-weight: 500;
 }
 
 /* ---- bars, tables, chips ---- */

@@ -1158,4 +1158,34 @@
   <data name="LoadingProgress" xml:space="preserve">
     <value>Loading progress…</value>
   </data>
+  <data name="UnlocksNow" xml:space="preserve">
+    <value>Unlocks now</value>
+  </data>
+  <data name="LaterInChain" xml:space="preserve">
+    <value>Later in chain</value>
+  </data>
+  <data name="LeadsTo" xml:space="preserve">
+    <value>Leads to</value>
+  </data>
+  <data name="UnlocksNowHint" xml:space="preserve">
+    <value>Tasks you can take right after finishing this one.</value>
+  </data>
+  <data name="LaterInChainHint" xml:space="preserve">
+    <value>Further tasks that open up later in the same chain.</value>
+  </data>
+  <data name="LevelShort" xml:space="preserve">
+    <value>Level {0}</value>
+  </data>
+  <data name="AnyLevel" xml:space="preserve">
+    <value>any level</value>
+  </data>
+  <data name="AnyShort" xml:space="preserve">
+    <value>any</value>
+  </data>
+  <data name="TaskCountOne" xml:space="preserve">
+    <value>{0} task</value>
+  </data>
+  <data name="TaskCountMany" xml:space="preserve">
+    <value>{0} tasks</value>
+  </data>
 </root>

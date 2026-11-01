@@ -1094,4 +1094,34 @@
   <data name="LoadingProgress" xml:space="preserve">
     <value>Fortschritt wird geladen…</value>
   </data>
+  <data name="UnlocksNow" xml:space="preserve">
+    <value>Sofort frei</value>
+  </data>
+  <data name="LaterInChain" xml:space="preserve">
+    <value>Später in Kette</value>
+  </data>
+  <data name="LeadsTo" xml:space="preserve">
+    <value>Führt zu</value>
+  </data>
+  <data name="UnlocksNowHint" xml:space="preserve">
+    <value>Aufgaben, die du direkt danach annehmen kannst.</value>
+  </data>
+  <data name="LaterInChainHint" xml:space="preserve">
+    <value>Weitere Aufgaben, die sich später in derselben Kette öffnen.</value>
+  </data>
+  <data name="LevelShort" xml:space="preserve">
+    <value>Level {0}</value>
+  </data>
+  <data name="AnyLevel" xml:space="preserve">
+    <value>jedes Level</value>
+  </data>
+  <data name="AnyShort" xml:space="preserve">
+    <value>alle</value>
+  </data>
+  <data name="TaskCountOne" xml:space="preserve">
+    <value>{0} Aufgabe</value>
+  </data>
+  <data name="TaskCountMany" xml:space="preserve">
+    <value>{0} Aufgaben</value>
+  </data>
 </root>

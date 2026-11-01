@@ -182,7 +182,11 @@ else
                             <div class="dash-reco__card">
                                 <b>@item.View.Task.name</b>
                                 <small>@item.View.TraderName · @(item.View.Maps.Count == 0 ? LocalizationService.GetString("AnyLocation") : string.Join(", ", item.View.Maps.Select(map => map.name))) · @LocalizationService.GetString("Level") @item.View.Task.minPlayerLevel</small>
-                                <em>@string.Format(LocalizationService.GetString("UnlocksTasks"), item.DirectUnlocks.Count, item.TotalUnlocks)</em>
+                                @* The chain count includes the tasks unlocked right away. *@
+                                <div class="dash-reco__stats">
+                                    <span title="@LocalizationService.GetString("UnlocksNowHint")">@LocalizationService.GetString("UnlocksNow") <b>@item.DirectUnlocks.Count</b></span>
+                                    <span title="@LocalizationService.GetString("LaterInChainHint")">@LocalizationService.GetString("LaterInChain") <b>+@Math.Max(0, item.TotalUnlocks - item.DirectUnlocks.Count)</b></span>
+                                </div>
                             </div>
                         }
                     </div>
