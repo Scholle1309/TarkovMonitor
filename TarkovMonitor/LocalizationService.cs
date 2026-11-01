@@ -52,13 +52,9 @@ namespace TarkovMonitor
         {
             try
             {
-                var localizedString = _localizer[key];
-                if (localizedString.ResourceNotFound)
-                {
-                    // Fallback to resource manager
-                    return _resourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
-                }
-                return localizedString.Value;
+                // Always the chosen language: the thread's UI culture can still be the
+                // one an older async flow captured, which made texts flip languages.
+                return _resourceManager.GetString(key, uiCulture) ?? key;
             }
             catch
             {
@@ -73,7 +69,24 @@ namespace TarkovMonitor
                 var culture = new CultureInfo(cultureName);
                 // Texts follow the language; dates and times may use the formats
                 // chosen in the settings instead of the language's own.
-                var formatting = WithDateTimeFormats(culture);
+                // .NET hands the current culture on to running async flows (Blazor
+                // renders captured it at start), so a format change must update the
+                // very object they hold instead of creating a new one.
+                // One formatting culture for the whole run: a language switch swaps its
+                // date and number formats in place, so every flow sees the same ones.
+                uiCulture = culture;
+                if (formattingCulture == null)
+                {
+                    formattingCulture = (CultureInfo)culture.Clone();
+                }
+                else if (formattingLanguage != culture.Name)
+                {
+                    formattingCulture.DateTimeFormat = (DateTimeFormatInfo)culture.DateTimeFormat.Clone();
+                    formattingCulture.NumberFormat = (NumberFormatInfo)culture.NumberFormat.Clone();
+                }
+                formattingLanguage = culture.Name;
+                var formatting = formattingCulture;
+                ApplyDateTimeFormats(formatting.DateTimeFormat, culture.DateTimeFormat);
                 CultureInfo.CurrentCulture = formatting;
                 CultureInfo.CurrentUICulture = culture;
                 // Blazor renders and background callbacks do not all run on the
@@ -94,17 +107,26 @@ namespace TarkovMonitor
             }
         }
 
-        public string CurrentCulture => CultureInfo.CurrentUICulture.Name;
+        public string CurrentCulture => uiCulture.Name;
 
         /// <summary>Re-applies the language with the current date and time format settings.</summary>
         public void ApplyDateTimeFormats() => SetCulture(Properties.Settings.Default.language);
 
+        private static CultureInfo? formattingCulture;
+        private static string formattingLanguage = "";
+        private static CultureInfo uiCulture = CultureInfo.InvariantCulture;
+
         // dateFormat: "" (language), "dmy" 31.12.2026, "mdy" 12/31/2026, "ymd" 2026-12-31.
         // timeFormat: "" (language), "24" 13:45, "12" 1:45 PM.
-        private static CultureInfo WithDateTimeFormats(CultureInfo culture)
+        // Starts from the language's own formats, then applies the chosen ones.
+        private static void ApplyDateTimeFormats(DateTimeFormatInfo format, DateTimeFormatInfo language)
         {
-            var result = (CultureInfo)culture.Clone();
-            var format = result.DateTimeFormat;
+            format.DateSeparator = language.DateSeparator;
+            format.ShortDatePattern = language.ShortDatePattern;
+            format.ShortTimePattern = language.ShortTimePattern;
+            format.LongTimePattern = language.LongTimePattern;
+            format.AMDesignator = language.AMDesignator;
+            format.PMDesignator = language.PMDesignator;
             switch (Properties.Settings.Default.dateFormat)
             {
                 case "dmy":
@@ -136,7 +158,6 @@ namespace TarkovMonitor
                     }
                     break;
             }
-            return result;
         }
 
         public List<(string Code, string Name)> GetAvailableLanguages()
