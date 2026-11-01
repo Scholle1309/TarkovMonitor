@@ -1001,4 +1001,28 @@
   <data name="Other" xml:space="preserve">
     <value>Sonstiges</value>
   </data>
+  <data name="PrestigeOnLabel" xml:space="preserve">
+    <value>Prestige {0} am</value>
+  </data>
+  <data name="PrestigedTo" xml:space="preserve">
+    <value>Auf {0} prestiged</value>
+  </data>
+  <data name="SetManually" xml:space="preserve">
+    <value>Manuell setzen</value>
+  </data>
+  <data name="CurrentMarker" xml:space="preserve">
+    <value>Aktuell</value>
+  </data>
+  <data name="PrestigeListHint" xml:space="preserve">
+    <value>Aus deinen Spiel-Logs oder von Hand gesetzt.</value>
+  </data>
+  <data name="PrestigeNoneFound" xml:space="preserve">
+    <value>Noch kein Prestige für diesen Charakter.</value>
+  </data>
+  <data name="PrestigeMissingLogsHint" xml:space="preserve">
+    <value>Wenn deine Logs von dem Tag fehlen, setze es hier.</value>
+  </data>
+  <data name="PrestigeManualHint" xml:space="preserve">
+    <value>Datum korrigieren oder einen fehlenden Prestige ergänzen. Das X entfernt nur Prestige {0}.</value>
+  </data>
 </root>

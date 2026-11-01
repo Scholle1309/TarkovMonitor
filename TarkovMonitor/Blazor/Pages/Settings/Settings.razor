@@ -361,25 +361,44 @@
                 <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Prestige")</div>
-            <MudText Typo="Typo.body2">
-                @if (HistoryStart.PrestigeStart is { } prestigeAt)
-                {
-                    <b>@string.Format(LocalizationService.GetString("PrestigeLevelShort"), HistoryStart.PrestigeLevel)</b> <span class="tm-settings-hint">@string.Format(LocalizationService.GetString("SinceTime"), prestigeAt.ToString("g"))</span>
-                }
-                else
-                {
-                    @LocalizationService.GetString("PrestigeNone")
-                }
-            </MudText>
-            @if (HistoryStart.CurrentBoundaries.Count > 0)
+            @if (PrestigeRows.Count > 0)
             {
-                <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("PrestigeFromLogs") @string.Join(" · ", HistoryStart.CurrentBoundaries.Select(boundary => boundary.Time.ToString("d") + " " + (boundary.Kind == RunBoundaryKind.Prestige ? LocalizationService.GetString("Prestige") : LocalizationService.GetString("NewCharacter"))))</MudText>
+                <ul class="tm-prestige-list">
+                    @for (var index = 0; index < PrestigeRows.Count; index++)
+                    {
+                        var entry = PrestigeRows[index];
+                        var isCurrent = index == PrestigeRows.Count - 1;
+                        <li class="@(isCurrent ? "tm-prestige-row tm-prestige-row--current" : "tm-prestige-row")">
+                            <span class="@(entry.Level > 0 ? "tm-prestige-tag tm-prestige-tag--prestige" : "tm-prestige-tag")">@(entry.Level > 0 ? string.Format(LocalizationService.GetString("PrestigeLevelShort"), entry.Level) : LocalizationService.GetString("NewCharacter"))</span>
+                            <span>@(isCurrent ? string.Format(LocalizationService.GetString("SinceTime"), entry.Time.ToString("g")) : entry.Time.ToString("g"))</span>
+                            @if (isCurrent)
+                            {
+                                <span class="tm-prestige-current">@LocalizationService.GetString("CurrentMarker")</span>
+                            }
+                        </li>
+                    }
+                </ul>
+                <MudText Typo="Typo.caption" Class="tm-settings-hint ml-2">@LocalizationService.GetString("PrestigeListHint")</MudText>
             }
-            <div class="tm-settings-inline mt-2">
-                <MudDatePicker Label="@LocalizationService.GetString("PrestigeDate")" Date="@PrestigeDate" DateChanged="OnPrestigeDateChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Class="tm-settings-grow" />
-                <MudButton OnClick="PrestigeNow" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.MilitaryTech">@LocalizationService.GetString("PrestigeNow")</MudButton>
-            </div>
-            <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("PrestigeShortHint")</MudText>
+            @if (CurrentPrestigeLevel > 0)
+            {
+                <MudButton OnClick="@(() => prestigeManualOpen = !prestigeManualOpen)" Variant="Variant.Text" Size="Size.Small" Color="Color.Info" StartIcon="@(prestigeManualOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="mt-1">@LocalizationService.GetString("SetManually")</MudButton>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Class="mt-1">@LocalizationService.GetString("PrestigeNoneFound")</MudText>
+                <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("PrestigeMissingLogsHint")</MudText>
+            }
+            @if (CurrentPrestigeLevel == 0 || prestigeManualOpen)
+            {
+                <div class="tm-settings-inline mt-3">
+                    <MudDatePicker Label="@string.Format(LocalizationService.GetString("PrestigeOnLabel"), Math.Max(1, CurrentPrestigeLevel))" Date="@PrestigeDate" DateChanged="OnPrestigeDateChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Class="tm-settings-grow" />
+                    <MudButton OnClick="PrestigeNow" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.MilitaryTech">@string.Format(LocalizationService.GetString("PrestigedTo"), CurrentPrestigeLevel + 1)</MudButton>
+                </div>
+                <MudText Typo="Typo.caption" Class="tm-settings-hint">
+                    @(CurrentPrestigeLevel > 0 ? string.Format(LocalizationService.GetString("PrestigeManualHint"), CurrentPrestigeLevel) : LocalizationService.GetString("PrestigeShortHint"))
+                </MudText>
+            }
         </MudPaper>
     </MudItem>
 
@@ -416,16 +435,52 @@
         }
     }
 
-    private DateTime? PrestigeDate => HistoryStart.PrestigeStart?.Date;
+    // The date of the current character's latest prestige, not one from an earlier character.
+    private DateTime? PrestigeDate => CurrentPrestigeLevel > 0 ? PrestigeRows[^1].Time.Date : null;
+
+    private bool prestigeManualOpen;
+
+    /// <summary>
+    /// The detected runs and prestiges of the current game mode, oldest first.
+    /// Prestiges are numbered within their character; a new character starts at zero.
+    /// </summary>
+    private List<(DateTime Time, int Level)> PrestigeRows
+    {
+        get
+        {
+            var rows = new List<(DateTime Time, int Level)>();
+            var level = 0;
+            foreach (var boundary in HistoryStart.CurrentBoundaries)
+            {
+                level = boundary.Kind == RunBoundaryKind.Prestige ? level + 1 : 0;
+                rows.Add((boundary.Time, level));
+            }
+            return rows;
+        }
+    }
+
+    /// <summary>The prestige the current character is in; 0 when there is none.</summary>
+    private int CurrentPrestigeLevel => PrestigeRows.Count > 0 ? PrestigeRows[^1].Level : 0;
 
     private void OnPrestigeDateChanged(DateTime? date)
     {
         if (date == null)
         {
-            HistoryStart.ClearPrestige();
+            // Only the latest prestige goes; detected characters and earlier prestiges stay.
+            HistoryStart.RemoveLatestPrestige();
+            questLogStore.ClearOverrides();
             return;
         }
-        HistoryStart.ReplaceLatestPrestige(date.Value.Date);
+        if (CurrentPrestigeLevel == 0)
+        {
+            // The current character has no prestige yet, so this is a new one.
+            var mode = HistoryStart.CurrentMode == EftSessionMode.Unknown ? EftSessionMode.PVE : HistoryStart.CurrentMode;
+            HistoryStart.AddBoundary(date.Value.Date, RunBoundaryKind.Prestige, mode);
+        }
+        else
+        {
+            HistoryStart.ReplaceLatestPrestige(date.Value.Date);
+        }
         questLogStore.ClearOverrides();
     }
 

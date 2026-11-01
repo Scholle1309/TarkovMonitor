@@ -477,3 +477,47 @@
     max-width: 7.5rem;
     margin: 0 !important;
 }
+
+.tm-prestige-list {
+    margin: 0.2rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.tm-prestige-row {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.8rem;
+}
+
+.tm-prestige-row--current {
+    background: rgba(110, 168, 255, 0.08);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.tm-prestige-tag {
+    justify-self: start;
+    padding: 0 0.45rem;
+    border: 1px solid rgba(110, 168, 255, 0.45);
+    border-radius: 999px;
+    color: #a9caff;
+    font-size: 0.7rem;
+}
+
+.tm-prestige-tag--prestige {
+    border-color: rgba(255, 179, 0, 0.55);
+    color: #ffcc66;
+}
+
+.tm-prestige-current {
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: #2f6fd6;
+    color: #fff;
+    font-size: 0.68rem;
+}

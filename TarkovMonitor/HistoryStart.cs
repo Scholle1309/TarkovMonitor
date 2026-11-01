@@ -160,6 +160,29 @@ namespace TarkovMonitor
         }
 
         /// <summary>Forgets every boundary of the current mode.</summary>
+        /// <summary>
+        /// Removes the latest prestige of the current game mode and nothing else;
+        /// detected new characters and earlier prestiges stay.
+        /// </summary>
+        public static void RemoveLatestPrestige()
+        {
+            var mode = CurrentMode == EftSessionMode.Unknown ? EftSessionMode.PVE : CurrentMode;
+            var all = Boundaries.ToList();
+            var latest = all.LastOrDefault(item => item.Mode == mode && item.Kind == RunBoundaryKind.Prestige);
+            if (latest == null)
+            {
+                return;
+            }
+            all.Remove(latest);
+            var remaining = all.Count(item => item.Mode == mode && item.Kind == RunBoundaryKind.Prestige);
+            if (Properties.Settings.Default.prestigeLevel > remaining)
+            {
+                Properties.Settings.Default.prestigeLevel = remaining;
+                Properties.Settings.Default.Save();
+            }
+            Store(all);
+        }
+
         public static void ClearPrestige()
         {
             var mode = CurrentMode;
