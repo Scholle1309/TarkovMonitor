@@ -143,5 +143,8 @@
     <Setting Name="dashboardPeriod" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">-2</Value>
     </Setting>
+    <Setting Name="notificationsVolume" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

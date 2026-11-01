@@ -1025,4 +1025,52 @@
   <data name="PrestigeManualHint" xml:space="preserve">
     <value>Datum korrigieren oder einen fehlenden Prestige ergänzen. Das X entfernt nur Prestige {0}.</value>
   </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Lautstärke</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>Jetzt synchronisieren</value>
+  </data>
+  <data name="TrackerSynced" xml:space="preserve">
+    <value>Fortschritt synchronisiert: {0}</value>
+  </data>
+  <data name="TrackerNotSynced" xml:space="preserve">
+    <value>Fortschritt noch nicht synchronisiert</value>
+  </data>
+  <data name="TrackerSyncFailed" xml:space="preserve">
+    <value>Tarkov-Tracker-Synchronisierung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="LogsFolderFound" xml:space="preserve">
+    <value>{0} Spielsitzungen gefunden, neueste {1}</value>
+  </data>
+  <data name="LogsFolderEmpty" xml:space="preserve">
+    <value>Keine Spiel-Logs in diesem Ordner.</value>
+  </data>
+  <data name="Backup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="ExportBackup" xml:space="preserve">
+    <value>Backup exportieren</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Backup wiederherstellen</value>
+  </data>
+  <data name="BackupHint" xml:space="preserve">
+    <value>Raids, Flohmarkt-Verkäufe, Quest-Verlauf, Marker, eigene Sounds und Einstellungen. Tarkov-Tracker-Tokens bleiben auf diesem PC.</value>
+  </data>
+  <data name="BackupSaved" xml:space="preserve">
+    <value>Backup gespeichert unter {0}</value>
+  </data>
+  <data name="BackupFailed" xml:space="preserve">
+    <value>Das Backup konnte nicht gespeichert werden: {0}</value>
+  </data>
+  <data name="BackupRestoreFailed" xml:space="preserve">
+    <value>Das Backup konnte nicht wiederhergestellt werden: {0}</value>
+  </data>
+  <data name="RestoreBackupConfirm" xml:space="preserve">
+    <value>Raids, Flohmarkt-Verkäufe, Quest-Verlauf, Marker, eigene Sounds und Einstellungen werden durch das Backup ersetzt. Tarkov-Tracker-Tokens bleiben unverändert. Tarkov Monitor startet danach neu.</value>
+  </data>
+  <data name="RestoreAndRestart" xml:space="preserve">
+    <value>Wiederherstellen und neu starten</value>
+  </data>
 </root>

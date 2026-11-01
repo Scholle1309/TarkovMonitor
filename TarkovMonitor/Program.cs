@@ -16,6 +16,17 @@ namespace TarkovMonitor
                 return;
             }
 
+            // A backup restored in the previous session replaces the database now,
+            // while nothing has it open yet.
+            try
+            {
+                Backup.ApplyPendingDatabase();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("The restored backup could not be put in place: " + ex.Message, "Tarkov Monitor", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
             var diagnostics = new DiagnosticsService();
             Application.ThreadException += (_, args) => diagnostics.Capture(
                 new DiagnosticContext("TM-APP-001", "UnhandledUiException", "Application", "Thread", "The application encountered an unexpected UI failure."),

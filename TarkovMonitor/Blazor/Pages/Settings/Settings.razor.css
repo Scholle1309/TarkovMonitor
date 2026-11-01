@@ -521,3 +521,38 @@
     color: #fff;
     font-size: 0.68rem;
 }
+
+.tm-volume-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+::deep .tm-volume-slider {
+    flex: 1 1 auto;
+}
+
+.tm-volume-value {
+    min-width: 2.8rem;
+    text-align: right;
+    font-size: 0.8rem;
+}
+
+.tm-logs-status {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.2rem;
+    color: #7ed181;
+    font-size: 0.75rem;
+}
+
+.tm-logs-status--empty {
+    color: #ffb300;
+}
+
+::deep .tm-logs-status__icon {
+    font-size: 1rem !important;
+}

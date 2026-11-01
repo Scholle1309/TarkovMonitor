@@ -1089,4 +1089,52 @@
   <data name="PrestigeManualHint" xml:space="preserve">
     <value>Fix the date or add a prestige the logs missed. The X removes Prestige {0} only.</value>
   </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>Sync now</value>
+  </data>
+  <data name="TrackerSynced" xml:space="preserve">
+    <value>Progress synced {0}</value>
+  </data>
+  <data name="TrackerNotSynced" xml:space="preserve">
+    <value>Progress not synced yet</value>
+  </data>
+  <data name="TrackerSyncFailed" xml:space="preserve">
+    <value>Tarkov Tracker sync failed: {0}</value>
+  </data>
+  <data name="LogsFolderFound" xml:space="preserve">
+    <value>{0} game sessions found, latest {1}</value>
+  </data>
+  <data name="LogsFolderEmpty" xml:space="preserve">
+    <value>No game logs in this folder.</value>
+  </data>
+  <data name="Backup" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="ExportBackup" xml:space="preserve">
+    <value>Export backup</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Restore backup</value>
+  </data>
+  <data name="BackupHint" xml:space="preserve">
+    <value>Raids, flea sales, quest history, markers, custom sounds and settings. Tarkov Tracker tokens stay on this PC.</value>
+  </data>
+  <data name="BackupSaved" xml:space="preserve">
+    <value>Backup saved to {0}</value>
+  </data>
+  <data name="BackupFailed" xml:space="preserve">
+    <value>The backup could not be saved: {0}</value>
+  </data>
+  <data name="BackupRestoreFailed" xml:space="preserve">
+    <value>The backup could not be restored: {0}</value>
+  </data>
+  <data name="RestoreBackupConfirm" xml:space="preserve">
+    <value>This replaces your raids, flea sales, quest history, markers, custom sounds and settings with the backup. Tarkov Tracker tokens stay as they are. Tarkov Monitor restarts afterwards.</value>
+  </data>
+  <data name="RestoreAndRestart" xml:space="preserve">
+    <value>Restore and restart</value>
+  </data>
 </root>

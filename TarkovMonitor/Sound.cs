@@ -63,7 +63,12 @@ namespace TarkovMonitor
                 using var reader = new Mp3FileReader(stream);
                 using var waveOut = new WaveOut();
                 waveOut.DeviceNumber = Properties.Settings.Default.notificationsDevice;
-                waveOut.Init(reader);
+                // Scale the samples rather than the device, so other apps keep their volume.
+                var channel = new NAudio.Wave.SampleProviders.SampleChannel(reader)
+                {
+                    Volume = Math.Clamp(Properties.Settings.Default.notificationsVolume, 0, 100) / 100f,
+                };
+                waveOut.Init(channel);
                 waveOut.Play();
                 while (waveOut.PlaybackState == PlaybackState.Playing)
                 {

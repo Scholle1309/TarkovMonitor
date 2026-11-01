@@ -45,6 +45,11 @@
                     <MudSelectItem T="int" Value="@device.Key">@device.Value</MudSelectItem>
                 }
             </MudSelect>
+            <div class="tm-volume-row">
+                <MudIcon Icon="@(NotificationsVolume == 0 ? Icons.Material.Filled.VolumeOff : Icons.Material.Filled.VolumeUp)" Size="Size.Small" />
+                <MudSlider T="int" @bind-Value="@NotificationsVolume" Min="0" Max="100" Step="5" Immediate="false" Color="Color.Info" Class="tm-volume-slider" aria-label="@LocalizationService.GetString("Volume")" />
+                <span class="tm-volume-value">@NotificationsVolume %</span>
+            </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Raid")</div>
             <div class="tm-alert-row">
                 <MudIconButton Icon="@Icons.Material.Filled.Audiotrack" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="PlayRaidStart" aria-label="@LocalizationService.GetString("PlaySound")" Class="tm-alert-play" />
@@ -122,6 +127,10 @@
                 {
                     <span>No EFT profile detected.</span>
                 }
+                <div class="tm-settings-inline">
+                    <MudText Typo="Typo.caption" Class="tm-settings-hint">@TrackerSyncText</MudText>
+                    <MudButton OnClick="SyncTrackerNow" Variant="Variant.Text" Size="Size.Small" Color="Color.Info" StartIcon="@Icons.Material.Filled.Sync" Disabled="@syncingTracker">@LocalizationService.GetString("SyncNow")</MudButton>
+                </div>
                 @foreach (var warning in TrackerStorageWarnings)
                 {
                     <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">@warning</MudAlert>
@@ -347,6 +356,13 @@
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.FolderCopy" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("GameLogsAndHistory")</span></MudText>
             <MudTextField @bind-Value="@CustomLogsFolder" ReadOnly="true" Label="@LocalizationService.GetString("LogsFolder")" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.FolderOpen" OnAdornmentClick="CustomLogsFolderClick" Class="tm-input tm-input--field tm-input--full mt-2"></MudTextField>
+            @if (logsFolderSessions is int sessions)
+            {
+                <div class="@(sessions > 0 ? "tm-logs-status" : "tm-logs-status tm-logs-status--empty")">
+                    <MudIcon Icon="@(sessions > 0 ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Warning)" Size="Size.Small" Class="tm-logs-status__icon" />
+                    @(sessions > 0 ? string.Format(LocalizationService.GetString("LogsFolderFound"), sessions, logsFolderLatest is DateTime latest ? LocalizationService.RelativeTime(latest) : "") : LocalizationService.GetString("LogsFolderEmpty"))
+                </div>
+            }
             <div class="tm-settings-inline">
                 <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("LogsFolderHint")</MudText>
                 @if (!string.IsNullOrEmpty(Properties.Settings.Default.customLogsPath))
@@ -360,6 +376,12 @@
                 <MudButton OnClick="ReadPastLogs" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.History">@LocalizationService.GetString("ReadPastLogs")</MudButton>
                 <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
             </div>
+            <div class="tm-settings-section">@LocalizationService.GetString("Backup")</div>
+            <div class="tm-settings-inline">
+                <MudButton OnClick="ExportBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SaveAlt" Disabled="@backupBusy">@LocalizationService.GetString("ExportBackup")</MudButton>
+                <MudButton OnClick="RestoreBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SettingsBackupRestore" Disabled="@backupBusy">@LocalizationService.GetString("RestoreBackup")</MudButton>
+            </div>
+            <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("BackupHint")</MudText>
             <div class="tm-settings-section">@LocalizationService.GetString("Prestige")</div>
             @if (PrestigeRows.Count > 0)
             {
@@ -439,6 +461,150 @@
     private DateTime? PrestigeDate => CurrentPrestigeLevel > 0 ? PrestigeRows[^1].Time.Date : null;
 
     private bool prestigeManualOpen;
+    private bool syncingTracker;
+    private bool backupBusy;
+    private int? logsFolderSessions;
+    private DateTime? logsFolderLatest;
+    private System.Threading.Timer? relativeTimeRefresh;
+
+    private int NotificationsVolume
+    {
+        get => Properties.Settings.Default.notificationsVolume;
+        set
+        {
+            Properties.Settings.Default.notificationsVolume = Math.Clamp(value, 0, 100);
+            Properties.Settings.Default.Save();
+        }
+    }
+
+    private string TrackerSyncText => TarkovTracker.LastProgressRetrievedUtc is DateTime synced
+        ? string.Format(LocalizationService.GetString("TrackerSynced"), LocalizationService.RelativeTime(synced))
+        : LocalizationService.GetString("TrackerNotSynced");
+
+    private async Task SyncTrackerNow()
+    {
+        syncingTracker = true;
+        StateHasChanged();
+        try
+        {
+            await TarkovTracker.GetProgress();
+        }
+        catch (Exception ex)
+        {
+            messageLog.AddMessage(string.Format(LocalizationService.GetString("TrackerSyncFailed"), ex.Message), "exception");
+        }
+        finally
+        {
+            syncingTracker = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnTrackerProgressRetrieved(object? sender, EventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <summary>Counts the game's session folders, so a wrong logs folder shows up right away.</summary>
+    private void RefreshLogsFolderStatus()
+    {
+        try
+        {
+            var folder = CustomLogsFolder;
+            if (string.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder))
+            {
+                logsFolderSessions = 0;
+                logsFolderLatest = null;
+                return;
+            }
+            var sessions = Directory.GetDirectories(folder, "log_*");
+            logsFolderSessions = sessions.Length;
+            logsFolderLatest = sessions.Length == 0 ? null : sessions.Max(Directory.GetLastWriteTime);
+        }
+        catch
+        {
+            logsFolderSessions = null;
+            logsFolderLatest = null;
+        }
+    }
+
+    private async Task ExportBackup()
+    {
+        try
+        {
+            using var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Title = LocalizationService.GetString("ExportBackup"),
+                Filter = "Tarkov Monitor backup (*.zip)|*.zip",
+                FileName = Backup.DefaultFileName,
+                OverwritePrompt = true,
+            };
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+            backupBusy = true;
+            StateHasChanged();
+            var path = dialog.FileName;
+            await Task.Run(() => Backup.Export(path));
+            messageLog.AddMessage(string.Format(LocalizationService.GetString("BackupSaved"), path), "info");
+        }
+        catch (Exception ex)
+        {
+            messageLog.AddMessage(string.Format(LocalizationService.GetString("BackupFailed"), ex.Message), "exception");
+        }
+        finally
+        {
+            backupBusy = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RestoreBackup()
+    {
+        string path;
+        using (var dialog = new System.Windows.Forms.OpenFileDialog
+        {
+            Title = LocalizationService.GetString("RestoreBackup"),
+            Filter = "Tarkov Monitor backup (*.zip)|*.zip",
+            CheckFileExists = true,
+        })
+        {
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+            path = dialog.FileName;
+        }
+
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            LocalizationService.GetString("RestoreBackup"),
+            LocalizationService.GetString("RestoreBackupConfirm"),
+            yesText: LocalizationService.GetString("RestoreAndRestart"),
+            cancelText: LocalizationService.GetString("Cancel"));
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        try
+        {
+            backupBusy = true;
+            StateHasChanged();
+            await Task.Run(() => Backup.Restore(path));
+            // A new process picks up the database and settings; this one closes.
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = Environment.ProcessPath ?? Application.ExecutablePath,
+                WorkingDirectory = AppContext.BaseDirectory,
+                UseShellExecute = false,
+            });
+            Application.Exit();
+        }
+        catch (Exception ex)
+        {
+            backupBusy = false;
+            messageLog.AddMessage(string.Format(LocalizationService.GetString("BackupRestoreFailed"), ex.Message), "exception");
+            StateHasChanged();
+        }
+    }
 
     /// <summary>
     /// The detected runs and prestiges of the current game mode, oldest first.
@@ -603,6 +769,10 @@
         eft.GameStarted += OnGameClientStateChanged;
         eft.GameStopped += OnGameClientStateChanged;
         eft.ProfileChanged += OnGameClientStateChanged;
+        TarkovTracker.ProgressRetrieved += OnTrackerProgressRetrieved;
+        RefreshLogsFolderStatus();
+        // Relative times ("5 min ago") would otherwise only change on the next render.
+        relativeTimeRefresh = new System.Threading.Timer(_ => InvokeAsync(StateHasChanged), null, 60000, 60000);
         _ = UpdateProfileName();
     }
 
@@ -626,6 +796,8 @@
         eft.GameStarted -= OnGameClientStateChanged;
         eft.GameStopped -= OnGameClientStateChanged;
         eft.ProfileChanged -= OnGameClientStateChanged;
+        TarkovTracker.ProgressRetrieved -= OnTrackerProgressRetrieved;
+        relativeTimeRefresh?.Dispose();
     }
 
     private void OnGameClientStateChanged(object? sender, EventArgs e)
@@ -1698,6 +1870,7 @@
             {
                 ResolveCustomLogsFolder();
             }
+            RefreshLogsFolderStatus();
         }
     }
 

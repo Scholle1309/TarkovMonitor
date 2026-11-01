@@ -586,5 +586,17 @@ namespace TarkovMonitor.Properties {
                 this["floatingTimerPanelShowRunThrough"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int notificationsVolume {
+            get {
+                return ((int)(this["notificationsVolume"]));
+            }
+            set {
+                this["notificationsVolume"] = value;
+            }
+        }
     }
 }
