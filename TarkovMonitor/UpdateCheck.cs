@@ -11,7 +11,8 @@ namespace TarkovMonitor
             Task<ReleaseData> GetLatestRelease();
         }
 
-        private static readonly string repo = "the-hideout/TarkovMonitor";
+        // Releases of this fork, not of the upstream project it was forked from.
+        private static readonly string repo = "Scholle1309/TarkovMonitor";
         private static readonly System.Timers.Timer updateCheckTimer;
 
         private static readonly IGitHubAPI api = RestService.For<IGitHubAPI>($"https://api.github.com/repos/{repo}");

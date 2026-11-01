@@ -1271,8 +1271,16 @@ namespace TarkovMonitor
             {
                 if (Properties.Settings.Default.minimizeAtStartup)
                 {
-
-                    WindowState = FormWindowState.Minimized;
+                    // Ported from upstream: minimizing at startup together with "minimize to
+                    // tray" leaves the window frame broken, so that combination is skipped.
+                    if (Properties.Settings.Default.minimizeToTray)
+                    {
+                        messageLog.AddMessage("A rendering bug causes issues when both the 'Minimize to Tray' and 'Minimize at startup' options are selected. For this reason, minimize at startup was skipped.");
+                    }
+                    else
+                    {
+                        WindowState = FormWindowState.Minimized;
+                    }
                 }
 
                 // Let WebView2 render the startup shell before watcher and
