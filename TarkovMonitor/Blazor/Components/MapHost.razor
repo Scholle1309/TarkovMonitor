@@ -340,7 +340,48 @@
         if (NeedBlocks.Any(block => block.ShowSetting == e.PropertyName || block.CollapsedSetting == e.PropertyName))
         {
             _ = InvokeAsync(StateHasChanged);
+            _ = SendFrameSettings();
         }
+    }
+
+    // The two block switches also sit in the site's map settings list (gear on the map).
+    private async Task SendFrameSettings()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("mapHost.settings", FrameElementId, new
+            {
+                title = "Tarkov Monitor",
+                takeAlong = Properties.Settings.Default.mapShowTakeAlong,
+                findInRaid = Properties.Settings.Default.mapShowFindInRaid,
+                labels = new
+                {
+                    takeAlong = LocalizationService.GetString("ShowTakeAlongOnMap"),
+                    findInRaid = LocalizationService.GetString("ShowFindInRaidOnMap"),
+                },
+            });
+        }
+        catch
+        {
+            // The frame may not be loaded yet; it asks again when its map is ready.
+        }
+    }
+
+    [JSInvokable]
+    public void OnFrameSetting(string key, bool value)
+    {
+        var name = key switch
+        {
+            "takeAlong" => nameof(Properties.Settings.Default.mapShowTakeAlong),
+            "findInRaid" => nameof(Properties.Settings.Default.mapShowFindInRaid),
+            _ => null,
+        };
+        if (name == null || Setting(name) == value)
+        {
+            return;
+        }
+        Properties.Settings.Default[name] = value;
+        Properties.Settings.Default.Save();
     }
 
     private string NeedSectionLabel(QuestNeedKind kind) => kind switch
@@ -660,6 +701,7 @@
     {
         placing = false;
         await SendMarkers(string.IsNullOrEmpty(map) ? MapsService.CurrentMapName : map);
+        await SendFrameSettings();
         await InvokeAsync(() =>
         {
             if (markersPanelOpen)

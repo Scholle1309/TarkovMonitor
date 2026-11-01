@@ -95,6 +95,10 @@ window.mapHost = (() => {
         focusMarker(frameId, id) {
             return post(frameId, { type: "tarkov-monitor-focus-marker", id });
         },
+        // The app's map switches, shown in the site's map settings list.
+        settings(frameId, data) {
+            return post(frameId, Object.assign({ type: "tarkov-monitor-settings" }, data));
+        },
         // The page reports panel openings, a new map instance, a placed marker and marker edits.
         register(dotNetRef) {
             window.addEventListener("message", (event) => {
@@ -113,6 +117,9 @@ window.mapHost = (() => {
                         break;
                     case "tarkov-monitor-marker":
                         dotNetRef.invokeMethodAsync("OnFrameMarker", event.data.action || "", JSON.stringify(event.data.marker || {}));
+                        break;
+                    case "tarkov-monitor-setting":
+                        dotNetRef.invokeMethodAsync("OnFrameSetting", event.data.key || "", !!event.data.value);
                         break;
                 }
             });
