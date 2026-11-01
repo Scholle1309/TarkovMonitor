@@ -385,7 +385,7 @@
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 26px 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 200px;
+    grid-template-columns: 22px 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 200px;
     justify-content: start;
     gap: 12px;
     align-items: center;
@@ -725,7 +725,7 @@
     grid-column: 1 / -1;
     background: #1a2640;
     border-radius: 6px;
-    padding: 8px 14px 8px 78px;
+    padding: 8px 14px 8px 74px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -760,32 +760,44 @@
     min-width: 0;
 }
 
-/* Tab left of the expand arrow when the task needs keys or items. */
+/* Tab flush with the left edge of the row when the task needs keys or items:
+   the full height while folded, the height of the first line while open. */
 .task-row__needs-tab {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    border-radius: 6px;
-    background: rgba(79, 143, 239, 0.16);
-    border: 1px solid rgba(79, 143, 239, 0.4);
+    grid-column: 1;
+    grid-row: 1;
+    align-self: stretch;
+    margin: -6px 0 -6px -12px;
+    display: flex;
+    border-radius: 4px 0 0 4px;
+    background: rgba(79, 143, 239, 0.22);
+    border-right: 1px solid rgba(79, 143, 239, 0.45);
     cursor: help;
 }
 
-.task-row__needs-tab--key {
-    background: rgba(255, 179, 0, 0.12);
-    border-color: rgba(255, 179, 0, 0.45);
+/* Over the invisible left border too, unless the row shows a coloured edge (pinned, current map). */
+.task-row:not(.task-row--current):not(.task-row--pinned) > .task-row__needs-tab {
+    margin-left: -15px;
+    border-radius: 6px 0 0 6px;
+}
+
+/* Open: the tab ends with the first line, so it gets a bottom edge and corner. */
+.task-row--open > .task-row__needs-tab {
+    border-bottom: 1px solid rgba(79, 143, 239, 0.45);
+    border-bottom-right-radius: 6px !important;
+    /* The row goes on below, so the left corner stays square. */
+    border-bottom-left-radius: 0 !important;
+}
+
+.task-row__needs-tab ::deep .mud-tooltip-root {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 ::deep .task-row__needs {
-    font-size: 17px !important;
+    font-size: 19px !important;
     color: #8fb8f5;
-}
-
-.task-row__needs-tab--key ::deep .task-row__needs,
-::deep .task-row__needs-tab--key .task-row__needs {
-    color: #ffb300;
 }
 
 /* Maps and needed items in one row under the objective; the items keep a little distance. */
@@ -835,21 +847,12 @@
     white-space: nowrap;
 }
 
-.task-need--key {
-    background: rgba(255, 179, 0, 0.1);
-    border-color: rgba(255, 179, 0, 0.35);
-    padding-left: 6px;
-}
 
 ::deep .task-need__kind {
     font-size: 15px !important;
     color: #8fb8f5;
 }
 
-.task-need--key ::deep .task-need__kind,
-::deep .task-need--key .task-need__kind {
-    color: #ffb300;
-}
 
 .task-need__count {
     color: #8fb8f5;

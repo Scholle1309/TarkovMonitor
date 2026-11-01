@@ -32,7 +32,7 @@ namespace TarkovMonitor
         {
             QuestNeedKind.Key => MudBlazor.Icons.Material.Filled.VpnKey,
             QuestNeedKind.Place => MudBlazor.Icons.Material.Filled.AddLocationAlt,
-            QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.Sensors,
+            QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.SettingsInputAntenna,
             QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.Redeem,
             _ => MudBlazor.Icons.Material.Filled.Build,
         };

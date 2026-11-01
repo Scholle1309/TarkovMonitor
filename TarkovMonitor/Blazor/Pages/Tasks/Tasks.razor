@@ -175,7 +175,7 @@
         @foreach (var item in group)
         {
             var isOpen = expanded.Contains(item.Task.id);
-            <div class="@("task-row" + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.Pinned ? " task-row--pinned" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
+            <div class="@("task-row" + (isOpen ? " task-row--open" : "") + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.Pinned ? " task-row--pinned" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
                 @{
                     // Keys or items the task needs: a tab left of the expand arrow, the tooltip lists them.
                     var taskNeeds = item.State == TaskState.Completed ? new List<QuestNeed>() : QuestNeeds.OfTask(item.Task);
@@ -183,19 +183,19 @@
                 }
                 @if (taskNeeds.Count > 0)
                 {
-                    <MudTooltip Placement="Placement.Right">
-                        <TooltipContent>
-                            @foreach (var need in taskNeeds)
-                            {
-                                <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
-                            }
-                        </TooltipContent>
-                        <ChildContent>
-                            <span class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))">
+                    <div class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))">
+                        <MudTooltip Placement="Placement.Right" Inline="false">
+                            <TooltipContent>
+                                @foreach (var need in taskNeeds)
+                                {
+                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                }
+                            </TooltipContent>
+                            <ChildContent>
                                 <MudIcon Icon="@QuestNeeds.Icon(tabKind)" Class="task-row__needs" />
-                            </span>
-                        </ChildContent>
-                    </MudTooltip>
+                            </ChildContent>
+                        </MudTooltip>
+                    </div>
                 }
                 else
                 {

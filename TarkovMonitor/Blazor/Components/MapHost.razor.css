@@ -351,9 +351,6 @@
     color: #8fb8f5;
 }
 
-::deep .map-need__kind--key {
-    color: #ffb300;
-}
 
 .map-need__text {
     display: flex;
