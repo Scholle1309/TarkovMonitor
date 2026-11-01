@@ -110,10 +110,6 @@
                             }
                         </div>
                     }
-                    @if (GoonsLastSeen != null)
-                    {
-                        <div class="map-tasks__section">@string.Format(LocalizationService.GetString("GoonsLastSeen"), GoonsLastSeen.Value.Map, LocalizationService.RelativeTime(GoonsLastSeen.Value.Time))</div>
-                    }
                 </div>
             </div>
         }
@@ -563,19 +559,6 @@
         .OrderByDescending(spawn => spawn.spawnChance)
         .ThenBy(spawn => TarkovDev.MobName(spawn.mob))
         .ToList();
-    private (string Map, DateTime Time)? GoonsLastSeen
-    {
-        get
-        {
-            var report = TarkovDev.GoonReports.FirstOrDefault();
-            if (report == null)
-            {
-                return null;
-            }
-            var map = TarkovDev.Maps.Find(candidate => candidate.id == report.map);
-            return (map?.name ?? report.map, report.Time);
-        }
-    }
     private void ToggleBossesPanel()
     {
         bossesPanelOpen = !bossesPanelOpen;

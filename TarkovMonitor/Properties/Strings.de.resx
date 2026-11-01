@@ -743,9 +743,6 @@
   <data name="NoBossData" xml:space="preserve">
     <value>Keine Bossdaten für diese Map.</value>
   </data>
-  <data name="GoonsLastSeen" xml:space="preserve">
-    <value>Goons zuletzt gesehen auf {0}, {1}</value>
-  </data>
   <data name="LocalData" xml:space="preserve">
     <value>Lokale Daten</value>
   </data>
