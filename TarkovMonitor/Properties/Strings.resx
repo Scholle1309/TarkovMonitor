@@ -1281,4 +1281,7 @@
   <data name="FieldKarma" xml:space="preserve">
     <value>Karma</value>
   </data>
+  <data name="FieldService" xml:space="preserve">
+    <value>Service</value>
+  </data>
 </root>

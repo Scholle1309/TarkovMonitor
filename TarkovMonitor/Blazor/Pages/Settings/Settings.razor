@@ -16,12 +16,15 @@
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Tune" Class="mr-2"/><span class="tm-card-heading-text">@LocalizationService.GetString("General")</span></MudText>
-            <MudSelect @bind-Value="@SelectedLanguage" T="string" Label="@LocalizationService.GetString("Language")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                @foreach (var language in AvailableLanguages)
-                {
-                    <MudSelectItem T="string" Value="@language.Code">@language.Name</MudSelectItem>
-                }
-            </MudSelect>
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("Language")</span>
+                <MudSelect @bind-Value="@SelectedLanguage" T="string" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                    @foreach (var language in AvailableLanguages)
+                    {
+                        <MudSelectItem T="string" Value="@language.Code">@language.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
             <div class="tm-settings-section">@LocalizationService.GetString("WindowBehavior")</div>
             <MudSwitch @bind-Value="@MinimizeAtStartupSwitch" Label="@LocalizationService.GetString("StartTarkovMonitorMinimized")" Color="Color.Info" />
             <MudSwitch @bind-Value="@MinimizeToTraySwitch" Label="@LocalizationService.GetString("MinimizeToSystemTray")" Color="Color.Info" />
@@ -59,7 +62,7 @@
             <div class="tm-field tm-field--wide mt-2">
                 <span class="tm-field__caption">@LocalizationService.GetString("Volume")</span>
                 <MudIcon Icon="@(NotificationsVolume == 0 ? Icons.Material.Filled.VolumeOff : Icons.Material.Filled.VolumeUp)" Size="Size.Small" Class="tm-field__icon" />
-                <MudSlider T="int" @bind-Value="@NotificationsVolume" Min="0" Max="100" Step="5" Immediate="false" Color="Color.Info" Class="tm-field__slider" aria-label="@LocalizationService.GetString("Volume")" />
+                <MudSlider T="int" @bind-Value="@NotificationsVolume" Min="0" Max="100" Step="5" Immediate="true" Color="Color.Info" Class="tm-field__slider" aria-label="@LocalizationService.GetString("Volume")" />
                 <span class="tm-field__value">@NotificationsVolume %</span>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Raid")</div>
@@ -121,12 +124,15 @@
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper id="tarkov-tracker" Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@trackerIcon" Class="mr-2"/><span class="tm-card-heading-text">@LocalizationService.GetString("TarkovTracker")</span></MudText>
-            <MudSelect @bind-Value="@TarkovTrackerDomain" T="string" Label="@LocalizationService.GetString("TarkovTrackerService")" RelativeWidth="DropdownWidth.Adaptive" ShrinkLabel="true" HelperText="@LocalizationService.GetString("TarkovTrackerServiceHelperText")" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list" xs="3">
-                @foreach (var pair in TarkovTracker.Domains)
-                {
-                    <MudSelectItem T="string" Value="@pair.Key">@pair.Value</MudSelectItem>
-                }
-            </MudSelect>
+            <div class="tm-field tm-field--wide mt-2" title="@LocalizationService.GetString("TarkovTrackerServiceHelperText")">
+                <span class="tm-field__caption">@LocalizationService.GetString("FieldService")</span>
+                <MudSelect @bind-Value="@TarkovTrackerDomain" T="string" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                    @foreach (var pair in TarkovTracker.Domains)
+                    {
+                        <MudSelectItem T="string" Value="@pair.Key">@pair.Value</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
             @if (IsRetiredTrackerService)
             {
                 <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">
@@ -272,7 +278,10 @@
                                 {
                                     @if (BoundKeyFilterEnabled)
                                     {
-                                        <MudTextField @bind-Value="boundKeyFilter" Immediate="true" Label="Filter by nickname or Account ID" Variant="Variant.Outlined" Margin="Margin.Dense" Class="tracker-filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                                        <div class="tm-field tm-field--wide tracker-filter">
+                                            <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="tm-field__icon" />
+                                            <MudTextField @bind-Value="boundKeyFilter" Immediate="true" Placeholder="Filter by nickname or Account ID" Variant="Variant.Text" Underline="false" Margin="Margin.None" Class="tm-field__control" />
+                                        </div>
                                     }
                                     <div class="tracker-account-list">
                                         @if (BoundOrgKeyGroups.Count == 0)
@@ -354,7 +363,10 @@
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Map" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("Maps")</span></MudText>
-            <MudTextField @bind-Value="@RemoteID" MaxLength="4" Label="@LocalizationService.GetString("RemoteID")" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentPaste" OnAdornmentClick="PasteRemoteClick" Class="tm-input tm-input--full"></MudTextField>
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("RemoteID")</span>
+                <MudTextField @bind-Value="@RemoteID" MaxLength="4" Variant="Variant.Text" Underline="false" Margin="Margin.None" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentPaste" OnAdornmentClick="PasteRemoteClick" Class="tm-field__control"></MudTextField>
+            </div>
             <div class="tm-settings-section">@LocalizationService.GetString("DuringRaid")</div>
             <MudSwitch @bind-Value="@AutoShowMapTabSwitch" Label="@LocalizationService.GetString("ShowMapsTabDuringRaid")" Color="Color.Info" />
             <MudSwitch @bind-Value="@NavigateMapSwitch" Label="@LocalizationService.GetString("SwitchToTarkovDevMapOnRaidLoad")" Color="Color.Info" />
@@ -364,20 +376,27 @@
             <MudSwitch @bind-Value="@MapStrictAcceptedTasksSwitch" Label="@LocalizationService.GetString("StrictAcceptedTasksOnMap")" Color="Color.Info" />
             <div class="tm-settings-section">@LocalizationService.GetString("Other")</div>
             <MudSwitch @bind-Value="@AutomaticallyDeleteScreenshotsAfterRaid" Label="@LocalizationService.GetString("AutomaticallyDeleteScreenshotsAfterRaid")" Color="Color.Info" />
-            <MudSelect @bind-Value="@MapOverrideSelect" T="string" Label="@LocalizationService.GetString("OfflineMap")" RelativeWidth="DropdownWidth.Adaptive" ShrinkLabel="true" HelperText="@LocalizationService.GetString("MapToUseForOfflineRaids")" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list" xs="3">
-                <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("None")</MudSelectItem>
-                @foreach (var map in TarkovDev.Maps)
-                {
-                    <MudSelectItem T="string" Value="@map.nameId">@map.name</MudSelectItem>
-                }
-            </MudSelect>
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("OfflineMap")</span>
+                <MudSelect @bind-Value="@MapOverrideSelect" T="string" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                    <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("None")</MudSelectItem>
+                    @foreach (var map in TarkovDev.Maps)
+                    {
+                        <MudSelectItem T="string" Value="@map.nameId">@map.name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("MapToUseForOfflineRaids")</MudText>
         </MudPaper>
     </MudItem>
 
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.FolderCopy" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("GameLogsAndHistory")</span></MudText>
-            <MudTextField @bind-Value="@CustomLogsFolder" ReadOnly="true" Label="@LocalizationService.GetString("LogsFolder")" Variant="Variant.Outlined" Margin="Margin.Dense" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.FolderOpen" OnAdornmentClick="CustomLogsFolderClick" Class="tm-input tm-input--field tm-input--full mt-2"></MudTextField>
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("LogsFolder")</span>
+                <MudTextField @bind-Value="@CustomLogsFolder" ReadOnly="true" Variant="Variant.Text" Underline="false" Margin="Margin.None" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.FolderOpen" OnAdornmentClick="CustomLogsFolderClick" Class="tm-field__control"></MudTextField>
+            </div>
             @if (logsFolderSessions is int sessions)
             {
                 <div class="@(sessions > 0 ? "tm-logs-status" : "tm-logs-status tm-logs-status--empty")">
@@ -392,7 +411,10 @@
                     <MudButton @onclick="SetDefaultLogFolder" Variant="Variant.Text" Size="Size.Small">@LocalizationService.GetString("ResetToDefault")</MudButton>
                 }
             </div>
-            <MudDatePicker Label="@LocalizationService.GetString("HistoryStart")" Date="@HistoryStartDate" DateChanged="OnHistoryStartChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Placeholder="@LocalizationService.GetString("HistoryStartNone")" Class="mt-3" />
+            <div class="tm-field tm-field--wide mt-3">
+                <span class="tm-field__caption">@LocalizationService.GetString("HistoryStart")</span>
+                <MudDatePicker Date="@HistoryStartDate" DateChanged="OnHistoryStartChanged" Variant="Variant.Text" Underline="false" Margin="Margin.None" Clearable="true" Placeholder="@LocalizationService.GetString("HistoryStartNone")" Class="tm-field__control" />
+            </div>
             <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("HistoryStartShortHint")</MudText>
             <div class="tm-settings-inline mt-2">
                 <MudButton OnClick="ReadPastLogs" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.History">@LocalizationService.GetString("ReadPastLogs")</MudButton>
@@ -420,22 +442,24 @@
             }
             @if (CurrentPrestigeLevel > 0)
             {
-                <MudButton OnClick="@(() => prestigeManualOpen = !prestigeManualOpen)" Variant="Variant.Text" Size="Size.Small" Color="Color.Info" StartIcon="@(prestigeManualOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="mt-1">@LocalizationService.GetString("SetManually")</MudButton>
+                @* Same foldable frame as Unassigned / Assigned in the tracker card. *@
+                <div class="tracker-drawer mt-2">
+                    <button type="button" class="tracker-drawer-toggle tracker-drawer-toggle--primary" @onclick="@(() => prestigeManualOpen = !prestigeManualOpen)" aria-expanded="@prestigeManualOpen.ToString().ToLowerInvariant()">
+                        <MudIcon Icon="@(prestigeManualOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="tracker-chevron" />
+                        <span class="tracker-drawer-title">@LocalizationService.GetString("SetManually")</span>
+                    </button>
+                    <MudCollapse Expanded="@prestigeManualOpen">
+                        <div class="tracker-drawer-content">
+                            @PrestigeManualContent
+                        </div>
+                    </MudCollapse>
+                </div>
             }
             else
             {
                 <MudText Typo="Typo.body2" Class="mt-1">@LocalizationService.GetString("PrestigeNoneFound")</MudText>
                 <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("PrestigeMissingLogsHint")</MudText>
-            }
-            @if (CurrentPrestigeLevel == 0 || prestigeManualOpen)
-            {
-                <div class="tm-settings-inline mt-3">
-                    <MudDatePicker Label="@string.Format(LocalizationService.GetString("PrestigeOnLabel"), Math.Max(1, CurrentPrestigeLevel))" Date="@PrestigeDate" DateChanged="OnPrestigeDateChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Class="tm-settings-grow" />
-                    <MudButton OnClick="PrestigeNow" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.MilitaryTech">@string.Format(LocalizationService.GetString("PrestigedTo"), CurrentPrestigeLevel + 1)</MudButton>
-                </div>
-                <MudText Typo="Typo.caption" Class="tm-settings-hint">
-                    @(CurrentPrestigeLevel > 0 ? string.Format(LocalizationService.GetString("PrestigeManualHint"), CurrentPrestigeLevel) : LocalizationService.GetString("PrestigeShortHint"))
-                </MudText>
+                <div class="mt-3">@PrestigeManualContent</div>
             }
         </MudPaper>
     </MudItem>
@@ -1209,6 +1233,20 @@
         StringComparison.OrdinalIgnoreCase);
 
     // Also while the game is closed: then it is the profile remembered for the chosen mode.
+    // Date picker and "Prestiged to" button: in the fold when a prestige is known, open otherwise.
+    private RenderFragment PrestigeManualContent => @<div>
+            <div class="tm-settings-inline">
+                <div class="tm-field tm-settings-grow">
+                    <span class="tm-field__caption">@string.Format(LocalizationService.GetString("PrestigeOnLabel"), Math.Max(1, CurrentPrestigeLevel))</span>
+                    <MudDatePicker Date="@PrestigeDate" DateChanged="OnPrestigeDateChanged" Variant="Variant.Text" Underline="false" Margin="Margin.None" Clearable="true" Class="tm-field__control" />
+                </div>
+                <MudButton OnClick="PrestigeNow" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.MilitaryTech">@string.Format(LocalizationService.GetString("PrestigedTo"), CurrentPrestigeLevel + 1)</MudButton>
+            </div>
+            <MudText Typo="Typo.caption" Class="tm-settings-hint">
+                @(CurrentPrestigeLevel > 0 ? string.Format(LocalizationService.GetString("PrestigeManualHint"), CurrentPrestigeLevel) : LocalizationService.GetString("PrestigeShortHint"))
+            </MudText>
+    </div>;
+
     private bool HasCurrentProfileRoute => GameWatcher.CurrentProfile.HasTarkovDevPlayerRoute;
 
     private string CurrentProfileUrl => HasCurrentProfileRoute

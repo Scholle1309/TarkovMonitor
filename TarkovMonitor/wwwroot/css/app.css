@@ -1118,6 +1118,9 @@ html body *::-webkit-scrollbar-corner {
     color: rgba(255, 255, 255, 0.5);
     font-size: var(--tm-fs-sm);
     white-space: nowrap;
+    /* The smaller caption font sits about 1px high next to the value. */
+    position: relative;
+    top: 1px;
 }
 
 .tm-field .tm-field__control,

@@ -102,7 +102,8 @@
 }
 
 .tracker-drawer-content {
-    padding: 0 0.65rem 0.65rem;
+    /* A small gap below the header line. */
+    padding: 0.45rem 0.65rem 0.65rem;
 }
 
 .tracker-state-note {
@@ -628,4 +629,27 @@
     font-size: var(--tm-fs-md);
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Unassigned / Assigned use the shared field frame (see .tm-field in app.css). */
+.tracker-drawer {
+    border-radius: 8px;
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.tracker-drawer:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: none;
+}
+
+.tracker-drawer-toggle--primary {
+    min-height: 34px;
+    padding: 0 10px;
+    justify-content: flex-start;
+}
+
+.tracker-drawer-toggle--primary .tracker-drawer-title {
+    font-size: var(--tm-fs-md);
+    font-weight: 500;
 }
