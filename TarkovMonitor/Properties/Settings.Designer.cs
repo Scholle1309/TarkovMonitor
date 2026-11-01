@@ -598,5 +598,17 @@ namespace TarkovMonitor.Properties {
                 this["notificationsVolume"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string knownProfiles {
+            get {
+                return ((string)(this["knownProfiles"]));
+            }
+            set {
+                this["knownProfiles"] = value;
+            }
+        }
     }
 }

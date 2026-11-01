@@ -676,6 +676,7 @@ namespace TarkovMonitor
                     PublishNoActiveEftSessionNotice();
                     TarkovTracker.ResetActiveState();
                     TarkovDev.StopAutoUpdates();
+                    ShowLastPlayedMode();
                     // EFT can be running at "Select Profile and Mode" while the
                     // watcher has not recovered a player route yet. Preserve the
                     // read-only Tarkov.dev preload until a real profile is selected.
@@ -690,8 +691,10 @@ namespace TarkovMonitor
                     // the user does not need to launch EFT just to verify the
                     // data connection. Tracker writes remain inactive.
                     _ = RefreshTarkovDevApiData(e.Profile, allowPersistedProfile: true);
-                    TarkovTracker.ResetActiveState();
                     TarkovDev.StopAutoUpdates();
+                    // Show the last session's progress read-only; no key is assigned automatically.
+                    GameModes.Remember(e.Profile);
+                    _ = InitializeProgress(e.Profile, announceSession: false, allowAutoBind: false);
                     return;
                 }
 
@@ -1077,6 +1080,7 @@ namespace TarkovMonitor
         private void Eft_ProfileChanged(object? sender, ProfileEventArgs e)
         {
             var profileSnapshot = e.Profile.Snapshot();
+            GameModes.Remember(profileSnapshot);
             mapsService.SetGameMode(profileSnapshot.SessionMode);
             // The map filters tasks only for a recognised session; reload it so the filter follows the profile.
             mapsService.NotifyQuestStateChanged(inRaid);
@@ -1100,7 +1104,13 @@ namespace TarkovMonitor
             else
             {
                 TarkovDev.StopAutoUpdates();
-                if (!eft.IsGameRunning)
+                if (!eft.IsGameRunning && profileSnapshot.HasIdentity)
+                {
+                    // Without a running game this is a remembered profile: show its
+                    // progress, but never assign a key to it automatically.
+                    _ = InitializeProgress(profileSnapshot, announceSession: false, allowAutoBind: false);
+                }
+                else
                 {
                     TarkovTracker.DeactivateProfile();
                 }
@@ -1110,6 +1120,7 @@ namespace TarkovMonitor
         private void Eft_ProfileReady(object? sender, ProfileEventArgs e)
         {
             var profileSnapshot = e.Profile.Snapshot();
+            GameModes.Remember(profileSnapshot);
             mapsService.SetGameMode(profileSnapshot.SessionMode);
             if (profileSnapshot.HasTarkovDevPlayerRoute && eft.IsGameRunning)
             {
@@ -1131,7 +1142,13 @@ namespace TarkovMonitor
             else
             {
                 TarkovDev.StopAutoUpdates();
-                if (!eft.IsGameRunning)
+                if (!eft.IsGameRunning && profileSnapshot.HasIdentity)
+                {
+                    // Without a running game this is a remembered profile: show its
+                    // progress, but never assign a key to it automatically.
+                    _ = InitializeProgress(profileSnapshot, announceSession: false, allowAutoBind: false);
+                }
+                else
                 {
                     TarkovTracker.DeactivateProfile();
                 }
@@ -1145,6 +1162,24 @@ namespace TarkovMonitor
             TarkovTracker.DeactivateProfile();
             TarkovDev.StopAutoUpdates();
             InvalidateTarkovDevData();
+            ShowLastPlayedMode();
+        }
+
+        /// <summary>
+        /// Without a running game, shows the mode played last instead of an empty app.
+        /// The title bar switch can show another remembered mode.
+        /// </summary>
+        private void ShowLastPlayedMode()
+        {
+            if (eft.IsGameRunning || GameWatcher.CurrentProfile.HasIdentity)
+            {
+                return;
+            }
+            var stored = GameModes.Stored(GameModes.LastMode);
+            if (stored != null)
+            {
+                eft.ShowStoredProfile(stored);
+            }
         }
 
         private void Eft_GameStarted(object? sender, EventArgs e)
@@ -1748,7 +1783,8 @@ namespace TarkovMonitor
             var other => other,
         };
 
-        private bool SessionRecognised => eft.IsGameRunning && GameWatcher.CurrentProfile.Snapshot().SessionMode != EftSessionMode.Unknown;
+        // A mode is known: from the running game, or a remembered one shown without it.
+        private bool SessionRecognised => GameWatcher.CurrentProfile.Snapshot() is { HasIdentity: true } profile && profile.SessionMode != EftSessionMode.Unknown;
 
         private async Task HandleTrackerProgressRequest(CoreWebView2 core, CoreWebView2WebResourceRequestedEventArgs e, Uri uri)
         {
@@ -2220,7 +2256,7 @@ namespace TarkovMonitor
             Volatile.Write(ref noActiveEftSessionNoticePublished, 0);
         }
 
-        private async Task InitializeProgress(Profile? profile = null, bool announceSession = true)
+        private async Task InitializeProgress(Profile? profile = null, bool announceSession = true, bool allowAutoBind = true)
         {
             var profileSnapshot = (profile ?? GameWatcher.CurrentProfile).Snapshot();
             long noticeGeneration = 0;
@@ -2242,7 +2278,7 @@ namespace TarkovMonitor
             var startedUtc = DateTime.UtcNow;
             try
             {
-                await TarkovTracker.SetProfile(profileSnapshot);
+                await TarkovTracker.SetProfile(profileSnapshot, allowAutoBind: allowAutoBind);
             }
             catch (ProfileActivationSupersededException)
             {

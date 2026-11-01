@@ -14,6 +14,9 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+    /* Chromium prefers scrollbar-color over the ::-webkit-scrollbar rules below,
+       and MudBlazor sets a grey one; this keeps the page scroll bar blue. */
+    scrollbar-color: #4d77b8 #131d33;
 }
 
 ::deep .app-main-content--restored {
@@ -322,4 +325,56 @@
     height: 20px;
     width: auto;
     opacity: 0.85;
+}
+
+.tm-mode-switch {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0.75rem;
+    border: 1px solid rgba(110, 168, 255, 0.35);
+    border-radius: 7px;
+    overflow: hidden;
+    -webkit-app-region: no-drag;
+}
+
+.tm-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.62);
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.tm-mode + .tm-mode {
+    border-left: 1px solid rgba(110, 168, 255, 0.22);
+}
+
+.tm-mode:hover:not(:disabled) {
+    background: rgba(110, 168, 255, 0.07);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.tm-mode:disabled {
+    color: rgba(255, 255, 255, 0.28);
+    cursor: default;
+}
+
+.tm-mode--on,
+.tm-mode--on:disabled,
+.tm-mode--on:hover:not(:disabled) {
+    background: rgba(110, 168, 255, 0.18);
+    color: #e3eeff;
+}
+
+.tm-mode--live::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #7ed181;
 }

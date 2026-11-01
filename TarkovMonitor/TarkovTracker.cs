@@ -1607,7 +1607,9 @@ namespace TarkovMonitor
             }
         }
 
-        public static async Task<ProgressResponse> SetProfile(Profile profile, bool forceRefresh = false)
+        /// <param name="allowAutoBind">False for a remembered profile shown without a running
+        /// game: only an already assigned key is used, nothing is assigned automatically.</param>
+        public static async Task<ProgressResponse> SetProfile(Profile profile, bool forceRefresh = false, bool allowAutoBind = true)
         {
             if (IsLegacyService)
             {
@@ -1631,7 +1633,8 @@ namespace TarkovMonitor
             ActiveRequest? requestToStart = null;
             lock (stateLock)
             {
-                if (!IsLegacyServiceLocked()
+                if (allowAutoBind
+                    && !IsLegacyServiceLocked()
                     && orgTokenStoreLoaded
                     && profileSnapshot.HasIdentity
                     && !string.IsNullOrWhiteSpace(profileSnapshot.Id)

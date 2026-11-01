@@ -1073,4 +1073,25 @@
   <data name="RestoreAndRestart" xml:space="preserve">
     <value>Wiederherstellen und neu starten</value>
   </data>
+  <data name="GameMode" xml:space="preserve">
+    <value>Spielmodus</value>
+  </data>
+  <data name="ModeLiveTitle" xml:space="preserve">
+    <value>Dein Spiel läuft in {0}</value>
+  </data>
+  <data name="ModeLockedTitle" xml:space="preserve">
+    <value>Den Modus im Spiel wechseln, solange es läuft</value>
+  </data>
+  <data name="ModeShowTitle" xml:space="preserve">
+    <value>{0} anzeigen</value>
+  </data>
+  <data name="ModeNotPlayedTitle" xml:space="preserve">
+    <value>Noch keine {0}-Sitzung gesehen</value>
+  </data>
+  <data name="NoTokenForMode" xml:space="preserve">
+    <value>Kein Tarkov-Tracker-Token für {0}.</value>
+  </data>
+  <data name="LoadingProgress" xml:space="preserve">
+    <value>Fortschritt wird geladen…</value>
+  </data>
 </root>

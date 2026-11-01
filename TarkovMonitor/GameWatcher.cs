@@ -37,6 +37,25 @@ namespace TarkovMonitor
             @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 3932890",
         };
         public static Profile CurrentProfile { get; set; } = new();
+
+        // True while CurrentProfile is a remembered profile shown without a running game.
+        private bool showingStoredProfile;
+
+        /// <summary>
+        /// Shows a remembered profile while the game is not running, as if the game
+        /// had reported it. Returns false while the game runs: then the game decides.
+        /// </summary>
+        public bool ShowStoredProfile(Profile profile)
+        {
+            if (IsGameRunning || !profile.HasIdentity)
+            {
+                return false;
+            }
+            CurrentProfile = profile.Snapshot();
+            showingStoredProfile = true;
+            ProfileChanged?.Invoke(this, new(CurrentProfile));
+            return true;
+        }
         public static bool ReadingPastLogs = false;
         public bool InitialLogsRead { get; private set; } = false;
         public bool IsGameRunning
@@ -1309,6 +1328,14 @@ namespace TarkovMonitor
                     //DebugMessage?.Invoke(this, new DebugEventArgs("EFT not running."));
                     process = null;
                     return;
+                }
+                if (showingStoredProfile)
+                {
+                    // A remembered profile must not stand in for the game's own one;
+                    // the game reports its profile once a mode is picked.
+                    showingStoredProfile = false;
+                    CurrentProfile = new();
+                    ProfileChanged?.Invoke(this, new(CurrentProfile));
                 }
                 GameStarted?.Invoke(this, new EventArgs());
                 process = processes.First();

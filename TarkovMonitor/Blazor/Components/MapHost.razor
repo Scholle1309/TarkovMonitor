@@ -320,8 +320,8 @@
 
     private void RefreshMapTasks()
     {
-        // No task data before the game runs and has announced its mode.
-        var sessionReady = eft.IsGameRunning && GameWatcher.CurrentProfile.Snapshot().SessionMode != EftSessionMode.Unknown;
+        // Task data once a mode is known, from the game or remembered while it is closed.
+        var sessionReady = GameWatcher.CurrentProfile.Snapshot() is { HasIdentity: true } profile && profile.SessionMode != EftSessionMode.Unknown;
         try
         {
             // Tasks bound to this map first, tasks that can be done anywhere after them.

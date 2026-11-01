@@ -70,8 +70,8 @@ else
             @LocalizationService.GetString("LastRaid")
             @if (stats.LastRaid != null)
             {
-                <b>@MapName(stats.LastRaid.MapNameId) · @TypeLabel(stats.LastRaid.Type)</b>
-                <span class="dash-pill__sub">· @Ago(stats.LastRaid.TimeUtc)@(stats.LastRaid.Duration != null ? ", " + FormatDuration(stats.LastRaid.Duration.Value) : "")</span>
+                @* Only when; map and duration are in the recent raids list. *@
+                <b>@Ago(stats.LastRaid.TimeUtc)</b>
             }
             else
             {
@@ -93,7 +93,7 @@ else
             else
             {
                 <div class="dash-kpi__value dash-kpi__value--muted">—</div>
-                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+                <div class="dash-kpi__hint">@ProgressHint</div>
             }
         </div>
         <div class="dash-kpi">
@@ -108,7 +108,7 @@ else
             else
             {
                 <div class="dash-kpi__value dash-kpi__value--muted">—</div>
-                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+                <div class="dash-kpi__hint">@ProgressHint</div>
             }
         </div>
         <div class="dash-kpi">
@@ -123,7 +123,7 @@ else
             else
             {
                 <div class="dash-kpi__value dash-kpi__value--muted">—</div>
-                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+                <div class="dash-kpi__hint">@ProgressHint</div>
             }
         </div>
         <div class="dash-kpi">
@@ -138,7 +138,7 @@ else
             else
             {
                 <div class="dash-kpi__value dash-kpi__value--muted">—</div>
-                <div class="dash-kpi__hint">@LocalizationService.GetString("StartGameForProgress")</div>
+                <div class="dash-kpi__hint">@ProgressHint</div>
             }
         </div>
         <div class="dash-kpi">
@@ -168,7 +168,7 @@ else
                 </h2>
                 @if (!hasProgress)
                 {
-                    <div class="dash-empty">@LocalizationService.GetString("StartGameForProgress")</div>
+                    <div class="dash-empty">@ProgressHint</div>
                 }
                 else if (recommendations.Count == 0)
                 {
@@ -367,6 +367,13 @@ else
     private bool gameRunning;
     private bool sessionReady;
     private bool trackerLinked;
+
+    // Why there is no tracker progress: no mode yet, no token for this mode, or still loading.
+    private string ProgressHint => !sessionReady
+        ? LocalizationService.GetString("StartGameForProgress")
+        : !trackerLinked
+            ? string.Format(LocalizationService.GetString("NoTokenForMode"), GameModes.Label(GameWatcher.CurrentProfile.SessionMode))
+            : LocalizationService.GetString("LoadingProgress");
     private bool apiLoaded;
     private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
     private int questDone, questStarted, questFailed;
@@ -451,8 +458,9 @@ else
     {
         var profile = GameWatcher.CurrentProfile.Snapshot();
         gameRunning = eft.IsGameRunning;
-        // Nothing is read before the game runs and has announced its mode (PVE / PVP).
-        sessionReady = gameRunning && profile.SessionMode != EftSessionMode.Unknown;
+        // Data shows once a mode is known: from the running game, or the mode played
+        // last (or picked in the title bar) while the game is closed.
+        sessionReady = profile.HasIdentity && profile.SessionMode != EftSessionMode.Unknown;
         if (!sessionReady)
         {
             stats = new DashboardStats();

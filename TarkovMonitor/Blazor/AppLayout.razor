@@ -11,6 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject TimersManager TimersManager
 @inject MapsService MapsService
+@inject GameWatcher eft
 @inject IDialogService DialogService
 
 <div style="width: 100%; height: 100%" class="tarkov-dev-bg">
@@ -23,9 +24,18 @@
 					<img class="navigation-reopen__logo" src="tarkov-dev-logo.svg" alt="Tarkov.dev" />
 				</button>
 			}
-			<span class="window-page-title" @onmousedown="BeginWindowDrag" @onmousedown:preventDefault="true">@CurrentPageTitle</span>
+			@* The open navigation already marks the page; the title only helps while it is collapsed. *@
+			<span class="window-page-title" @onmousedown="BeginWindowDrag" @onmousedown:preventDefault="true">@(drawerOpen ? "" : CurrentPageTitle)</span>
 			<div class="window-drag-region" @onmousedown="BeginWindowDrag">
 				<span class="window-product-title">@LocalizationService.GetString("TarkovMonitor")</span>
+			</div>
+			<div class="tm-mode-switch" role="group" aria-label="@LocalizationService.GetString("GameMode")">
+				@foreach (var mode in GameModes.All)
+				{
+					var isCurrent = CurrentMode == mode;
+					var available = GameModes.Stored(mode) != null;
+					<button type="button" class="@ModeClass(isCurrent)" disabled="@(!isCurrent && (eft.IsGameRunning || !available))" title="@ModeTitle(mode, isCurrent, available)" @onclick="() => SelectMode(mode)">@GameModes.Label(mode)</button>
+				}
 			</div>
 			<div class="window-controls" aria-label="Window controls">
 				<MudIconButton Class="window-control" Icon="@Icons.Material.Filled.Remove" Color="Color.Inherit" Size="Size.Small" OnClick="MinimizeWindow" aria-label="Minimize" />
@@ -161,6 +171,10 @@
 		TimersManager.RaidActiveChanged += OnFloatingTimerStateChanged;
 		TimersManager.FloatingPanelSettingChanged += OnFloatingTimerStateChanged;
 		MapsService.NavigationRequested += OnMapsNavigationRequested;
+		eft.ProfileChanged += OnModeStateChanged;
+		eft.GameStarted += OnModeStateChanged;
+		eft.GameStopped += OnModeStateChanged;
+		GameModes.Changed += OnModeStateChanged;
 		if (WindowHost.Updates != null)
 		{
 			WindowHost.Updates.PopupRequested += OnUpdatePopupRequested;
@@ -183,6 +197,32 @@
 		if (ShowFloatingTimerPanel)
 			await JSRuntime.InvokeVoidAsync("floatingTimerPanel.initialize", "floating-timer-panel");
 	}
+
+	private static EftSessionMode CurrentMode => GameWatcher.CurrentProfile.Snapshot() is { HasIdentity: true } profile ? profile.SessionMode : EftSessionMode.Unknown;
+
+	private string ModeClass(bool isCurrent) => "tm-mode" + (isCurrent ? " tm-mode--on" : "") + (isCurrent && eft.IsGameRunning ? " tm-mode--live" : "");
+
+	private string ModeTitle(EftSessionMode mode, bool isCurrent, bool available)
+	{
+		var label = GameModes.Label(mode);
+		if (eft.IsGameRunning)
+		{
+			return isCurrent ? string.Format(LocalizationService.GetString("ModeLiveTitle"), label) : LocalizationService.GetString("ModeLockedTitle");
+		}
+		return available ? string.Format(LocalizationService.GetString("ModeShowTitle"), label) : string.Format(LocalizationService.GetString("ModeNotPlayedTitle"), label);
+	}
+
+	// Only without a running game; while it runs the game's own mode is shown.
+	private void SelectMode(EftSessionMode mode)
+	{
+		if (eft.IsGameRunning || CurrentMode == mode || GameModes.Stored(mode) is not { } profile)
+		{
+			return;
+		}
+		eft.ShowStoredProfile(profile);
+	}
+
+	private void OnModeStateChanged(object? sender, EventArgs e) => _ = InvokeAsync(StateHasChanged);
 
 	private bool updatePopupOpen;
 
@@ -395,6 +435,10 @@
 
 	public void Dispose()
 	{
+		eft.ProfileChanged -= OnModeStateChanged;
+		eft.GameStarted -= OnModeStateChanged;
+		eft.GameStopped -= OnModeStateChanged;
+		GameModes.Changed -= OnModeStateChanged;
 		if (WindowHost.Updates != null)
 		{
 			WindowHost.Updates.PopupRequested -= OnUpdatePopupRequested;
