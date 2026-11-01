@@ -92,6 +92,12 @@ namespace TarkovMonitor
             + "nav.navigation, .CookieConsent { display: none !important; }"
             // The area around the map follows the app's navy theme instead of the site's grey.
             + "html body { background-color: #132440 !important; background-image: none !important; }"
+            // The site's loading bars (react-spinners) carry their gold in an inline style.
+            + ".loader-wrapper [style*=\"background\"] { background-color: #6ea8ff !important; }"
+            // Its 100vh height plus a 50px margin overflows and shows a white scroll bar.
+            + "html body .loader-wrapper { margin: 0 auto !important; }"
+            // The map page never scrolls; without this a loading page shows a white scroll bar.
+            + "html { overflow: hidden !important; }"
             // Quest markers on another floor or underground are faded to 20% by the site,
             // which makes them nearly invisible. Keep them visible and tint them light blue.
             // Everything on another level is faded to 20% by the site; 70% keeps the

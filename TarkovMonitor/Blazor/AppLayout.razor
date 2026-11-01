@@ -58,9 +58,13 @@
 		</MudDrawer>
 		<MudMainContent Class="@MainContentClass" Style="box-sizing: border-box;">
 			<MapHost Visible="isMapsPage" />
-			<CascadingValue Name="AppLayout" Value="this">
-				@Body
-			</CascadingValue>
+			@* Only the pages scroll. The map lies beside that scroller, so a page's scroll bar never
+			   changes the width of the hidden map, which would shift it when the Maps tab opens. *@
+			<div class="app-page-scroll">
+				<CascadingValue Name="AppLayout" Value="this">
+					@Body
+				</CascadingValue>
+			</div>
 		</MudMainContent>
 		@if (ShowFloatingTimerPanel)
 		{
