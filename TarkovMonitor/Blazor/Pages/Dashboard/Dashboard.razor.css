@@ -21,7 +21,7 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.6);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     white-space: nowrap;
 }
 
@@ -74,14 +74,14 @@
 }
 
 .dash-kpi__label {
-    font-size: 0.68rem;
+    font-size: var(--tm-fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.5);
 }
 
 .dash-kpi__value {
-    font-size: 1.55rem;
+    font-size: var(--tm-fs-2xl);
     font-weight: 700;
     line-height: 1.2;
     margin: 4px 0 2px;
@@ -89,7 +89,7 @@
 }
 
 .dash-kpi__value small {
-    font-size: 0.85rem;
+    font-size: var(--tm-fs-base);
     font-weight: 500;
     color: rgba(255, 255, 255, 0.5);
 }
@@ -99,7 +99,7 @@
 }
 
 .dash-kpi__hint {
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     color: rgba(255, 255, 255, 0.55);
     white-space: nowrap;
     overflow: hidden;
@@ -136,7 +136,7 @@
     position: absolute;
     top: 8px;
     right: 10px;
-    font-size: 0.62rem;
+    font-size: var(--tm-fs-xs);
     color: rgba(255, 255, 255, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 4px;
@@ -192,7 +192,7 @@
     align-items: center;
     gap: 8px;
     margin: 0 0 10px;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -200,7 +200,7 @@
 }
 
 .dash-card__sub {
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
@@ -209,7 +209,7 @@
 
 .dash-card__more {
     margin-left: auto;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
@@ -222,7 +222,7 @@
 }
 
 .dash-empty {
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     color: rgba(255, 255, 255, 0.45);
     padding: 4px 0;
 }
@@ -274,7 +274,7 @@
     background: transparent !important;
     box-shadow: none !important;
     color: rgba(255, 255, 255, 0.87) !important;
-    font-size: 0.82rem;
+    font-size: var(--tm-fs-md);
     line-height: 1.4;
 }
 
@@ -291,7 +291,7 @@
 }
 
 .dash__messages ::deep .dashboard-message > .d-flex.justify-end .mud-typography {
-    font-size: 0.7rem !important;
+    font-size: var(--tm-fs-xs) !important;
     color: rgba(255, 255, 255, 0.45);
     white-space: nowrap;
     line-height: 1.6;
@@ -333,7 +333,7 @@
 
 .dash-reco__card b {
     display: block;
-    font-size: 0.85rem;
+    font-size: var(--tm-fs-base);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -351,7 +351,7 @@
     display: block;
     margin-top: 3px;
     font-style: normal;
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     color: #ffb300;
 }
 
@@ -362,7 +362,7 @@
     gap: 8px;
     align-items: center;
     margin: 5px 0;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }
 
 .dash-hbar__name {
@@ -408,7 +408,7 @@
     align-items: center;
     gap: 12px;
     margin-top: 8px;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     color: rgba(255, 255, 255, 0.55);
 }
 
@@ -431,7 +431,7 @@
     display: inline-block;
     padding: 1px 8px;
     border-radius: 10px;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     line-height: 1.5;
     border: 1px solid rgba(255, 255, 255, 0.18);
     background: transparent;
@@ -483,7 +483,7 @@ button.dash-chip {
 .dash-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }
 
 .dash-table th,
@@ -496,7 +496,7 @@ button.dash-chip {
 }
 
 .dash-table th {
-    font-size: 0.65rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -546,7 +546,7 @@ button.dash-chip {
     display: flex;
     gap: 3px;
     margin-top: 3px;
-    font-size: 0.62rem;
+    font-size: var(--tm-fs-xs);
     color: rgba(255, 255, 255, 0.45);
 }
 
@@ -561,7 +561,7 @@ button.dash-chip {
     padding: 1px 8px;
     border-radius: 10px;
     vertical-align: middle;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 600;
     letter-spacing: 0.04em;
     color: #ffd54f;
@@ -578,7 +578,7 @@ button.dash-chip {
 }
 
 .dash__periods-label {
-    font-size: 0.68rem;
+    font-size: var(--tm-fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.5);
@@ -587,5 +587,5 @@ button.dash-chip {
 
 .dash__periods .dash-chip {
     padding: 3px 12px;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }

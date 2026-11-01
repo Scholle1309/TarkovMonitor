@@ -1,3 +1,20 @@
+:root {
+    /* Font size scale: every text in the app uses one of these steps. */
+    --tm-fs-xs: 0.6875rem; /* 11px */
+    --tm-fs-sm: 0.75rem; /* 12px */
+    --tm-fs-md: 0.8125rem; /* 13px */
+    --tm-fs-base: 0.875rem; /* 14px */
+    --tm-fs-lg: 1rem; /* 16px */
+    --tm-fs-xl: 1.25rem; /* 20px */
+    --tm-fs-2xl: 1.5rem; /* 24px */
+    --tm-font: Roboto, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+    font-family: var(--tm-font);
+}
+
 html,
 body,
 #app {
@@ -548,7 +565,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
 }
 
 .floating-timer-panel__timer .mud-typography-h5 {
-    font-size: 1.1rem;
+    font-size: var(--tm-fs-lg);
 }
 
 /* TarkovTracker.org key-management dialogs */
@@ -626,7 +643,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     border-radius: 10px;
     color: rgba(255, 255, 255, 0.76);
     background: linear-gradient(135deg, rgba(61, 112, 194, 0.12), rgba(255, 255, 255, 0.018));
-    font-size: 0.76rem;
+    font-size: var(--tm-fs-sm);
     line-height: 1.38;
 }
 
@@ -659,7 +676,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
 
 .tracker-dialog-note__copy strong {
     color: rgba(255, 255, 255, 0.94);
-    font-size: 0.79rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tracker-dialog-section-heading {
@@ -668,7 +685,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     gap: 0.38rem;
     margin: 0 0 0.42rem;
     color: rgba(255, 255, 255, 0.82);
-    font-size: 0.73rem;
+    font-size: var(--tm-fs-sm);
     font-weight: 750;
     letter-spacing: 0.035em;
     text-transform: uppercase;
@@ -695,8 +712,8 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
 }
 
 .tracker-dialog-detail-row:last-child { border-bottom: 0; }
-.tracker-dialog-detail-row dt { color: rgba(255, 255, 255, 0.55); font-size: 0.72rem; font-weight: 650; }
-.tracker-dialog-detail-row dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: rgba(255, 255, 255, 0.92); font-size: 0.8rem; font-weight: 600; }
+.tracker-dialog-detail-row dt { color: rgba(255, 255, 255, 0.55); font-size: var(--tm-fs-sm); font-weight: 650; }
+.tracker-dialog-detail-row dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: rgba(255, 255, 255, 0.92); font-size: var(--tm-fs-md); font-weight: 600; }
 
 .tracker-dialog-mode-badge {
     display: inline-flex;
@@ -707,7 +724,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     border-radius: 999px;
     color: #a9cbff;
     background: rgba(61, 112, 194, 0.14);
-    font-size: 0.67rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 750;
 }
 
@@ -725,7 +742,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     display: block;
     margin-top: 0.42rem;
     color: rgba(255, 255, 255, 0.55);
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     line-height: 1.35;
 }
 
@@ -762,8 +779,8 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
 .tracker-key-action--warning .tracker-key-action__icon { color: #f2ca7f; }
 .tracker-key-action--danger .tracker-key-action__icon { color: #ff9b9b; }
 .tracker-key-action__copy { display: flex; min-width: 0; flex-direction: column; gap: 0.16rem; }
-.tracker-key-action__title { font-size: 0.76rem; font-weight: 750; }
-.tracker-key-action__description { color: rgba(255, 255, 255, 0.56); font-size: 0.67rem; line-height: 1.28; }
+.tracker-key-action__title { font-size: var(--tm-fs-sm); font-weight: 750; }
+.tracker-key-action__description { color: rgba(255, 255, 255, 0.56); font-size: var(--tm-fs-xs); line-height: 1.28; }
 .mud-dialog .tracker-dialog-footer-button { min-width: 5.6rem; border-radius: 8px; }
 
 /* Message IDs stay masked unless the user deliberately hovers or focuses them. */
@@ -780,7 +797,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     align-items: center;
     gap: 0.35rem;
     color: rgba(255, 255, 255, 0.68);
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
 }
 
 .dashboard-message__protected-label { font-weight: 650; }
@@ -808,7 +825,7 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     overflow-wrap: anywhere;
     color: rgba(255, 255, 255, 0.9);
     font-family: Consolas, monospace;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     user-select: text;
 }
 

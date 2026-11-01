@@ -22,7 +22,7 @@
     align-items: baseline;
     gap: 8px;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: var(--tm-fs-lg);
     margin-bottom: 4px;
     color: #6ea8ff;
 }
@@ -30,14 +30,14 @@
 .tm-update-release__date,
 .tm-update-release__empty {
     color: var(--mud-palette-text-secondary);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     font-weight: 400;
 }
 
 .tm-update-release__body ::deep .tm-notes-heading {
     color: #e3eeff;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--tm-fs-base);
     margin: 8px 0 2px;
 }
 
@@ -57,13 +57,13 @@
 .tm-update-release__body ::deep li,
 .tm-update-release__body ::deep p {
     color: rgba(255, 255, 255, 0.76);
-    font-size: 0.875rem;
+    font-size: var(--tm-fs-base);
     line-height: 1.45;
     margin: 2px 0;
 }
 
 .tm-update-release__body ::deep code {
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     padding: 0 4px;
     border-radius: 3px;
     background: rgba(110, 168, 255, 0.12);

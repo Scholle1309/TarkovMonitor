@@ -82,7 +82,7 @@
     left: 50%;
     overflow: hidden;
     color: #ffffff;
-    font-size: 1rem;
+    font-size: var(--tm-fs-lg);
     font-weight: 600;
     letter-spacing: 0.025em;
     pointer-events: auto;
@@ -343,7 +343,7 @@
     background: transparent;
     color: rgba(255, 255, 255, 0.62);
     font: inherit;
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     cursor: pointer;
 }
 

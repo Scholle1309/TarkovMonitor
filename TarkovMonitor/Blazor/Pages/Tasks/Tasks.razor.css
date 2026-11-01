@@ -83,7 +83,7 @@
 
 .tasks-pick__caption {
     color: rgba(255, 255, 255, 0.45);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     white-space: nowrap;
 }
 
@@ -147,7 +147,7 @@
     background: rgba(255, 255, 255, 0.12);
     border-radius: 9px;
     padding: 0 6px;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
 }
 
 .tasks-stats {
@@ -156,7 +156,7 @@
     flex-wrap: wrap;
     margin-top: 8px;
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tasks-stats b {
@@ -176,7 +176,7 @@
     border-radius: 14px;
     padding: 2px 10px;
     font: inherit;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     color: rgba(255, 255, 255, 0.55);
     background: transparent;
     cursor: pointer;
@@ -236,7 +236,7 @@
 
 .tasks-reco__hint {
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tasks-reco__modes {
@@ -283,7 +283,7 @@
     background: #ffb300;
     color: #000;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     display: grid;
     place-content: center;
 }
@@ -294,19 +294,19 @@
 
 .reco-card__trader {
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     margin-top: -4px;
 }
 
 .reco-card__metric {
     color: #ffd54f;
-    font-size: 0.85rem;
+    font-size: var(--tm-fs-base);
 }
 
 .reco-card__kv {
     display: flex;
     gap: 12px;
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     color: rgba(255, 255, 255, 0.5);
 }
 
@@ -317,7 +317,7 @@
 
 .reco-card__next {
     color: rgba(255, 255, 255, 0.55);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }
 
 /* list */
@@ -327,7 +327,7 @@
     align-items: center;
     gap: 8px;
     color: rgba(255, 255, 255, 0.55);
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
@@ -375,7 +375,7 @@
     padding: 0;
     color: rgba(255, 255, 255, 0.55);
     font: inherit;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -399,7 +399,7 @@
 }
 
 ::deep .tasks-col__arrow {
-    font-size: 1rem;
+    font-size: var(--tm-fs-lg);
 }
 
 ::deep .tasks-col__arrow--idle {
@@ -440,7 +440,7 @@
 
 .task-row__note {
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     margin-bottom: 2px;
 }
 
@@ -501,7 +501,7 @@
     border: 0;
     color: rgba(255, 255, 255, 0.8);
     font: inherit;
-    font-size: 1rem;
+    font-size: var(--tm-fs-lg);
     line-height: 1;
     cursor: pointer;
     padding: 0;
@@ -521,7 +521,7 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     color: rgba(255, 255, 255, 0.85);
     font-variant-numeric: tabular-nums;
     border-left: 1px solid rgba(255, 255, 255, 0.12);
@@ -584,7 +584,7 @@
 
 .task-row__sub {
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tasks-maps {
@@ -597,7 +597,7 @@
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 10px;
     padding: 0 8px;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     color: rgba(255, 255, 255, 0.6);
     white-space: nowrap;
 }
@@ -623,7 +623,7 @@
     display: inline-block;
     border-radius: 12px;
     padding: 2px 10px;
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     background: rgba(255, 255, 255, 0.14);
     color: rgba(255, 255, 255, 0.85);
 }
@@ -667,7 +667,7 @@
     gap: 10px;
     padding: 3px 6px 3px 0;
     border-radius: 4px;
-    font-size: 0.875rem;
+    font-size: var(--tm-fs-base);
 }
 
 .task-objective:nth-child(even) {
@@ -684,7 +684,7 @@
 
 .task-objective__optional {
     color: rgba(255, 255, 255, 0.45);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
 }
 
 .task-objective__state {
@@ -696,7 +696,7 @@
 .task-objective__badge {
     border-radius: 10px;
     padding: 1px 8px;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     white-space: nowrap;
 }
 
@@ -717,7 +717,7 @@
     gap: 16px;
     flex-wrap: wrap;
     color: rgba(255, 255, 255, 0.5);
-    font-size: 0.78rem;
+    font-size: var(--tm-fs-md);
     margin-top: 4px;
 }
 

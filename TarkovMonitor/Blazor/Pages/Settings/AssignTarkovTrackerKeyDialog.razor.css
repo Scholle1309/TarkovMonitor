@@ -60,13 +60,13 @@
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.55);
     background: rgba(255, 255, 255, 0.02);
-    font-size: 0.67rem;
+    font-size: var(--tm-fs-xs);
     line-height: 1.25;
 }
 
 .tracker-profile-guidance-item b {
     color: rgba(255, 255, 255, 0.83);
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
 }
 
 .tracker-profile-confirm {
@@ -91,7 +91,7 @@
 
 .tracker-profile-confirm-grid dt {
     color: rgba(255, 255, 255, 0.57);
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     font-weight: 600;
 }
 
@@ -100,7 +100,7 @@
     margin: 0;
     overflow-wrap: anywhere;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     font-weight: 650;
 }
 
@@ -140,7 +140,7 @@
 
 .tracker-profile-choice-title {
     overflow: hidden;
-    font-size: 0.9rem;
+    font-size: var(--tm-fs-base);
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -149,7 +149,7 @@
 .tracker-profile-choice-id,
 .tracker-profile-choice-meta {
     color: rgba(255, 255, 255, 0.62);
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
 }
 
 .tracker-profile-choice-meta {
@@ -176,7 +176,7 @@
     padding: 0.08rem 0.38rem;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 999px;
-    font-size: 0.65rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 700;
 }
 

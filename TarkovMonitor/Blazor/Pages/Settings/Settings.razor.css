@@ -80,7 +80,7 @@
 .tracker-drawer-title,
 .tracker-account-title {
     overflow: hidden;
-    font-size: 0.92rem;
+    font-size: var(--tm-fs-lg);
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -97,7 +97,7 @@
     border-radius: 999px;
     color: #b9d4ff;
     background: rgba(72, 126, 206, 0.16);
-    font-size: 0.68rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 700;
 }
 
@@ -115,7 +115,7 @@
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.76);
     background: rgba(84, 128, 200, 0.08);
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     line-height: 1.35;
 }
 
@@ -269,7 +269,7 @@
 .tracker-token {
     overflow: hidden;
     color: rgba(255, 255, 255, 0.58);
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -315,7 +315,7 @@
     padding: 0.03rem 0.36rem;
     border: 1px solid transparent;
     border-radius: 999px;
-    font-size: 0.64rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 700;
     letter-spacing: 0.025em;
 }
@@ -327,7 +327,7 @@
     padding: 0.02rem 0.38rem;
     border: 1px solid transparent;
     border-radius: 999px;
-    font-size: 0.62rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 700;
     letter-spacing: 0.02em;
 }
@@ -351,7 +351,7 @@
     padding: 0.02rem 0.42rem;
     border: 1px solid transparent;
     border-radius: 999px;
-    font-size: 0.66rem;
+    font-size: var(--tm-fs-xs);
     font-weight: 800;
     letter-spacing: 0.035em;
     line-height: 1.2;
@@ -436,7 +436,7 @@
     padding-top: 0.55rem;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     color: #8fb8f5;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -492,7 +492,7 @@
     padding: 0.3rem 0.5rem;
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.62);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tm-prestige-row--current {
@@ -506,7 +506,7 @@
     border: 1px solid rgba(110, 168, 255, 0.45);
     border-radius: 999px;
     color: #a9caff;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
 }
 
 .tm-prestige-tag--prestige {
@@ -519,7 +519,7 @@
     border-radius: 999px;
     background: #2f6fd6;
     color: #fff;
-    font-size: 0.68rem;
+    font-size: var(--tm-fs-xs);
 }
 
 .tm-volume-row {
@@ -537,7 +537,7 @@
 .tm-volume-value {
     min-width: 2.8rem;
     text-align: right;
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
 }
 
 .tm-logs-status {
@@ -546,7 +546,7 @@
     gap: 0.3rem;
     margin-top: 0.2rem;
     color: #7ed181;
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
 }
 
 .tm-logs-status--empty {
@@ -554,7 +554,7 @@
 }
 
 ::deep .tm-logs-status__icon {
-    font-size: 1rem !important;
+    font-size: var(--tm-fs-lg) !important;
 }
 
 /* The account row is two lines so name, account ID, modes and actions fit a narrow card. */

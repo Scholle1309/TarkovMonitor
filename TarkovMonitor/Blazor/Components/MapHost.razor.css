@@ -52,7 +52,7 @@
 }
 
 ::deep .map-host__tasks-badge .mud-badge {
-    font-size: 0.65rem;
+    font-size: var(--tm-fs-xs);
 }
 
 /* floating task button, bottom right of the map */
@@ -100,7 +100,7 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     background: transparent;
     color: rgba(255, 255, 255, 0.85);
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     cursor: pointer;
 }
 
@@ -124,14 +124,14 @@
     margin-right: 8px;
     vertical-align: -4px;
     border: 1px solid rgba(0, 0, 0, 0.5);
-    font-size: 11px;
+    font-size: var(--tm-fs-xs);
     color: #fff;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
 .map-marker__modes {
     margin-top: 3px;
-    font-size: 0.68rem;
+    font-size: var(--tm-fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.4);
@@ -191,7 +191,7 @@
     border-radius: 9px;
     background: #43a047;
     color: #fff;
-    font-size: 0.7rem;
+    font-size: var(--tm-fs-xs);
     line-height: 18px;
     text-align: center;
 }
@@ -231,7 +231,7 @@
     padding: 0 8px;
     border-radius: 10px;
     background: rgba(67, 160, 71, 0.5);
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
 }
 
 .map-tasks__list {
@@ -248,7 +248,7 @@
     margin-top: 4px;
     padding-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.5);
@@ -260,7 +260,7 @@
 
 .map-tasks__hint {
     padding: 4px 12px 0;
-    font-size: 0.72rem;
+    font-size: var(--tm-fs-sm);
     color: rgba(255, 255, 255, 0.45);
 }
 
@@ -319,7 +319,7 @@
 }
 
 .map-task__trader {
-    font-size: 0.75rem;
+    font-size: var(--tm-fs-sm);
     color: rgba(255, 255, 255, 0.5);
     white-space: nowrap;
 }
@@ -327,7 +327,7 @@
 .map-task__objective {
     display: flex;
     gap: 6px;
-    font-size: 0.8rem;
+    font-size: var(--tm-fs-md);
     margin-top: 3px;
     color: rgba(255, 255, 255, 0.75);
 }
