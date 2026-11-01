@@ -779,8 +779,17 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+.task-row__actions ::deep .mud-tooltip-root {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
 ::deep .task-row__reason {
-    margin: 0 4px;
+    display: block;
+    margin: 0;
     color: rgba(255, 255, 255, 0.45);
     cursor: help;
 }
