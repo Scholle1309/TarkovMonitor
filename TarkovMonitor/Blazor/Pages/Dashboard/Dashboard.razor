@@ -291,7 +291,14 @@ else
                         }
                         else
                         {
-                            <i class="@(day.Count == maxPerDay && day.Count > 0 ? "dash-spark--hi" : "")" style="@($"height: {Math.Max(4, 100.0 * day.Count / maxPerDay):F0}%")" title="@($"{day.Day:d}: {day.Count}")"></i>
+                            var barHeight = Math.Max(4, 100.0 * day.Count / maxPerDay);
+                            <i class="@(day.Count == maxPerDay && day.Count > 0 ? "dash-spark--hi" : "")" style="@($"height: {barHeight:F0}%")" title="@($"{day.Day:d}: {day.Count}")">
+                                @* The count inside a tall bar, above a short one. *@
+                                @if (day.Count > 0)
+                                {
+                                    <span class="@("dash-spark__n" + (barHeight < 45 ? " dash-spark__n--above" : ""))">@day.Count</span>
+                                }
+                            </i>
                         }
                     }
                 </div>

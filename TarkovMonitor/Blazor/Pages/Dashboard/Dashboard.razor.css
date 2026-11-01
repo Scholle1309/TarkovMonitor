@@ -557,10 +557,39 @@ button.dash-chip {
 }
 
 .dash-spark i {
+    position: relative;
     flex: 1;
     display: block;
     border-radius: 2px 2px 0 0;
     background: #5a83c2;
+}
+
+.dash-spark__n {
+    position: absolute;
+    top: 2px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-style: normal;
+    font-size: var(--tm-fs-xs);
+    font-weight: 600;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+/* The highlighted (lighter) bar takes dark digits. */
+.dash-spark--hi .dash-spark__n {
+    color: #0e162a;
+    text-shadow: none;
+}
+
+.dash-spark__n--above,
+.dash-spark--hi .dash-spark__n--above {
+    top: auto;
+    bottom: calc(100% + 2px);
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: none;
 }
 
 .dash-spark i.dash-spark--off {

@@ -76,7 +76,8 @@
 .tasks-pick {
     position: relative;
     min-width: 180px;
-    padding: 0 30px 0 12px;
+    /* The select fills the pill, so the whole field opens the list. */
+    padding: 0;
     gap: 8px;
     cursor: pointer;
 }
@@ -87,32 +88,46 @@
     white-space: nowrap;
 }
 
-.tasks-pick select {
-    appearance: none;
-    -webkit-appearance: none;
+/* MudSelect inside the pill: no underline or margins, the pill is the frame. */
+.tasks-pick ::deep .tasks-pick__select {
     flex: 1;
-    min-width: 0;
+    align-self: stretch;
+    width: 100%;
+    min-width: 150px;
+    margin: 0;
+}
+
+/* Every layer of the select takes the full pill height, so a click anywhere opens it. */
+.tasks-pick ::deep > .mud-select {
+    flex: 1;
+    align-self: stretch;
+    display: flex;
+}
+
+.tasks-pick ::deep .mud-select > .mud-input-control,
+.tasks-pick ::deep .tasks-pick__select .mud-input-control-input-container,
+.tasks-pick ::deep .tasks-pick__select .mud-input {
+    flex: 1;
     height: 100%;
-    background: transparent;
-    border: 0;
-    outline: none;
-    color: inherit;
-    font: inherit;
     cursor: pointer;
 }
 
-.tasks-pick select option {
-    background: #16213a;
-    color: #fff;
+.tasks-pick ::deep .tasks-pick__select .mud-input {
+    display: flex;
+    align-items: center;
 }
 
-::deep .tasks-pick__arrow {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.5);
-    pointer-events: none;
+.tasks-pick ::deep .tasks-pick__select .mud-input {
+    padding: 0 8px 0 12px;
+}
+
+.tasks-pick ::deep .tasks-pick__select .mud-input {
+    font-size: var(--tm-fs-base);
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.tasks-pick ::deep .tasks-pick__select .mud-input-slot {
+    padding: 0;
 }
 
 .tasks-seg {
@@ -224,7 +239,22 @@
 /* recommendations */
 ::deep .tasks-reco {
     padding: 10px 14px;
-    border-left: 3px solid #ffb300;
+}
+
+.tasks-reco__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: var(--tm-fs-md);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8fb8f5;
+}
+
+::deep .tasks-reco__icon {
+    font-size: 20px !important;
 }
 
 .tasks-reco__head {
@@ -780,6 +810,8 @@
     border-radius: 4px 0 0 4px;
     background: rgba(79, 143, 239, 0.22);
     border-right: 1px solid rgba(79, 143, 239, 0.45);
+    /* Always 1px at the bottom (invisible while folded), so the symbol does not move when the row opens. */
+    border-bottom: 1px solid transparent;
     cursor: help;
 }
 
@@ -808,7 +840,7 @@
 
 /* Open: the tab ends with the first line, so it gets a bottom edge and corner. */
 .task-row--open > .task-row__needs-tab {
-    border-bottom: 1px solid rgba(79, 143, 239, 0.45);
+    border-bottom-color: rgba(79, 143, 239, 0.45);
     border-bottom-right-radius: 6px !important;
     /* The row goes on below, so the left corner stays square. */
     border-bottom-left-radius: 0 !important;

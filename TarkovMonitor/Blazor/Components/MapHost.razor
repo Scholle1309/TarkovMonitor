@@ -166,8 +166,8 @@
                                             }
                                             @foreach (var entry in entries)
                                             {
-                                                @* Hover shows each item with its picture. *@
-                                                <MudTooltip Inline="false" Placement="Placement.Left">
+                                                @* Hover lists the options with pictures; a single item is named in the row already. *@
+                                                <MudTooltip Inline="false" Placement="Placement.Left" Disabled="@(entry.Need.Items.Count < 2)">
                                                     <TooltipContent>
                                                         @foreach (var option in entry.Need.Items)
                                                         {

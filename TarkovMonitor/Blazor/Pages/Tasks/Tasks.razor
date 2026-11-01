@@ -31,17 +31,19 @@
                     </button>
                 }
             </div>
-            <label class="tasks-ctl tasks-pick">
-                <span class="tasks-pick__caption">@LocalizationService.GetString("Map")</span>
-                <select value="@mapFilter" @onchange="e => OnMapFilterChanged(e.Value?.ToString() ?? string.Empty)">
-                    <option value="">@LocalizationService.GetString("AllMaps")</option>
+            @* The app's own dropdown (as on the map page) instead of the browser's list. *@
+            <div class="tasks-ctl tasks-pick">
+                <MudSelect T="string" Value="@mapFilter" ValueChanged="OnMapFilterChanged" ToStringFunc="MapFilterLabel"
+                           Variant="Variant.Text" Underline="false" Dense="true" Margin="Margin.None"
+                           AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="360"
+                           Class="tm-select tasks-pick__select" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                    <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("AllMaps")</MudSelectItem>
                     @foreach (var map in MapChoices)
                     {
-                        <option value="@map.id">@map.name</option>
+                        <MudSelectItem T="string" Value="@map.id">@map.name</MudSelectItem>
                     }
-                </select>
-                <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="tasks-pick__arrow" />
-            </label>
+                </MudSelect>
+            </div>
         </div>
         <div class="tasks-stats">
             <span><b>@accepted.Count</b> @LocalizationService.GetString("StatAccepted")</span>
@@ -76,10 +78,11 @@
     {
         <MudPaper Class="app-surface tasks-reco" Elevation="3">
             <div class="tasks-reco__head">
-                <MudText Typo="Typo.subtitle1" Class="d-flex align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.Recommend" Class="mr-2" Color="Color.Warning" />
+                @* Same heading style as the dashboard cards. *@
+                <h2 class="tasks-reco__title">
+                    <MudIcon Icon="@Icons.Material.Filled.Recommend" Color="Color.Warning" Class="tasks-reco__icon" />
                     <span>@LocalizationService.GetString("RecommendedTasks")</span>
-                </MudText>
+                </h2>
                 <span class="tasks-reco__hint">@ModeHint(recommendationMode)</span>
                 <div class="tasks-reco__modes">
                     @foreach (var mode in ModeOptions)
@@ -682,6 +685,9 @@
     private void ToggleKappa() { kappaOnly = !kappaOnly; ApplyFilter(); }
     private void OnSearchChanged(string value) { search = value ?? ""; ApplyFilter(); }
     private void OnMapFilterChanged(string value) { mapFilter = value ?? ""; ApplyFilter(); }
+    private string MapFilterLabel(string? id) => string.IsNullOrEmpty(id)
+        ? LocalizationService.GetString("AllMaps")
+        : MapChoices.FirstOrDefault(map => map.id == id)?.name ?? id;
 
     private void SetMode(RecommendationMode mode)
     {
