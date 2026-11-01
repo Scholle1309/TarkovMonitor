@@ -873,3 +873,41 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
 .mud-dialog.tm-update-dialog .tm-update-bar .mud-progress-linear-bar {
     background-color: #6ea8ff;
 }
+
+/* Toasts in muted tones that sit on the navy theme instead of MudBlazor's bright fills. */
+.mud-snackbar.mud-alert-filled-success,
+.mud-snackbar.mud-alert-filled-info,
+.mud-snackbar.mud-alert-filled-warning,
+.mud-snackbar.mud-alert-filled-error,
+.mud-snackbar.mud-alert-filled-normal {
+    border: 1px solid transparent;
+    color: #eef4ff !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.mud-snackbar.mud-alert-filled-success {
+    background-color: #1c5a3d !important;
+    border-color: #2f8a5c;
+}
+
+.mud-snackbar.mud-alert-filled-info,
+.mud-snackbar.mud-alert-filled-normal {
+    background-color: #1b3f73 !important;
+    border-color: #2f6fd6;
+}
+
+.mud-snackbar.mud-alert-filled-warning {
+    background-color: #6b4a0e !important;
+    border-color: #a8771c;
+}
+
+.mud-snackbar.mud-alert-filled-error {
+    background-color: #6e2328 !important;
+    border-color: #a8383f;
+}
+
+.mud-snackbar.mud-alert-filled-success .mud-snackbar-icon { color: #7ed181; }
+.mud-snackbar.mud-alert-filled-info .mud-snackbar-icon,
+.mud-snackbar.mud-alert-filled-normal .mud-snackbar-icon { color: #8fb8f5; }
+.mud-snackbar.mud-alert-filled-warning .mud-snackbar-icon { color: #ffcc66; }
+.mud-snackbar.mud-alert-filled-error .mud-snackbar-icon { color: #ff9b9b; }
