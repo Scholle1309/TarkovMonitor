@@ -14,6 +14,26 @@ window.mapHost = (() => {
     }
 
     return {
+        // Keeps the map area at its size while the window is dragged to a new size,
+        // so the embedded page reflows once at the end instead of on every frame.
+        freeze(on) {
+            const host = document.querySelector(".map-host");
+            if (!host) {
+                return;
+            }
+            if (on) {
+                const rect = host.getBoundingClientRect();
+                host.style.right = "auto";
+                host.style.bottom = "auto";
+                host.style.width = rect.width + "px";
+                host.style.height = rect.height + "px";
+            } else {
+                host.style.right = "";
+                host.style.bottom = "";
+                host.style.width = "";
+                host.style.height = "";
+            }
+        },
         // Highlight the markers of a task on the map (empty text clears the highlight).
         search(frameId, text) {
             return post(frameId, { type: "tarkov-monitor-search", text: text || "" });

@@ -980,6 +980,37 @@ namespace TarkovMonitor
             ApplyWindowFrameAttributes();
         }
 
+        // While the window is dragged to a new size the map keeps its size and reflows
+        // once at the end. Resizing the embedded page on every frame made the map
+        // stutter, and its buttons lagged behind the app's own ones next to them.
+        protected override void OnResizeBegin(EventArgs e)
+        {
+            base.OnResizeBegin(e);
+            _ = SetMapFrozen(true);
+        }
+
+        protected override void OnResizeEnd(EventArgs e)
+        {
+            base.OnResizeEnd(e);
+            _ = SetMapFrozen(false);
+        }
+
+        private async Task SetMapFrozen(bool frozen)
+        {
+            try
+            {
+                var core = blazorWebView1.WebView.CoreWebView2;
+                if (core != null)
+                {
+                    await core.ExecuteScriptAsync($"window.mapHost && window.mapHost.freeze({(frozen ? "true" : "false")})");
+                }
+            }
+            catch
+            {
+                // Without the freeze the map simply follows every size step.
+            }
+        }
+
         protected override void WndProc(ref Message message)
         {
             if (message.Msg == WmNcPaint)

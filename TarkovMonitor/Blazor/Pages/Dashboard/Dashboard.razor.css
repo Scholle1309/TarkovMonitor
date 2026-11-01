@@ -235,6 +235,8 @@
 .dash__messages {
     max-height: 460px;
     overflow-y: auto;
+    /* Room between the message rows and the scroll bar. */
+    padding-right: 8px;
 }
 
 .dash__messages ::deep .mud-paper.dashboard-notification-surface {

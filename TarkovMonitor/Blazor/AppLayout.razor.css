@@ -14,9 +14,6 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
-    /* Chromium prefers scrollbar-color over the ::-webkit-scrollbar rules below,
-       and MudBlazor sets a grey one; this keeps the page scroll bar blue. */
-    scrollbar-color: #4d77b8 #131d33;
 }
 
 ::deep .app-main-content--restored {
