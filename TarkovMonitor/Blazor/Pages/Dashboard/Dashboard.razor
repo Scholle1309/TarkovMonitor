@@ -799,11 +799,11 @@ else
         var today = DateTime.Now.Date;
         if (local.Date == today)
         {
-            return local.ToString("HH:mm");
+            return local.ToString("t");
         }
         if (local.Date > today.AddDays(-6))
         {
-            return local.ToString("ddd HH:mm");
+            return local.ToString("ddd") + " " + local.ToString("t");
         }
         return local.ToString("d");
     }

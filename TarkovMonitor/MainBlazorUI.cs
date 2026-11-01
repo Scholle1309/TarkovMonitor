@@ -2111,7 +2111,7 @@ namespace TarkovMonitor
                     var result = questLogStore.ScanLogs(logsPath, eft);
                     if (result.Folders > 0)
                     {
-                        var since = result.Horizon?.ToString("yyyy-MM-dd") ?? "unknown";
+                        var since = result.Horizon?.ToString("d") ?? "unknown";
                         messageLog.AddMessage($"Quest history: {result.Events} quest events found in {result.Folders} log sessions since {since}.", "info");
                         var known = HistoryStart.Boundaries;
                         foreach (var boundary in result.Boundaries.OrderBy(item => item.Time))

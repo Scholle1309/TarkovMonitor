@@ -234,7 +234,7 @@
     private static string LastPlayedValue(TarkovTracker.OrgProfileSummary profile)
     {
         return profile.LastSeenUtc is { } lastSeen
-            ? lastSeen.ToLocalTime().ToString("MMM d, yyyy h:mm tt")
+            ? lastSeen.ToLocalTime().ToString("g")
             : "Unknown";
     }
 

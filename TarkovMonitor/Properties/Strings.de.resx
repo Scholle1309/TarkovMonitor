@@ -1220,4 +1220,13 @@
   <data name="FieldService" xml:space="preserve">
     <value>Dienst</value>
   </data>
+  <data name="FieldDate" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="FieldClock" xml:space="preserve">
+    <value>Uhrzeit</value>
+  </data>
+  <data name="FormatLanguage" xml:space="preserve">
+    <value>Wie Sprache</value>
+  </data>
 </root>

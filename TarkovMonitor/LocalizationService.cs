@@ -43,7 +43,7 @@ namespace TarkovMonitor
             }
             if (local.Date > DateTime.Now.Date.AddDays(-6))
             {
-                return local.ToString("ddd HH:mm");
+                return local.ToString("ddd") + " " + local.ToString("t");
             }
             return local.ToString("d");
         }
@@ -71,12 +71,15 @@ namespace TarkovMonitor
             try
             {
                 var culture = new CultureInfo(cultureName);
-                CultureInfo.CurrentCulture = culture;
+                // Texts follow the language; dates and times may use the formats
+                // chosen in the settings instead of the language's own.
+                var formatting = WithDateTimeFormats(culture);
+                CultureInfo.CurrentCulture = formatting;
                 CultureInfo.CurrentUICulture = culture;
                 // Blazor renders and background callbacks do not all run on the
                 // thread that set the language; without a process-wide default
                 // they fall back to the Windows language.
-                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentCulture = formatting;
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 
                 Properties.Settings.Default.language = cultureName;
@@ -92,6 +95,49 @@ namespace TarkovMonitor
         }
 
         public string CurrentCulture => CultureInfo.CurrentUICulture.Name;
+
+        /// <summary>Re-applies the language with the current date and time format settings.</summary>
+        public void ApplyDateTimeFormats() => SetCulture(Properties.Settings.Default.language);
+
+        // dateFormat: "" (language), "dmy" 31.12.2026, "mdy" 12/31/2026, "ymd" 2026-12-31.
+        // timeFormat: "" (language), "24" 13:45, "12" 1:45 PM.
+        private static CultureInfo WithDateTimeFormats(CultureInfo culture)
+        {
+            var result = (CultureInfo)culture.Clone();
+            var format = result.DateTimeFormat;
+            switch (Properties.Settings.Default.dateFormat)
+            {
+                case "dmy":
+                    format.DateSeparator = ".";
+                    format.ShortDatePattern = "dd/MM/yyyy";
+                    break;
+                case "mdy":
+                    format.DateSeparator = "/";
+                    format.ShortDatePattern = "MM/dd/yyyy";
+                    break;
+                case "ymd":
+                    format.DateSeparator = "-";
+                    format.ShortDatePattern = "yyyy/MM/dd";
+                    break;
+            }
+            switch (Properties.Settings.Default.timeFormat)
+            {
+                case "24":
+                    format.ShortTimePattern = "HH:mm";
+                    format.LongTimePattern = "HH:mm:ss";
+                    break;
+                case "12":
+                    format.ShortTimePattern = "h:mm tt";
+                    format.LongTimePattern = "h:mm:ss tt";
+                    if (string.IsNullOrEmpty(format.AMDesignator))
+                    {
+                        format.AMDesignator = "AM";
+                        format.PMDesignator = "PM";
+                    }
+                    break;
+            }
+            return result;
+        }
 
         public List<(string Code, string Name)> GetAvailableLanguages()
         {

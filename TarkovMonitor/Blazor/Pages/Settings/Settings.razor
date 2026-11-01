@@ -25,6 +25,26 @@
                     }
                 </MudSelect>
             </div>
+            @* Date and time formats for every date the app shows; "Language" keeps the language's own. *@
+            <div class="tm-field-pair mt-2">
+                <div class="tm-field">
+                    <span class="tm-field__caption">@LocalizationService.GetString("FieldDate")</span>
+                    <MudSelect @bind-Value="@DateFormatSelect" T="string" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                        <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("FormatLanguage")</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("dmy")">31.12.2026</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("mdy")">12/31/2026</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("ymd")">2026-12-31</MudSelectItem>
+                    </MudSelect>
+                </div>
+                <div class="tm-field">
+                    <span class="tm-field__caption">@LocalizationService.GetString("FieldClock")</span>
+                    <MudSelect @bind-Value="@TimeFormatSelect" T="string" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                        <MudSelectItem T="string" Value="@string.Empty">@LocalizationService.GetString("FormatLanguage")</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("24")">24 h (13:45)</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("12")">12 h (1:45 PM)</MudSelectItem>
+                    </MudSelect>
+                </div>
+            </div>
             <div class="tm-settings-section">@LocalizationService.GetString("WindowBehavior")</div>
             <MudSwitch @bind-Value="@MinimizeAtStartupSwitch" Label="@LocalizationService.GetString("StartTarkovMonitorMinimized")" Color="Color.Info" />
             <MudSwitch @bind-Value="@MinimizeToTraySwitch" Label="@LocalizationService.GetString("MinimizeToSystemTray")" Color="Color.Info" />
@@ -1234,6 +1254,28 @@
 
     // Also while the game is closed: then it is the profile remembered for the chosen mode.
     // Date picker and "Prestiged to" button: in the fold when a prestige is known, open otherwise.
+    private string DateFormatSelect
+    {
+        get => Properties.Settings.Default.dateFormat ?? "";
+        set
+        {
+            Properties.Settings.Default.dateFormat = value ?? "";
+            Properties.Settings.Default.Save();
+            LocalizationService.ApplyDateTimeFormats();
+        }
+    }
+
+    private string TimeFormatSelect
+    {
+        get => Properties.Settings.Default.timeFormat ?? "";
+        set
+        {
+            Properties.Settings.Default.timeFormat = value ?? "";
+            Properties.Settings.Default.Save();
+            LocalizationService.ApplyDateTimeFormats();
+        }
+    }
+
     private RenderFragment PrestigeManualContent => @<div>
             <div class="tm-settings-inline">
                 <div class="tm-field tm-settings-grow">
@@ -1642,7 +1684,7 @@
             && string.Equals(profile.ProfileId, key.ProfileId, StringComparison.Ordinal)
             && profile.SessionMode == key.SessionMode);
         var lastPlayed = savedProfile?.LastSeenUtc is { } lastSeen
-            ? lastSeen.ToLocalTime().ToString("MMM d, yyyy h:mm tt")
+            ? lastSeen.ToLocalTime().ToString("g")
             : "Unknown";
         var parameters = new DialogParameters
         {

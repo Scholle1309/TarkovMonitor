@@ -1284,4 +1284,13 @@
   <data name="FieldService" xml:space="preserve">
     <value>Service</value>
   </data>
+  <data name="FieldDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="FieldClock" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="FormatLanguage" xml:space="preserve">
+    <value>As language</value>
+  </data>
 </root>
