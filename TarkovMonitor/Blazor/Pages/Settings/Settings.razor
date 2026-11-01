@@ -33,6 +33,12 @@
                 <MudLink Href="https://github.com/Scholle1309/TarkovMonitor/releases" Target="_blank" Typo="Typo.body2">@LocalizationService.GetString("Releases")</MudLink>
             </div>
             <MudButton OnClick="CheckForUpdates" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Update" Disabled="@checkingForUpdates" Class="mt-2 mb-1">@LocalizationService.GetString("CheckForUpdates")</MudButton>
+            <div class="tm-settings-section">@LocalizationService.GetString("Backup")</div>
+            <div class="tm-settings-inline">
+                <MudButton OnClick="ExportBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SaveAlt" Disabled="@backupBusy">@LocalizationService.GetString("ExportBackup")</MudButton>
+                <MudButton OnClick="RestoreBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SettingsBackupRestore" Disabled="@backupBusy">@LocalizationService.GetString("RestoreBackup")</MudButton>
+            </div>
+            <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("BackupHint")</MudText>
         </MudPaper>
     </MudItem>
 
@@ -378,17 +384,8 @@
             <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("HistoryStartShortHint")</MudText>
             <div class="tm-settings-inline mt-2">
                 <MudButton OnClick="ReadPastLogs" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.History">@LocalizationService.GetString("ReadPastLogs")</MudButton>
-                <MudTooltip Text="@LocalizationService.GetString("FindProfilesHint")">
-                    <MudButton OnClick="ScanOrgProfiles" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.PersonSearch" Disabled="@scanningOrgProfiles">@LocalizationService.GetString("FindProfiles")</MudButton>
-                </MudTooltip>
                 <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
             </div>
-            <div class="tm-settings-section">@LocalizationService.GetString("Backup")</div>
-            <div class="tm-settings-inline">
-                <MudButton OnClick="ExportBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SaveAlt" Disabled="@backupBusy">@LocalizationService.GetString("ExportBackup")</MudButton>
-                <MudButton OnClick="RestoreBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SettingsBackupRestore" Disabled="@backupBusy">@LocalizationService.GetString("RestoreBackup")</MudButton>
-            </div>
-            <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("BackupHint")</MudText>
             <div class="tm-settings-section">@LocalizationService.GetString("Prestige")</div>
             @if (PrestigeRows.Count > 0)
             {
@@ -688,7 +685,6 @@
     // Drawer state survives navigation within this process, but is never persisted.
     private static bool pendingDrawerExpanded;
     private static bool boundDrawerExpanded;
-    private bool scanningOrgProfiles;
     private static readonly HashSet<string> expandedAccountIds = new(StringComparer.Ordinal);
 
     private sealed record OrgAccountGroup(
@@ -1217,9 +1213,6 @@
     private string OrgImportBlockedReason => OrgKeyChangesEnabled
         ? "PVE, Regular (PVP), and Seasonal already have unassigned keys."
         : OrgKeyChangesBlockedReason;
-    private string OrgProfileScanHelpText => OrgKeyChangesEnabled
-        ? "Reads account, profile, mode, and last-played information from past EFT logs. It does not replay tasks."
-        : OrgKeyChangesBlockedReason;
     private List<OrgAccountGroup> BoundOrgKeyGroups
     {
         get
@@ -1338,36 +1331,6 @@
             await ReactivateCurrentTrackerProfile();
             StateHasChanged();
         }
-    }
-
-    private async Task ScanOrgProfiles()
-    {
-        scanningOrgProfiles = true;
-        try
-        {
-            var discovered = await Task.Run(eft.DiscoverProfiles);
-            // The profiles feed the game mode switch; the token assignment only takes
-            // them while key changes are allowed.
-            GameModes.RememberDiscovered(discovered);
-            if (OrgKeyChangesEnabled)
-            {
-                TarkovTracker.SaveDiscoveredOrgProfiles(discovered);
-            }
-            var modes = string.Join(", ", discovered.Select(item => GameModes.Label(item.Profile.SessionMode)).Where(label => label != "").Distinct());
-            messageLog.AddMessage(discovered.Count == 0
-                ? LocalizationService.GetString("FindProfilesNone")
-                : string.Format(LocalizationService.GetString("FindProfilesFound"), discovered.Count, modes),
-                discovered.Count == 0 ? "warning" : "info");
-        }
-        catch (Exception ex)
-        {
-            messageLog.AddMessage($"Could not scan EFT profiles: {ex.Message}", "exception");
-        }
-        finally
-        {
-            scanningOrgProfiles = false;
-        }
-        StateHasChanged();
     }
 
     private async Task OpenAssignOrgKey(TarkovTracker.OrgKeySummary key, bool reassign)

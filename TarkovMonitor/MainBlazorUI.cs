@@ -677,13 +677,21 @@ namespace TarkovMonitor
 
             eft.InitialReadComplete += (object? sender, ProfileEventArgs e) =>
             {
-                // Learn the profile of every game mode from past logs, so the title bar
-                // switch can show PVP or PVP Season before they are played live again.
+                // Learn the profile of every game mode from past logs: the title bar switch
+                // can show PVP or PVP Season before they are played live again, and the
+                // token assignment knows every profile. Logs only change while the game
+                // runs, and then the played profile is recorded live, so once per start
+                // is enough and no manual scan is needed.
                 _ = Task.Run(() =>
                 {
                     try
                     {
-                        GameModes.RememberDiscovered(eft.DiscoverProfiles());
+                        var discovered = eft.DiscoverProfiles();
+                        GameModes.RememberDiscovered(discovered);
+                        if (TarkovTracker.CanChangeOrgKeyStorage)
+                        {
+                            TarkovTracker.SaveDiscoveredOrgProfiles(discovered);
+                        }
                     }
                     catch
                     {

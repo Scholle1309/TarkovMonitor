@@ -1197,16 +1197,4 @@
   <data name="Progress" xml:space="preserve">
     <value>Progress</value>
   </data>
-  <data name="FindProfiles" xml:space="preserve">
-    <value>Find profiles in logs</value>
-  </data>
-  <data name="FindProfilesHint" xml:space="preserve">
-    <value>Finds your EFT profile for each game mode in past logs, for the mode switch and the token assignment. This also runs at every start.</value>
-  </data>
-  <data name="FindProfilesNone" xml:space="preserve">
-    <value>No EFT profiles were found in your logs. Start the game once, then try again.</value>
-  </data>
-  <data name="FindProfilesFound" xml:space="preserve">
-    <value>Found {0} EFT profiles in your logs: {1}.</value>
-  </data>
 </root>
