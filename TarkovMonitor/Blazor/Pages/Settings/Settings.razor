@@ -45,16 +45,22 @@
     <MudItem xs="12" lg="6" xl="4">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("AlertsAndTimers")</span></MudText>
-            <MudSelect @bind-Value="@AudioOutputDeviceSelect" T="int" Label="@LocalizationService.GetString("NotificationsPlaybackDevice")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                @foreach (var device in PlaybackDevices)
-                {
-                    <MudSelectItem T="int" Value="@device.Key">@device.Value</MudSelectItem>
-                }
-            </MudSelect>
-            <div class="tm-volume-row">
-                <MudIcon Icon="@(NotificationsVolume == 0 ? Icons.Material.Filled.VolumeOff : Icons.Material.Filled.VolumeUp)" Size="Size.Small" />
-                <MudSlider T="int" @bind-Value="@NotificationsVolume" Min="0" Max="100" Step="5" Immediate="false" Color="Color.Info" Class="tm-volume-slider" aria-label="@LocalizationService.GetString("Volume")" />
-                <span class="tm-volume-value">@NotificationsVolume %</span>
+            @* Device, volume, run-through time and Scav karma share one field style:
+               same height and frame, the caption inside on the left. *@
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("FieldDevice")</span>
+                <MudSelect @bind-Value="@AudioOutputDeviceSelect" T="int" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                    @foreach (var device in PlaybackDevices)
+                    {
+                        <MudSelectItem T="int" Value="@device.Key">@device.Value</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="tm-field tm-field--wide mt-2">
+                <span class="tm-field__caption">@LocalizationService.GetString("Volume")</span>
+                <MudIcon Icon="@(NotificationsVolume == 0 ? Icons.Material.Filled.VolumeOff : Icons.Material.Filled.VolumeUp)" Size="Size.Small" Class="tm-field__icon" />
+                <MudSlider T="int" @bind-Value="@NotificationsVolume" Min="0" Max="100" Step="5" Immediate="false" Color="Color.Info" Class="tm-field__slider" aria-label="@LocalizationService.GetString("Volume")" />
+                <span class="tm-field__value">@NotificationsVolume %</span>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Raid")</div>
             <div class="tm-alert-row">
@@ -68,7 +74,10 @@
             <div class="tm-alert-row">
                 <MudIconButton Icon="@Icons.Material.Filled.Audiotrack" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="PlayRunthrough" aria-label="@LocalizationService.GetString("PlaySound")" Class="tm-alert-play" />
                 <MudSwitch @bind-Value="@RunthroughSwitch" Label="@LocalizationService.GetString("RunthroughPeriodAudioReminder")" Color="Color.Info" Class="tm-alert-switch" />
-                <MudTextField @bind-Value="@RunthroughTime" Label="HH:MM:SS" Margin="Margin.Dense" Class="tm-input tm-alert-extra" />
+                <div class="tm-field tm-alert-extra">
+                    <span class="tm-field__caption">@LocalizationService.GetString("FieldTime")</span>
+                    <MudTextField @bind-Value="@RunthroughTime" Variant="Variant.Text" Underline="false" Margin="Margin.None" Placeholder="HH:MM:SS" Class="tm-field__control" />
+                </div>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Reminders")</div>
             <div class="tm-alert-row">
@@ -86,15 +95,18 @@
             <div class="tm-alert-row">
                 <MudIconButton Icon="@Icons.Material.Filled.Audiotrack" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Info" OnClick="PlayScavAvailable" aria-label="@LocalizationService.GetString("PlaySound")" Class="tm-alert-play" />
                 <MudSwitch @bind-Value="@ScavCooldownSwitch" Label="@LocalizationService.GetString("ScavCooldownReminders")" Color="Color.Info" Class="tm-alert-switch" />
-                <MudSelect @bind-Value="@ScavKarmaSelect" T="int" Label="@LocalizationService.GetString("ScavKarma")" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-alert-extra" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                    @if (TraderFence != null)
-                    {
-                        @foreach (TarkovDev.TraderReputationLevel lvl in TraderFence.reputationLevels)
+                <div class="tm-field tm-alert-extra" title="@LocalizationService.GetString("ScavKarma")">
+                    <span class="tm-field__caption">@LocalizationService.GetString("FieldKarma")</span>
+                    <MudSelect @bind-Value="@ScavKarmaSelect" T="int" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" RelativeWidth="DropdownWidth.Adaptive" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                        @if (TraderFence != null)
                         {
-                            <MudSelectItem Value="@lvl.minimumReputation" />
+                            @foreach (TarkovDev.TraderReputationLevel lvl in TraderFence.reputationLevels)
+                            {
+                                <MudSelectItem Value="@lvl.minimumReputation" />
+                            }
                         }
-                    }
-                </MudSelect>
+                    </MudSelect>
+                </div>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("FloatingTimer")</div>
             <MudSwitch @bind-Value="@FloatingTimerPanelSwitch" Label="@LocalizationService.GetString("FloatingTimerShow")" Color="Color.Info" />

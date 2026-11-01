@@ -472,9 +472,9 @@
     margin: 0;
 }
 
-::deep .tm-alert-extra {
-    flex: 0 0 7.5rem;
-    max-width: 7.5rem;
+.tm-alert-extra {
+    flex: 0 0 10rem;
+    max-width: 10rem;
     margin: 0 !important;
 }
 

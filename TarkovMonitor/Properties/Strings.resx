@@ -1272,4 +1272,13 @@
   <data name="NeedVerbBuild" xml:space="preserve">
     <value>Build</value>
   </data>
+  <data name="FieldDevice" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="FieldTime" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="FieldKarma" xml:space="preserve">
+    <value>Karma</value>
+  </data>
 </root>

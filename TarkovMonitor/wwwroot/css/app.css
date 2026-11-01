@@ -1085,3 +1085,96 @@ html body *::-webkit-scrollbar-corner {
 .tm-select-list .mud-list-item[data-selected="true"] {
     box-shadow: none !important;
 }
+
+/* One field style for settings inputs: frame, height and an inner caption on the left
+   (selects, text fields and the volume slider alike). */
+.tm-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: 34px;
+    padding: 0 6px 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    transition: border-color 140ms ease;
+}
+
+.tm-field:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.tm-field:focus-within {
+    border-color: #4f8fef;
+}
+
+.tm-field--wide {
+    width: 100%;
+}
+
+.tm-field__caption {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-sm);
+    white-space: nowrap;
+}
+
+.tm-field .tm-field__control,
+.tm-field .tm-field__control.mud-input-control,
+.tm-field .mud-select {
+    flex: 1;
+    min-width: 0;
+    margin: 0 !important;
+    align-self: stretch;
+    display: flex;
+}
+
+.tm-field .tm-field__control .mud-input-control-input-container,
+.tm-field .tm-field__control .mud-input {
+    flex: 1;
+    height: 100%;
+}
+
+.tm-field .tm-field__control .mud-input {
+    display: flex;
+    align-items: center;
+    font-size: var(--tm-fs-md);
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.tm-field .tm-field__control .mud-input-slot {
+    padding: 0 !important;
+}
+
+.tm-field .tm-field__control .mud-select-input,
+.tm-field .tm-field__control input {
+    cursor: pointer;
+}
+
+.tm-field .tm-field__control input[type="text"] {
+    cursor: text;
+}
+
+.tm-field .tm-field__control .mud-input-adornment-end .mud-icon-root {
+    color: #5b84c4;
+}
+
+.tm-field .tm-field__icon {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tm-field .tm-field__slider {
+    flex: 1;
+    min-width: 0;
+}
+
+.tm-field__value {
+    flex-shrink: 0;
+    min-width: 2.8rem;
+    text-align: right;
+    font-size: var(--tm-fs-md);
+    color: rgba(255, 255, 255, 0.88);
+    font-variant-numeric: tabular-nums;
+}
