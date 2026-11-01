@@ -190,7 +190,8 @@ namespace TarkovMonitor
             {
                 // A second monitor instance or a repeated log line must not create a second row.
                 const string duplicateSql = "SELECT COUNT(id) FROM raids WHERE profile_id = @profile_id AND ended IS NULL"
-                    + " AND ((@raid_id <> '' AND raid_id = @raid_id) OR (time >= @since AND COALESCE(map, '') = COALESCE(@map, '')));";
+                    + " AND ((@raid_id <> '' AND raid_id = @raid_id)"
+                    + " OR (time >= @since AND (COALESCE(map, '') = COALESCE(@map, '') OR COALESCE(@map, '') = '')));";
                 using (var check = CreateCommand(duplicateSql, parameters: new Dictionary<string, object?>
                 {
                     ["profile_id"] = e.Profile.Id,
@@ -202,6 +203,28 @@ namespace TarkovMonitor
                     if (Convert.ToInt32(check.ExecuteScalar()) > 0)
                     {
                         return false;
+                    }
+                }
+                // An instance that started during matching stores the raid before it
+                // knows the map. When the full raid arrives shortly after, that row is
+                // completed instead of leaving an "Unknown map" raid next to it.
+                if (!string.IsNullOrEmpty(e.RaidInfo.Map?.nameId))
+                {
+                    const string completeSql = "UPDATE raids SET map = @map, raid_type = @raid_type, queue_time = @queue_time, raid_id = @raid_id"
+                        + " WHERE id = (SELECT id FROM raids WHERE profile_id = @profile_id AND ended IS NULL AND time >= @since"
+                        + " AND COALESCE(map, '') = '' AND COALESCE(raid_id, '') = '' ORDER BY id DESC LIMIT 1);";
+                    using var complete = CreateCommand(completeSql, parameters: new Dictionary<string, object?>
+                    {
+                        ["profile_id"] = e.Profile.Id,
+                        ["map"] = e.RaidInfo.Map?.nameId,
+                        ["raid_type"] = (int)e.RaidInfo.RaidType,
+                        ["queue_time"] = e.RaidInfo.QueueTime,
+                        ["raid_id"] = e.RaidInfo.RaidId ?? "",
+                        ["since"] = DateTime.UtcNow.AddSeconds(-90).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
+                    });
+                    if (complete.ExecuteNonQuery() > 0)
+                    {
+                        return true;
                     }
                 }
                 const string sql = "INSERT INTO raids(profile_id, map, raid_type, queue_time, raid_id) VALUES (@profile_id, @map, @raid_type, @queue_time, @raid_id);";
