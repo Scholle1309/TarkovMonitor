@@ -13,50 +13,54 @@ window.mapHost = (() => {
         return true;
     }
 
-    const resizing = { host: null, timer: 0 };
+    // While the window is dragged to a new size, the embedded page keeps its size
+    // and is only stretched to the current area with a CSS transform on every frame.
+    // That is smooth and cheap; the page reflows once, when the drag ends.
+    const resizing = { frame: null, width: 0, height: 0 };
 
-    function applyHostSize(host) {
-        const area = host.parentElement;
-        host.style.width = area.clientWidth + "px";
-        host.style.height = area.clientHeight + "px";
-    }
-
-    function onResizeStep() {
-        if (resizing.timer) {
+    function stretchFrame() {
+        const frame = resizing.frame;
+        if (!frame || !resizing.width || !resizing.height) {
             return;
         }
-        resizing.timer = setTimeout(() => {
-            resizing.timer = 0;
-            if (resizing.host) {
-                applyHostSize(resizing.host);
-            }
-        }, 100);
+        const area = frame.parentElement;
+        frame.style.transform = "scale(" + (area.clientWidth / resizing.width) + ", " + (area.clientHeight / resizing.height) + ")";
+    }
+
+    // Resize events come at most once per frame, so the stretch is applied right away;
+    // waiting for the next animation frame let the map trail the window edge.
+    function onResizeFrame() {
+        stretchFrame();
     }
 
     return {
-        // While the window is dragged to a new size, the map area follows in steps of
-        // about 100 ms instead of on every frame: it still grows and shrinks with the
-        // window, but the embedded page reflows a few times a second, not 60 times.
+        // Called when a window resize starts and ends (see MainBlazorUI.OnResizeBegin).
         freeze(on) {
-            const host = document.querySelector(".map-host");
-            if (!host) {
+            const frame = document.querySelector(".map-host__frame iframe");
+            if (!frame) {
                 return;
             }
             if (on) {
-                resizing.host = host;
-                host.style.right = "auto";
-                host.style.bottom = "auto";
-                applyHostSize(host);
-                window.addEventListener("resize", onResizeStep);
+                resizing.frame = frame;
+                resizing.width = frame.clientWidth;
+                resizing.height = frame.clientHeight;
+                frame.style.position = "absolute";
+                frame.style.left = "0";
+                frame.style.top = "0";
+                frame.style.width = resizing.width + "px";
+                frame.style.height = resizing.height + "px";
+                frame.style.transformOrigin = "0 0";
+                window.addEventListener("resize", onResizeFrame);
             } else {
-                window.removeEventListener("resize", onResizeStep);
-                clearTimeout(resizing.timer);
-                resizing.timer = 0;
-                resizing.host = null;
-                host.style.right = "";
-                host.style.bottom = "";
-                host.style.width = "";
-                host.style.height = "";
+                window.removeEventListener("resize", onResizeFrame);
+                resizing.frame = null;
+                frame.style.position = "";
+                frame.style.left = "";
+                frame.style.top = "";
+                frame.style.width = "";
+                frame.style.height = "";
+                frame.style.transform = "";
+                frame.style.transformOrigin = "";
             }
         },
         // Highlight the markers of a task on the map (empty text clears the highlight).

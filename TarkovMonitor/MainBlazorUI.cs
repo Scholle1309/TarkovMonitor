@@ -1008,9 +1008,9 @@ namespace TarkovMonitor
             ApplyWindowFrameAttributes();
         }
 
-        // While the window is dragged to a new size the map follows in ~100 ms steps
-        // instead of every frame. Resizing the embedded page on every frame made the map
-        // stutter, and its buttons lagged behind the app's own ones next to them.
+        // While the window is dragged to a new size the map is stretched to the new
+        // area on every frame and reflows once at the end. Resizing the embedded page
+        // on every frame made it stutter, and stepping it looked jerky.
         protected override void OnResizeBegin(EventArgs e)
         {
             base.OnResizeBegin(e);
