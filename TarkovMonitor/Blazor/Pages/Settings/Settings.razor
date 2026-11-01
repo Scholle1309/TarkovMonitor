@@ -154,7 +154,7 @@
                 <div class="tracker-key-manager">
                     <div class="tracker-state-note tracker-manager-warning" role="note">
                         <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Size="Size.Small" Class="tracker-state-note-icon" />
-                        <span><b>Tarkov Monitor manages API tokens automatically.</b> Only change an assignment if you understand how EFT profiles and game modes are linked.</span>
+                        <span><b>Tokens are managed automatically.</b> Only change an assignment if you know how EFT profiles and game modes are linked.</span>
                     </div>
 
                     <div class="tracker-drawer mb-1">
@@ -167,7 +167,7 @@
                             <div class="tracker-drawer-content">
                                 <div class="tracker-state-note" role="note">
                                     <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="tracker-state-note-icon" />
-                                    <span><b>Verified, but unassigned.</b> Tarkov Monitor automatically assigns one eligible key to the first complete EFT account, profile, and game mode it observes. If more than one key is eligible, or you intentionally unbound a key, click Assign for the manual fallback.</span>
+                                    <span><b>Verified, not assigned yet.</b> A key is assigned to the first matching EFT profile and mode seen. Use Assign if several keys fit or you unassigned one on purpose.</span>
                                 </div>
                                 @if (PendingOrgKeys.Count == 0)
                                 {
@@ -240,7 +240,7 @@
                             <div class="tracker-drawer-content">
                                 <div class="tracker-state-note" role="note">
                                     <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Size="Size.Small" Class="tracker-state-note-icon tracker-state-note-icon--bound" />
-                                    <span><b>Verified and assigned.</b> Nothing else is required. Tarkov Monitor uses the key linked to your active EFT account, profile, and game mode. If it was assigned incorrectly—such as when using multiple EFT accounts—open Edit and choose Reassign. Set or rename account and profile nicknames as needed.</span>
+                                    <span><b>Verified and assigned.</b> Nothing to do: the key of your active profile and mode is used. Wrong account? Edit, then Reassign. Nicknames are optional.</span>
                                 </div>
                                 @if (BoundOrgKeys.Count == 0)
                                 {

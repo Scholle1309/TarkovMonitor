@@ -556,3 +556,44 @@
 ::deep .tm-logs-status__icon {
     font-size: 1rem !important;
 }
+
+/* The account row is two lines so name, account ID, modes and actions fit a narrow card. */
+.tracker-account-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    row-gap: 0;
+}
+
+.tracker-account-heading > .tracker-account-toggle {
+    grid-row: 1 / span 2;
+    align-self: stretch;
+}
+
+.tracker-account-heading > .tracker-mode-summary {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    width: auto;
+    padding: 0.35rem 0.5rem 0 0;
+}
+
+.tracker-account-heading > .tracker-account-actions {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    width: auto;
+    grid-template-columns: auto auto;
+}
+
+.tracker-account-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+}
+
+.tracker-account-title,
+.tracker-account-subtitle {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
