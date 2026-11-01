@@ -185,7 +185,7 @@
                 @if (taskNeeds.Count > 0)
                 {
                     <div class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))" @onclick="() => ToggleExpanded(item.Task.id)">
-                        <MudTooltip Placement="Placement.Right" Inline="false">
+                        <MudTooltip Placement="Placement.Top" Inline="false">
                             <TooltipContent>
                                 @foreach (var need in taskNeeds)
                                 {
