@@ -221,6 +221,13 @@
                 </div>
                 <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())" title="@ReasonLabel(item)">@StateLabel(item.State)</span></div>
                 <div class="task-row__actions">
+                    @* Why the task counts as accepted (logs, tracker or by hand), as a tooltip. *@
+                    @if (item.AcceptedReason != "")
+                    {
+                        <MudTooltip Text="@ReasonLabel(item)">
+                            <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Small" Class="task-row__reason" />
+                        </MudTooltip>
+                    }
                     <MudIconButton Icon="@Icons.Material.Filled.MyLocation" Size="Size.Small" Color="@(item.MarkerMapIds.Count > 0 ? Color.Inherit : Color.Default)"
                                    Disabled="@(item.MarkerMapIds.Count == 0)" Title="@LocalizationService.GetString("ShowOnMap")" OnClick="@(() => ShowOnMap(item))" />
                     @if (item.Override != QuestOverride.None)
@@ -310,10 +317,6 @@
                             @if (item.Task.minPlayerLevel > 0)
                             {
                                 <span>@LocalizationService.GetString("Level") @item.Task.minPlayerLevel</span>
-                            }
-                            @if (item.AcceptedReason != "")
-                            {
-                                <span>@ReasonLabel(item)</span>
                             }
                         </div>
                     </div>

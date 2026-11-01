@@ -555,6 +555,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
     white-space: nowrap;
     font-size: var(--tm-fs-md);
     color: rgba(255, 255, 255, 0.85);
@@ -654,12 +655,16 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Status pills in muted tints, like the other badges in the app. */
+/* Status pills in muted tints, like the other badges in the app. The text is
+   centred by its own height (line-height 1), not by the line spacing. */
 .task-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    line-height: 1;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 12px;
-    padding: 1px 9px;
+    padding: 0 9px;
     font-size: var(--tm-fs-sm);
     background: rgba(255, 255, 255, 0.05);
     color: rgba(255, 255, 255, 0.75);
@@ -693,6 +698,7 @@
 
 .task-row__actions {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 2px;
 }
@@ -771,4 +777,10 @@
 ::deep .tasks-empty {
     margin: 8px 4px;
     color: rgba(255, 255, 255, 0.5);
+}
+
+::deep .task-row__reason {
+    margin: 0 4px;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: help;
 }
