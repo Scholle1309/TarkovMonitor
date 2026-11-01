@@ -1170,7 +1170,7 @@
     <value>Schlüssel</value>
   </data>
   <data name="NeedPlace" xml:space="preserve">
-    <value>Verstecken oder markieren</value>
+    <value>Verstecken</value>
   </data>
   <data name="NeedFindInRaid" xml:space="preserve">
     <value>Im Raid finden</value>
@@ -1189,5 +1189,8 @@
   </data>
   <data name="ShowFindInRaidOnMap" xml:space="preserve">
     <value>Im Raid zu findende Items anzeigen</value>
+  </data>
+  <data name="NeedMark" xml:space="preserve">
+    <value>Installieren</value>
   </data>
 </root>

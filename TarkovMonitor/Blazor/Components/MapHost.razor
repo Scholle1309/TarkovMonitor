@@ -323,7 +323,7 @@
     private sealed record NeedBlock(string Title, string Icon, QuestNeedKind[] Kinds, string ShowSetting, string CollapsedSetting);
     private static readonly NeedBlock[] NeedBlocks =
     {
-        new("BringIntoRaid", Icons.Material.Filled.Luggage, new[] { QuestNeedKind.Key, QuestNeedKind.Place }, nameof(Properties.Settings.Default.mapShowTakeAlong), nameof(Properties.Settings.Default.mapTakeAlongCollapsed)),
+        new("BringIntoRaid", Icons.Material.Filled.Luggage, new[] { QuestNeedKind.Key, QuestNeedKind.Place, QuestNeedKind.Mark }, nameof(Properties.Settings.Default.mapShowTakeAlong), nameof(Properties.Settings.Default.mapTakeAlongCollapsed)),
         new("NeedFindInRaid", Icons.Material.Filled.Search, new[] { QuestNeedKind.HandOver }, nameof(Properties.Settings.Default.mapShowFindInRaid), nameof(Properties.Settings.Default.mapFindInRaidCollapsed)),
     };
 
@@ -347,6 +347,7 @@
     {
         QuestNeedKind.Key => LocalizationService.GetString("NeedKeys"),
         QuestNeedKind.Place => LocalizationService.GetString("NeedPlace"),
+        QuestNeedKind.Mark => LocalizationService.GetString("NeedMark"),
         _ => LocalizationService.GetString("NeedFindInRaid"),
     };
 

@@ -163,6 +163,7 @@
         @* Clickable column headers: first click sorts, second click flips the direction. *@
         <div class="tasks-cols">
             <span></span>
+            <span></span>
             @SortHeader(TaskSort.Name, LocalizationService.GetString("ColumnTask"), false)
             @SortHeader(TaskSort.Trader, LocalizationService.GetString("ColumnTrader"), false)
             @SortHeader(TaskSort.Maps, LocalizationService.GetString("ColumnMaps"), false)
@@ -175,6 +176,31 @@
         {
             var isOpen = expanded.Contains(item.Task.id);
             <div class="@("task-row" + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.Pinned ? " task-row--pinned" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
+                @{
+                    // Keys or items the task needs: a tab left of the expand arrow, the tooltip lists them.
+                    var taskNeeds = item.State == TaskState.Completed ? new List<QuestNeed>() : QuestNeeds.OfTask(item.Task);
+                    var tabKind = taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? QuestNeedKind.Key : taskNeeds.FirstOrDefault()?.Kind ?? QuestNeedKind.Key;
+                }
+                @if (taskNeeds.Count > 0)
+                {
+                    <MudTooltip Placement="Placement.Right">
+                        <TooltipContent>
+                            @foreach (var need in taskNeeds)
+                            {
+                                <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
+                            }
+                        </TooltipContent>
+                        <ChildContent>
+                            <span class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))">
+                                <MudIcon Icon="@QuestNeeds.Icon(tabKind)" Class="task-row__needs" />
+                            </span>
+                        </ChildContent>
+                    </MudTooltip>
+                }
+                else
+                {
+                    <span></span>
+                }
                 <button type="button" class="task-row__toggle" @onclick="() => ToggleExpanded(item.Task.id)">
                     <MudIcon Icon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
                 </button>
@@ -189,24 +215,6 @@
                             <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="task-row__pin" />
                         }
                         @item.Task.name
-                        @{
-                            // A small item symbol when the task needs keys or items; the tooltip lists them.
-                            var taskNeeds = item.State == TaskState.Completed ? new List<QuestNeed>() : QuestNeeds.OfTask(item.Task);
-                        }
-                        @if (taskNeeds.Count > 0)
-                        {
-                            <MudTooltip>
-                                <TooltipContent>
-                                    @foreach (var need in taskNeeds)
-                                    {
-                                        <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
-                                    }
-                                </TooltipContent>
-                                <ChildContent>
-                                    <MudIcon Icon="@QuestNeeds.Icon(taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? QuestNeedKind.Key : taskNeeds[0].Kind)" Class="task-row__needs" />
-                                </ChildContent>
-                            </MudTooltip>
-                        }
                     </div>
                 </div>
                 <div class="task-row__trader">@item.TraderName</div>

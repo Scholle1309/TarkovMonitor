@@ -1234,7 +1234,7 @@
     <value>Keys</value>
   </data>
   <data name="NeedPlace" xml:space="preserve">
-    <value>To stash or mark</value>
+    <value>To stash</value>
   </data>
   <data name="NeedFindInRaid" xml:space="preserve">
     <value>Find in raid</value>
@@ -1253,5 +1253,8 @@
   </data>
   <data name="ShowFindInRaidOnMap" xml:space="preserve">
     <value>Show items to find in raid</value>
+  </data>
+  <data name="NeedMark" xml:space="preserve">
+    <value>To install</value>
   </data>
 </root>

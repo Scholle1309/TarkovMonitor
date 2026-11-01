@@ -385,7 +385,7 @@
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 200px;
+    grid-template-columns: 26px 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 200px;
     justify-content: start;
     gap: 12px;
     align-items: center;
@@ -725,7 +725,7 @@
     grid-column: 1 / -1;
     background: #1a2640;
     border-radius: 6px;
-    padding: 8px 14px 8px 40px;
+    padding: 8px 14px 8px 78px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -760,12 +760,32 @@
     min-width: 0;
 }
 
-::deep .task-row__needs {
-    font-size: 15px !important;
-    margin-left: 5px;
-    vertical-align: -2px;
-    color: rgba(143, 184, 245, 0.8);
+/* Tab left of the expand arrow when the task needs keys or items. */
+.task-row__needs-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: rgba(79, 143, 239, 0.16);
+    border: 1px solid rgba(79, 143, 239, 0.4);
     cursor: help;
+}
+
+.task-row__needs-tab--key {
+    background: rgba(255, 179, 0, 0.12);
+    border-color: rgba(255, 179, 0, 0.45);
+}
+
+::deep .task-row__needs {
+    font-size: 17px !important;
+    color: #8fb8f5;
+}
+
+.task-row__needs-tab--key ::deep .task-row__needs,
+::deep .task-row__needs-tab--key .task-row__needs {
+    color: #ffb300;
 }
 
 /* Maps and needed items in one row under the objective; the items keep a little distance. */
@@ -822,7 +842,7 @@
 }
 
 ::deep .task-need__kind {
-    font-size: 13px !important;
+    font-size: 15px !important;
     color: #8fb8f5;
 }
 

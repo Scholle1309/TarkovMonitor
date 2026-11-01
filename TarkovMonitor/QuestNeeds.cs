@@ -5,8 +5,10 @@ namespace TarkovMonitor
     {
         /// <summary>A key or keycard to open a door or container.</summary>
         Key,
-        /// <summary>An item to stash, or a marker or camera to place.</summary>
+        /// <summary>An item to stash at a spot.</summary>
         Place,
+        /// <summary>A marker or camera to install.</summary>
+        Mark,
         /// <summary>Items to hand over to the trader.</summary>
         HandOver,
         /// <summary>A weapon to build.</summary>
@@ -29,8 +31,9 @@ namespace TarkovMonitor
         public static string Icon(QuestNeedKind kind) => kind switch
         {
             QuestNeedKind.Key => MudBlazor.Icons.Material.Filled.VpnKey,
-            QuestNeedKind.Place => MudBlazor.Icons.Material.Filled.MoveToInbox,
-            QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.Backpack,
+            QuestNeedKind.Place => MudBlazor.Icons.Material.Filled.AddLocationAlt,
+            QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.Sensors,
+            QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.Redeem,
             _ => MudBlazor.Icons.Material.Filled.Build,
         };
 
@@ -49,7 +52,7 @@ namespace TarkovMonitor
             var (kind, ids, count) = objective.type switch
             {
                 "plantItem" => (QuestNeedKind.Place, objective.items, Math.Max(1, objective.count)),
-                "mark" => (QuestNeedKind.Place, Single(objective.markerItem), 1),
+                "mark" => (QuestNeedKind.Mark, Single(objective.markerItem), 1),
                 "giveItem" => (QuestNeedKind.HandOver, objective.items, Math.Max(1, objective.count)),
                 "buildWeapon" => (QuestNeedKind.Build, Single(objective.item), 1),
                 _ => (QuestNeedKind.Key, new List<string>(), 0),
