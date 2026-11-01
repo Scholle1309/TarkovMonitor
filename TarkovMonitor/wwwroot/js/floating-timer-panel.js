@@ -17,6 +17,7 @@ window.floatingTimerPanel = (() => {
         element.style.top = `${bounded.top}px`;
         element.style.right = "auto";
         element.style.bottom = "auto";
+        element.style.transform = "none";
     }
 
     function initialize(elementId) {
@@ -62,10 +63,11 @@ window.floatingTimerPanel = (() => {
         const element = document.getElementById(elementId);
         if (!element) return;
 
-        element.style.left = "auto";
+        element.style.left = "50%";
         element.style.top = "auto";
-        element.style.right = "20px";
+        element.style.right = "auto";
         element.style.bottom = "20px";
+        element.style.transform = "translateX(-50%)";
     }
 
     return { initialize, reset };
