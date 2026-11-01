@@ -1124,4 +1124,10 @@
   <data name="TaskCountMany" xml:space="preserve">
     <value>{0} Aufgaben</value>
   </data>
+  <data name="On" xml:space="preserve">
+    <value>an</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>aus</value>
+  </data>
 </root>

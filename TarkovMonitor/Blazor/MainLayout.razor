@@ -72,5 +72,21 @@
 			Secondary = "#2a4a80",
 			SecondaryLighten = "#5b84c4"
 		},
+		// The app's font size scale (see --tm-fs-* in app.css): body text 14px,
+		// compact text and buttons 13px, captions 12px, card titles 20px, values 24px.
+		Typography = new Typography()
+		{
+			Default = new DefaultTypography { FontFamily = new[] { "Roboto", "Segoe UI", "sans-serif" }, FontSize = "0.875rem" },
+			Body1 = new Body1Typography { FontSize = "0.875rem" },
+			Body2 = new Body2Typography { FontSize = "0.8125rem" },
+			Subtitle1 = new Subtitle1Typography { FontSize = "0.875rem" },
+			Subtitle2 = new Subtitle2Typography { FontSize = "0.8125rem" },
+			Button = new ButtonTypography { FontSize = "0.8125rem" },
+			Caption = new CaptionTypography { FontSize = "0.75rem" },
+			Overline = new OverlineTypography { FontSize = "0.6875rem" },
+			H6 = new H6Typography { FontSize = "1.25rem" },
+			H5 = new H5Typography { FontSize = "1.5rem" },
+			H4 = new H4Typography { FontSize = "1.5rem" },
+		},
 	};
 }

@@ -9,18 +9,27 @@
     <MudItem xs="12">
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("Timers")</span></MudText>
-            <div class="d-flex align-center mt-2">
-                <MudText Class="mr-2">Floating timer panel</MudText>
-                <MudChip T="string" Color="@(timersManager.FloatingPanelEnabled ? Color.Success : Color.Default)" Size="Size.Small">
-                    @(timersManager.FloatingPanelEnabled ? "Enabled" : "Disabled")
-                </MudChip>
+            <div class="timers-floating">
+                <span class="@(timersManager.FloatingPanelEnabled ? "timers-state timers-state--on" : "timers-state")">@LocalizationService.GetString("FloatingTimer") · @(timersManager.FloatingPanelEnabled ? LocalizationService.GetString("On") : LocalizationService.GetString("Off"))</span>
+                @if (timersManager.FloatingPanelEnabled)
+                {
+                    <span class="timers-floating__shown">@FloatingPanelTimerSummary</span>
+                }
             </div>
-            <MudText Typo="Typo.caption">Timers shown: @FloatingPanelTimerSummary</MudText>
-            <MudList T="string">
-                <MudListItem>@LocalizationService.GetString("TimeInRaid"): @FormatTimer(TimeInRaidTime)</MudListItem>
-                <MudListItem>@LocalizationService.GetString("RunthroughPeriod"): @FormatTimer(RunThroughRemainingTime)</MudListItem>
-                <MudListItem>@LocalizationService.GetString("ScavCooldown"): @FormatTimer(ScavCooldownTime)</MudListItem>
-            </MudList>
+            <div class="timers-grid">
+                <div class="timers-tile">
+                    <span class="timers-tile__label">@LocalizationService.GetString("TimeInRaid")</span>
+                    <span class="timers-tile__value">@FormatTimer(TimeInRaidTime)</span>
+                </div>
+                <div class="timers-tile">
+                    <span class="timers-tile__label">@LocalizationService.GetString("RunthroughPeriod")</span>
+                    <span class="timers-tile__value">@FormatTimer(RunThroughRemainingTime)</span>
+                </div>
+                <div class="timers-tile">
+                    <span class="timers-tile__label">@LocalizationService.GetString("ScavCooldown")</span>
+                    <span class="timers-tile__value">@FormatTimer(ScavCooldownTime)</span>
+                </div>
+            </div>
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -35,8 +44,8 @@
     private TimeSpan ScavCooldownTime;
     private string FloatingPanelTimerSummary => string.Join(", ", new[]
     {
-        timersManager.FloatingPanelShowTimeInRaid ? "Elapsed raid time" : null,
-        timersManager.FloatingPanelShowRunThrough ? "Run-through remaining" : null
+        timersManager.FloatingPanelShowTimeInRaid ? LocalizationService.GetString("FloatingTimerRaidTime") : null,
+        timersManager.FloatingPanelShowRunThrough ? LocalizationService.GetString("FloatingTimerRunthrough") : null
     }.Where(value => value is not null));
 
     protected override void OnInitialized()
