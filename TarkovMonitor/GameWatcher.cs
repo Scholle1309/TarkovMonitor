@@ -216,8 +216,8 @@ namespace TarkovMonitor
         public event EventHandler<ProfileEventArgs> InitialReadComplete;
         public event EventHandler<ProfileEventArgs>? ProfileReady;
         public event EventHandler<ControlSettingsEventArgs> ControlSettings;
-        /// <summary>The profile prestiged (time of the request in the backend log).</summary>
-        public event EventHandler<PrestigeEventArgs>? Prestiged;
+        /// <summary>A run began: a prestige or a new character (from the backend log).</summary>
+        public event EventHandler<RunBoundaryEventArgs>? RunBoundaryDetected;
         /// <summary>The game reported the profile's prestige level.</summary>
         public event EventHandler<PrestigeEventArgs>? PrestigeLevelReported;
 
@@ -701,9 +701,9 @@ namespace TarkovMonitor
                 NewLogData?.Invoke(this, e);
                 if (e.Type == GameLogType.Backend)
                 {
-                    foreach (var time in ParsePrestigeEvents(e.Data))
+                    foreach (var boundary in ParseRunBoundaries(e.Data))
                     {
-                        Prestiged?.Invoke(this, new PrestigeEventArgs(time, null));
+                        RunBoundaryDetected?.Invoke(this, new RunBoundaryEventArgs(boundary));
                     }
                     return;
                 }
@@ -1475,23 +1475,33 @@ namespace TarkovMonitor
             return null;
         }
 
-        // The backend log records the prestige request ("client/prestige/obtain") with its time;
-        // the notifications log carries the profile's prestige level afterwards.
-        private static readonly Regex PrestigeRequestPattern = new(@"^(?<date>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)[^|]*\|[^\n]*Request [^\n]*client/prestige/obtain", RegexOptions.Multiline | RegexOptions.Compiled);
+        // The backend log records how a run begins: "client/prestige/obtain" is a prestige,
+        // "client/game/profile/create" a new character (a reset, or the creation step of a
+        // prestige a moment later). The gateway host names the session mode.
+        private static readonly Regex RunBoundaryPattern = new(@"^(?<date>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)[^|]*\|[^\n]*Request [^\n]*https://(?<gateway>gw-[a-z-]+)\.escapefromtarkov\.com/client/(?<path>prestige/obtain|game/profile/create)", RegexOptions.Multiline | RegexOptions.Compiled);
         private static readonly Regex PrestigeLevelPattern = new(@"""PrestigeLevel"":\s*(?<level>\d+)", RegexOptions.Compiled);
 
-        internal static IEnumerable<DateTime> ParsePrestigeEvents(string text)
+        internal static EftSessionMode SessionModeFromGateway(string gateway) => gateway switch
         {
-            foreach (Match match in PrestigeRequestPattern.Matches(text))
+            "gw-pve" => EftSessionMode.PVE,
+            "gw-pvp-season" => EftSessionMode.Seasonal,
+            _ => EftSessionMode.Regular,
+        };
+
+        internal static IEnumerable<RunBoundary> ParseRunBoundaries(string text)
+        {
+            foreach (Match match in RunBoundaryPattern.Matches(text))
             {
-                if (DateTime.TryParseExact(match.Groups["date"].Value, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var time))
+                if (!DateTime.TryParseExact(match.Groups["date"].Value, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var time))
                 {
-                    yield return time;
+                    continue;
                 }
+                var kind = match.Groups["path"].Value.StartsWith("prestige", StringComparison.Ordinal) ? RunBoundaryKind.Prestige : RunBoundaryKind.Reset;
+                yield return new RunBoundary(time, kind, SessionModeFromGateway(match.Groups["gateway"].Value));
             }
         }
 
-        public static IEnumerable<DateTime> ReadPrestigeEvents(string backendLogFile)
+        public static IEnumerable<RunBoundary> ReadRunBoundaries(string backendLogFile)
         {
             string text;
             try
@@ -1502,9 +1512,9 @@ namespace TarkovMonitor
             }
             catch
             {
-                return Array.Empty<DateTime>();
+                return Array.Empty<RunBoundary>();
             }
-            return ParsePrestigeEvents(text).ToList();
+            return ParseRunBoundaries(text).ToList();
         }
 
         internal static int ParsePrestigeLevel(string text)
@@ -1705,6 +1715,15 @@ namespace TarkovMonitor
             Z = float.Parse(z, CultureInfo.InvariantCulture);
         }
     }
+    public class RunBoundaryEventArgs : EventArgs
+    {
+        public RunBoundary Boundary { get; }
+        public RunBoundaryEventArgs(RunBoundary boundary)
+        {
+            Boundary = boundary;
+        }
+    }
+
     public class PrestigeEventArgs : EventArgs
     {
         public DateTime? Time { get; }

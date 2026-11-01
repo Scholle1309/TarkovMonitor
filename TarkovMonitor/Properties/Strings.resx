@@ -879,4 +879,13 @@
   <data name="PeriodBeforePrestige" xml:space="preserve">
     <value>Before prestige</value>
   </data>
+  <data name="RunLabel" xml:space="preserve">
+    <value>Run {0}</value>
+  </data>
+  <data name="RunHistory" xml:space="preserve">
+    <value>Detected from the logs:</value>
+  </data>
+  <data name="NewCharacter" xml:space="preserve">
+    <value>New character</value>
+  </data>
 </root>

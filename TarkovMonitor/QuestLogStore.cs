@@ -231,17 +231,13 @@ namespace TarkovMonitor
                 {
                     if (file.Contains("backend.log") || file.Contains("backend_000.log"))
                     {
-                        foreach (var prestige in GameWatcher.ReadPrestigeEvents(file))
+                        foreach (var boundary in GameWatcher.ReadRunBoundaries(file))
                         {
-                            if (start != null && prestige < start)
+                            if (start != null && boundary.Time < start)
                             {
                                 continue;
                             }
-                            result.PrestigeEvents.Add(prestige);
-                            if (result.LatestPrestige == null || prestige > result.LatestPrestige)
-                            {
-                                result.LatestPrestige = prestige;
-                            }
+                            result.Boundaries.Add(boundary);
                         }
                         continue;
                     }
@@ -594,10 +590,8 @@ namespace TarkovMonitor
         public int Events { get; set; }
         public int NewEvents { get; set; }
         public DateTime? Horizon { get; set; }
-        /// <summary>Most recent prestige found in the backend logs.</summary>
-        public DateTime? LatestPrestige { get; set; }
-        /// <summary>Every prestige found in the backend logs.</summary>
-        public List<DateTime> PrestigeEvents { get; } = new();
+        /// <summary>Every prestige and new character found in the backend logs.</summary>
+        public List<RunBoundary> Boundaries { get; } = new();
         /// <summary>Highest prestige level the game reported in the scanned logs.</summary>
         public int PrestigeLevel { get; set; }
     }

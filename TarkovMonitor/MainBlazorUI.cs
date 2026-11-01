@@ -501,7 +501,7 @@ namespace TarkovMonitor
             eft.TaskFailed += Eft_TaskFailed;
             eft.TaskFinished += Eft_TaskFinished;
             eft.TaskModified += Eft_TaskModified;
-            eft.Prestiged += Eft_Prestiged;
+            eft.RunBoundaryDetected += Eft_RunBoundaryDetected;
             eft.PrestigeLevelReported += Eft_PrestigeLevelReported;
             eft.NewLogData += Eft_NewLogData;
             eft.GroupInviteAccept += Eft_GroupInviteAccept;
@@ -1742,13 +1742,15 @@ namespace TarkovMonitor
                     {
                         var since = result.Horizon?.ToString("yyyy-MM-dd") ?? "unknown";
                         messageLog.AddMessage($"Quest history: {result.Events} quest events found in {result.Folders} log sessions since {since}.", "info");
-                        foreach (var prestige in result.PrestigeEvents.OrderBy(time => time))
+                        var known = HistoryStart.Boundaries;
+                        foreach (var boundary in result.Boundaries.OrderBy(item => item.Time))
                         {
-                            ApplyPrestige(prestige, Math.Max(result.PrestigeLevel, HistoryStart.PrestigeLevel), announce: HistoryStart.PrestigeStart == null || prestige > HistoryStart.PrestigeStart);
+                            var latest = known.Where(item => item.Mode == boundary.Mode).Select(item => (DateTime?)item.Time).LastOrDefault();
+                            ApplyBoundary(boundary, announce: latest == null || boundary.Time > latest);
                         }
-                        if (result.PrestigeLevel > HistoryStart.PrestigeLevel)
+                        if (result.PrestigeLevel > Properties.Settings.Default.prestigeLevel)
                         {
-                            HistoryStart.SetPrestige(HistoryStart.PrestigeStart, result.PrestigeLevel);
+                            HistoryStart.SetReportedPrestigeLevel(result.PrestigeLevel);
                         }
                     }
                     else
@@ -1767,43 +1769,47 @@ namespace TarkovMonitor
             });
         }
 
-        // A prestige starts quests, hideout and level over: the task history counts from
-        // that moment, manual accepted/hidden decisions are dropped, the map reloads.
-        private void ApplyPrestige(DateTime time, int? level, bool announce)
+        // A prestige or a new character starts quests, hideout and level over: the task
+        // history counts from that moment and manual accepted/hidden decisions are dropped.
+        private void ApplyBoundary(RunBoundary boundary, bool announce)
         {
-            var latest = HistoryStart.PrestigeStart;
-            var isNewest = latest == null || time > latest;
-            if (!HistoryStart.AddPrestige(time, level))
+            var latestBefore = HistoryStart.Boundaries.Where(item => item.Mode == boundary.Mode).Select(item => (DateTime?)item.Time).LastOrDefault();
+            if (!HistoryStart.AddBoundary(boundary.Time, boundary.Kind, boundary.Mode))
             {
                 return;
             }
-            if (!isNewest)
+            if (latestBefore != null && boundary.Time <= latestBefore)
             {
                 return;
+            }
+            if (boundary.Kind == RunBoundaryKind.Reset)
+            {
+                HistoryStart.SetReportedPrestigeLevel(0);
             }
             questLogStore.ClearOverrides();
             if (announce)
             {
-                messageLog.AddMessage($"Prestige detected at {time:g}: task history, recommendations and manual task decisions start over. Raid and flea statistics keep counting.", "info");
+                var what = boundary.Kind == RunBoundaryKind.Prestige ? "Prestige" : "New character";
+                messageLog.AddMessage($"{what} detected at {boundary.Time:g} ({boundary.Mode}): task history, recommendations and manual task decisions start over. Raid and flea statistics keep counting per period.", "info");
             }
         }
 
-        private void Eft_Prestiged(object? sender, PrestigeEventArgs e)
+        private void Eft_RunBoundaryDetected(object? sender, RunBoundaryEventArgs e)
         {
-            if (GameWatcher.ReadingPastLogs || e.Time == null)
+            if (GameWatcher.ReadingPastLogs)
             {
                 return;
             }
-            ApplyPrestige(e.Time.Value, (HistoryStart.PrestigeLevel + 1), announce: true);
+            ApplyBoundary(e.Boundary, announce: true);
         }
 
         private void Eft_PrestigeLevelReported(object? sender, PrestigeEventArgs e)
         {
-            if (GameWatcher.ReadingPastLogs || e.Level is not { } level || level <= HistoryStart.PrestigeLevel)
+            if (GameWatcher.ReadingPastLogs || e.Level is not { } level || level <= Properties.Settings.Default.prestigeLevel)
             {
                 return;
             }
-            HistoryStart.SetPrestige(HistoryStart.PrestigeStart, level);
+            HistoryStart.SetReportedPrestigeLevel(level);
         }
 
         private void Eft_TaskModified(object? sender, LogContentEventArgs<TaskStatusMessageLogContent> e)

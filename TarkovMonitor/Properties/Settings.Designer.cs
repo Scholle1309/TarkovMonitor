@@ -206,6 +206,18 @@ namespace TarkovMonitor.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string runBoundaries {
+            get {
+                return ((string)(this["runBoundaries"]));
+            }
+            set {
+                this["runBoundaries"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string prestigeEvents {
             get {
                 return ((string)(this["prestigeEvents"]));

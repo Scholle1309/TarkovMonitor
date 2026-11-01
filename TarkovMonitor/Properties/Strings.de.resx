@@ -815,4 +815,13 @@
   <data name="PeriodBeforePrestige" xml:space="preserve">
     <value>Vor Prestige</value>
   </data>
+  <data name="RunLabel" xml:space="preserve">
+    <value>Durchlauf {0}</value>
+  </data>
+  <data name="RunHistory" xml:space="preserve">
+    <value>Aus den Logs erkannt:</value>
+  </data>
+  <data name="NewCharacter" xml:space="preserve">
+    <value>Neuer Charakter</value>
+  </data>
 </root>

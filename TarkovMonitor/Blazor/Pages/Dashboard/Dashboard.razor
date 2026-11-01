@@ -370,7 +370,7 @@ else
     private bool apiLoaded;
     private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
     private int questDone, questStarted, questFailed;
-    private HistoryStart.PrestigePeriod? selectedPeriod;
+    private PrestigePeriod? selectedPeriod;
     private System.Threading.Timer? clock;
 
     protected override void OnInitialized()
@@ -435,11 +435,12 @@ else
         Refresh();
     }
 
-    private string PeriodLabel(HistoryStart.PrestigePeriod period) => period.Index == 0
-        ? LocalizationService.GetString("PeriodBeforePrestige")
-        : string.Format(LocalizationService.GetString("PrestigeBadge"), period.Level);
+    // "Run 1", "Run 2" for new characters; "Prestige 1" ... within a run.
+    private string PeriodLabel(PrestigePeriod period) => period.OpenedBy == RunBoundaryKind.Prestige
+        ? string.Format(LocalizationService.GetString("PrestigeBadge"), period.Level)
+        : string.Format(LocalizationService.GetString("RunLabel"), period.Run);
 
-    private static string PeriodRange(HistoryStart.PrestigePeriod period)
+    private static string PeriodRange(PrestigePeriod period)
     {
         var from = period.FromLocal?.ToString("g") ?? "…";
         var to = period.ToLocal?.ToString("g") ?? "…";

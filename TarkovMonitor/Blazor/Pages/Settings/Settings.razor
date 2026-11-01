@@ -411,6 +411,16 @@
         <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
             <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.MilitaryTech" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("Prestige")</span></MudText>
             <MudText Typo="Typo.body2" Class="mb-2">@LocalizationService.GetString("PrestigeHint")</MudText>
+            @if (HistoryStart.CurrentBoundaries.Count > 0)
+            {
+                <MudText Typo="Typo.body2" Class="mb-1">@LocalizationService.GetString("RunHistory")</MudText>
+                <ul class="mb-2" style="padding-left: 18px; font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+                    @foreach (var boundary in HistoryStart.CurrentBoundaries)
+                    {
+                        <li>@boundary.Time.ToString("g") · @(boundary.Kind == RunBoundaryKind.Prestige ? LocalizationService.GetString("Prestige") : LocalizationService.GetString("NewCharacter"))</li>
+                    }
+                </ul>
+            }
             <MudText Typo="Typo.body2" Class="mb-2">
                 @if (HistoryStart.PrestigeStart is { } prestigeAt)
                 {
@@ -443,7 +453,8 @@
 
     private void PrestigeNow()
     {
-        HistoryStart.AddPrestige(DateTime.Now, HistoryStart.PrestigeLevel + 1);
+        var mode = HistoryStart.CurrentMode == EftSessionMode.Unknown ? EftSessionMode.PVE : HistoryStart.CurrentMode;
+        HistoryStart.AddBoundary(DateTime.Now, RunBoundaryKind.Prestige, mode);
         questLogStore.ClearOverrides();
     }
 
