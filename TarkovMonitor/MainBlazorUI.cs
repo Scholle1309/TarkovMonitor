@@ -501,6 +501,8 @@ namespace TarkovMonitor
             eft.TaskFailed += Eft_TaskFailed;
             eft.TaskFinished += Eft_TaskFinished;
             eft.TaskModified += Eft_TaskModified;
+            eft.Prestiged += Eft_Prestiged;
+            eft.PrestigeLevelReported += Eft_PrestigeLevelReported;
             eft.NewLogData += Eft_NewLogData;
             eft.GroupInviteAccept += Eft_GroupInviteAccept;
             eft.GroupUserLeave += Eft_GroupUserLeave;
@@ -1740,6 +1742,14 @@ namespace TarkovMonitor
                     {
                         var since = result.Horizon?.ToString("yyyy-MM-dd") ?? "unknown";
                         messageLog.AddMessage($"Quest history: {result.Events} quest events found in {result.Folders} log sessions since {since}.", "info");
+                        if (result.LatestPrestige is { } prestige)
+                        {
+                            ApplyPrestige(prestige, Math.Max(result.PrestigeLevel, HistoryStart.PrestigeLevel), announce: HistoryStart.PrestigeStart == null || prestige > HistoryStart.PrestigeStart);
+                        }
+                        if (result.PrestigeLevel > HistoryStart.PrestigeLevel)
+                        {
+                            HistoryStart.SetPrestige(HistoryStart.PrestigeStart, result.PrestigeLevel);
+                        }
                     }
                     else
                     {
@@ -1755,6 +1765,41 @@ namespace TarkovMonitor
                     RecordException("Reading the quest history from the game logs failed.", "TM-MAPS-003", "ScanQuestLogs", exception, "Maps", "QuestHistory", durationMilliseconds: DiagnosticsService.ElapsedMilliseconds(startedUtc));
                 }
             });
+        }
+
+        // A prestige starts quests, hideout and level over: the task history counts from
+        // that moment, manual accepted/hidden decisions are dropped, the map reloads.
+        private void ApplyPrestige(DateTime time, int? level, bool announce)
+        {
+            var current = HistoryStart.PrestigeStart;
+            if (current != null && time <= current)
+            {
+                return;
+            }
+            HistoryStart.SetPrestige(time, level);
+            questLogStore.ClearOverrides();
+            if (announce)
+            {
+                messageLog.AddMessage($"Prestige detected at {time:g}: task history, recommendations and manual task decisions start over. Raid and flea statistics keep counting.", "info");
+            }
+        }
+
+        private void Eft_Prestiged(object? sender, PrestigeEventArgs e)
+        {
+            if (GameWatcher.ReadingPastLogs || e.Time == null)
+            {
+                return;
+            }
+            ApplyPrestige(e.Time.Value, (HistoryStart.PrestigeLevel + 1), announce: true);
+        }
+
+        private void Eft_PrestigeLevelReported(object? sender, PrestigeEventArgs e)
+        {
+            if (GameWatcher.ReadingPastLogs || e.Level is not { } level || level <= HistoryStart.PrestigeLevel)
+            {
+                return;
+            }
+            HistoryStart.SetPrestige(HistoryStart.PrestigeStart, level);
         }
 
         private void Eft_TaskModified(object? sender, LogContentEventArgs<TaskStatusMessageLogContent> e)

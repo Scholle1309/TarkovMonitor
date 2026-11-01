@@ -216,6 +216,10 @@ namespace TarkovMonitor
         public event EventHandler<ProfileEventArgs> InitialReadComplete;
         public event EventHandler<ProfileEventArgs>? ProfileReady;
         public event EventHandler<ControlSettingsEventArgs> ControlSettings;
+        /// <summary>The profile prestiged (time of the request in the backend log).</summary>
+        public event EventHandler<PrestigeEventArgs>? Prestiged;
+        /// <summary>The game reported the profile's prestige level.</summary>
+        public event EventHandler<PrestigeEventArgs>? PrestigeLevelReported;
 
         private static string logPatternPrefix = @"(?<date>^\d{4}-\d{2}-\d{2}) (?<time>\d{2}:\d{2}:\d{2}\.\d{3})(?<tzoffset> [+-]\d{2}:\d{2})?\|";
         private static string logPattern = @$"{logPatternPrefix}(?<message>.+$)\s*(?<json>^{{[\s\S]+?^}})?";
@@ -695,6 +699,22 @@ namespace TarkovMonitor
             {
                 //DebugMessage?.Invoke(this, new DebugEventArgs(e.NewMessage));
                 NewLogData?.Invoke(this, e);
+                if (e.Type == GameLogType.Backend)
+                {
+                    foreach (var time in ParsePrestigeEvents(e.Data))
+                    {
+                        Prestiged?.Invoke(this, new PrestigeEventArgs(time, null));
+                    }
+                    return;
+                }
+                if (e.Type == GameLogType.Notifications && e.Data.Contains("PrestigeLevel"))
+                {
+                    var level = ParsePrestigeLevel(e.Data);
+                    if (level > 0)
+                    {
+                        PrestigeLevelReported?.Invoke(this, new PrestigeEventArgs(null, level));
+                    }
+                }
                 if (e.Type == GameLogType.Output)
                 {
                     string outputData = outputLogTail + e.Data;
@@ -1447,7 +1467,71 @@ namespace TarkovMonitor
             {
                 return GameLogType.Traces;
             }
+            if (filename.EndsWith("backend.log", StringComparison.OrdinalIgnoreCase)
+                || filename.EndsWith("backend_000.log", StringComparison.OrdinalIgnoreCase))
+            {
+                return GameLogType.Backend;
+            }
             return null;
+        }
+
+        // The backend log records the prestige request ("client/prestige/obtain") with its time;
+        // the notifications log carries the profile's prestige level afterwards.
+        private static readonly Regex PrestigeRequestPattern = new(@"^(?<date>\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)[^|]*\|[^\n]*Request [^\n]*client/prestige/obtain", RegexOptions.Multiline | RegexOptions.Compiled);
+        private static readonly Regex PrestigeLevelPattern = new(@"""PrestigeLevel"":\s*(?<level>\d+)", RegexOptions.Compiled);
+
+        internal static IEnumerable<DateTime> ParsePrestigeEvents(string text)
+        {
+            foreach (Match match in PrestigeRequestPattern.Matches(text))
+            {
+                if (DateTime.TryParseExact(match.Groups["date"].Value, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var time))
+                {
+                    yield return time;
+                }
+            }
+        }
+
+        public static IEnumerable<DateTime> ReadPrestigeEvents(string backendLogFile)
+        {
+            string text;
+            try
+            {
+                using var stream = new FileStream(backendLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                text = reader.ReadToEnd();
+            }
+            catch
+            {
+                return Array.Empty<DateTime>();
+            }
+            return ParsePrestigeEvents(text).ToList();
+        }
+
+        internal static int ParsePrestigeLevel(string text)
+        {
+            var level = 0;
+            foreach (Match match in PrestigeLevelPattern.Matches(text))
+            {
+                if (int.TryParse(match.Groups["level"].Value, out var value) && value > level)
+                {
+                    level = value;
+                }
+            }
+            return level;
+        }
+
+        public static int ReadPrestigeLevel(string notificationsLogFile)
+        {
+            try
+            {
+                using var stream = new FileStream(notificationsLogFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                return ParsePrestigeLevel(reader.ReadToEnd());
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         private void LogMonitor_InitialReadComplete(object? sender, EventArgs e)
@@ -1522,7 +1606,8 @@ namespace TarkovMonitor
 		Application,
 		Notifications,
 		Output,
-		Traces
+		Traces,
+		Backend
 	}
     public enum MessageType
 	{
@@ -1620,6 +1705,17 @@ namespace TarkovMonitor
             Z = float.Parse(z, CultureInfo.InvariantCulture);
         }
     }
+    public class PrestigeEventArgs : EventArgs
+    {
+        public DateTime? Time { get; }
+        public int? Level { get; }
+        public PrestigeEventArgs(DateTime? time, int? level)
+        {
+            Time = time;
+            Level = level;
+        }
+    }
+
     public class RaidExitedEventArgs : EventArgs
 	{
 		public string Map { get; set; }

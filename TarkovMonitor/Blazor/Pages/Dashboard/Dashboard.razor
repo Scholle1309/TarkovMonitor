@@ -75,7 +75,7 @@ else
             <div class="dash-kpi__label">@LocalizationService.GetString("Level")</div>
             @if (hasProgress)
             {
-                <div class="dash-kpi__value">@progress!.playerLevel</div>
+                <div class="dash-kpi__value">@progress!.playerLevel @if (HistoryStart.PrestigeLevel > 0) { <span class="dash-prestige">@string.Format(LocalizationService.GetString("PrestigeBadge"), HistoryStart.PrestigeLevel)</span> }</div>
                 <div class="dash-kpi__hint">@ProfileSummary()</div>
             }
             else
@@ -234,6 +234,10 @@ else
                         <span><i class="@TypeBarClass(type)"></i>@TypeLabel(type) @stats.RaidsByType[type]</span>
                     }
                     <span class="dash-legend__period">
+                        @if (HistoryStart.PrestigeStart != null)
+                        {
+                            <button type="button" class="@("dash-chip" + (mapsPeriodDays == -1 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(-1)">@LocalizationService.GetString("SincePrestige")</button>
+                        }
                         <button type="button" class="@("dash-chip" + (mapsPeriodDays == 30 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(30)">@LocalizationService.GetString("Last30Days")</button>
                         <button type="button" class="@("dash-chip" + (mapsPeriodDays == 0 ? " dash-chip--on" : ""))" @onclick="() => SetPeriod(0)">@LocalizationService.GetString("AllTime")</button>
                     </span>
@@ -362,13 +366,15 @@ else
     private bool apiLoaded;
     private int tasksDone, tasksTotal, tasksAccepted, kappaDone, kappaTotal, hideoutDone, hideoutTotal, hideoutStationsStarted;
     private int questDone, questStarted, questFailed;
-    private int mapsPeriodDays = 30;
+    // -1 = since the last prestige, 0 = all time, otherwise a number of days
+    private int mapsPeriodDays = HistoryStart.PrestigeStart != null ? -1 : 30;
     private System.Threading.Timer? clock;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         Stats.Changed += OnDataChanged;
+        HistoryStart.Changed += OnDataChanged;
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         TarkovTracker.ProgressChanged += OnDataChanged;
         TarkovDev.ApiDataLoaded += OnDataChanged;
@@ -396,6 +402,7 @@ else
     {
         clock?.Dispose();
         Stats.Changed -= OnDataChanged;
+        HistoryStart.Changed -= OnDataChanged;
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
         TarkovTracker.ProgressChanged -= OnDataChanged;
         TarkovDev.ApiDataLoaded -= OnDataChanged;
@@ -447,7 +454,17 @@ else
 
         try
         {
-            stats = Stats.GetDashboardStats(profile.Id, mapsPeriodDays > 0 ? DateTime.UtcNow.AddDays(-mapsPeriodDays) : null);
+            if (mapsPeriodDays == -1 && HistoryStart.PrestigeStart == null)
+            {
+                mapsPeriodDays = 30;
+            }
+            var mapsSince = mapsPeriodDays switch
+            {
+                -1 => HistoryStart.PrestigeStartUtc,
+                > 0 => DateTime.UtcNow.AddDays(-mapsPeriodDays),
+                _ => null,
+            };
+            stats = Stats.GetDashboardStats(profile.Id, mapsSince);
         }
         catch (Exception exception)
         {

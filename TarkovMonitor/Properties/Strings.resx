@@ -846,4 +846,28 @@
   <data name="HistoryStartNone" xml:space="preserve">
     <value>Not set: everything in the logs folder counts</value>
   </data>
+  <data name="Prestige" xml:space="preserve">
+    <value>Prestige</value>
+  </data>
+  <data name="PrestigeHint" xml:space="preserve">
+    <value>A prestige is detected from the game logs. From that moment the task history, the recommendations and manual task decisions start over; raids and flea market sales keep counting. Set the date by hand if it was missed.</value>
+  </data>
+  <data name="PrestigeState" xml:space="preserve">
+    <value>Prestige {0}, since {1}</value>
+  </data>
+  <data name="PrestigeNone" xml:space="preserve">
+    <value>No prestige recorded.</value>
+  </data>
+  <data name="PrestigeDate" xml:space="preserve">
+    <value>Prestiged on</value>
+  </data>
+  <data name="PrestigeNow" xml:space="preserve">
+    <value>Prestiged just now</value>
+  </data>
+  <data name="SincePrestige" xml:space="preserve">
+    <value>Since prestige</value>
+  </data>
+  <data name="PrestigeBadge" xml:space="preserve">
+    <value>Prestige {0}</value>
+  </data>
 </root>

@@ -26,6 +26,18 @@ namespace TarkovMonitor
         /// <summary>Tells views that the visible history changed (for example the start point).</summary>
         public void NotifyChanged() => Changed?.Invoke(this, EventArgs.Empty);
 
+        /// <summary>Drops every manual accepted/hidden decision (a prestige starts the tasks over).</summary>
+        public void ClearOverrides()
+        {
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "DELETE FROM quest_overrides;";
+                command.ExecuteNonQuery();
+            }
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
         /// <summary>True when no quest events have been stored yet (a fresh installation).</summary>
         public bool IsEmpty()
         {
@@ -217,6 +229,25 @@ namespace TarkovMonitor
                 var ordered = details.OrderBy(detail => detail.Date).ToList();
                 foreach (var file in Directory.GetFiles(folder))
                 {
+                    if (file.Contains("backend.log") || file.Contains("backend_000.log"))
+                    {
+                        foreach (var prestige in GameWatcher.ReadPrestigeEvents(file))
+                        {
+                            if ((start == null || prestige >= start) && (result.LatestPrestige == null || prestige > result.LatestPrestige))
+                            {
+                                result.LatestPrestige = prestige;
+                            }
+                        }
+                        continue;
+                    }
+                    if (file.Contains("notifications.log") || file.Contains("notifications_000.log"))
+                    {
+                        var level = GameWatcher.ReadPrestigeLevel(file);
+                        if (level > result.PrestigeLevel)
+                        {
+                            result.PrestigeLevel = level;
+                        }
+                    }
                     if (!file.Contains("notifications.log") && !file.Contains("notifications_000.log"))
                     {
                         continue;
@@ -371,11 +402,11 @@ namespace TarkovMonitor
                     var horizon = command.ExecuteScalar() as string;
                     if (horizon != null)
                     {
-                        history.Horizon = HistoryStart.Clamp(ParseIso(horizon));
+                        history.Horizon = HistoryStart.ClampQuest(ParseIso(horizon));
                     }
-                    else if (HistoryStart.Value != null)
+                    else if (HistoryStart.QuestStart != null)
                     {
-                        history.Horizon = HistoryStart.Value;
+                        history.Horizon = HistoryStart.QuestStart;
                     }
                 }
                 using (var command = connection.CreateCommand())
@@ -383,7 +414,7 @@ namespace TarkovMonitor
                     command.CommandText = "SELECT task_id, status, MAX(event_time) FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode AND event_time >= @start GROUP BY task_id, status;";
                     command.Parameters.AddWithValue("@profile", profileId);
                     command.Parameters.AddWithValue("@mode", sessionMode.ToString());
-                    command.Parameters.AddWithValue("@start", HistoryStart.Value is { } startAt ? Iso(startAt) : "");
+                    command.Parameters.AddWithValue("@start", HistoryStart.QuestStart is { } startAt ? Iso(startAt) : "");
                     using var reader = command.ExecuteReader();
                     while (reader.Read())
                     {
@@ -421,7 +452,7 @@ namespace TarkovMonitor
                 command.CommandText = "SELECT task_id, status, event_time FROM quest_log_events WHERE profile_id = @profile AND session_mode = @mode AND event_time >= @since ORDER BY event_time DESC;";
                 command.Parameters.AddWithValue("@profile", profileId);
                 command.Parameters.AddWithValue("@mode", sessionMode.ToString());
-                command.Parameters.AddWithValue("@since", HistoryStart.Clamp(sinceLocal).ToString("yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                command.Parameters.AddWithValue("@since", HistoryStart.ClampQuest(sinceLocal).ToString("yyyy-MM-dd'T'HH:mm:ss.fff", CultureInfo.InvariantCulture));
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
@@ -558,6 +589,10 @@ namespace TarkovMonitor
         public int Events { get; set; }
         public int NewEvents { get; set; }
         public DateTime? Horizon { get; set; }
+        /// <summary>Most recent prestige found in the backend logs.</summary>
+        public DateTime? LatestPrestige { get; set; }
+        /// <summary>Highest prestige level the game reported in the scanned logs.</summary>
+        public int PrestigeLevel { get; set; }
     }
 
     public class QuestHistoryEntry

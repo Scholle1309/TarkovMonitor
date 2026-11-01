@@ -782,4 +782,28 @@
   <data name="HistoryStartNone" xml:space="preserve">
     <value>Nicht gesetzt: alles im Logs-Ordner zählt</value>
   </data>
+  <data name="Prestige" xml:space="preserve">
+    <value>Prestige</value>
+  </data>
+  <data name="PrestigeHint" xml:space="preserve">
+    <value>Ein Prestige wird aus den Spiel-Logs erkannt. Ab diesem Moment beginnen Quest-Historie, Empfehlungen und manuelle Task-Entscheidungen neu; Raids und Flohmarkt-Verkäufe zählen weiter. Falls es nicht erkannt wurde, das Datum hier von Hand setzen.</value>
+  </data>
+  <data name="PrestigeState" xml:space="preserve">
+    <value>Prestige {0}, seit {1}</value>
+  </data>
+  <data name="PrestigeNone" xml:space="preserve">
+    <value>Kein Prestige erfasst.</value>
+  </data>
+  <data name="PrestigeDate" xml:space="preserve">
+    <value>Prestige am</value>
+  </data>
+  <data name="PrestigeNow" xml:space="preserve">
+    <value>Gerade prestiged</value>
+  </data>
+  <data name="SincePrestige" xml:space="preserve">
+    <value>Seit Prestige</value>
+  </data>
+  <data name="PrestigeBadge" xml:space="preserve">
+    <value>Prestige {0}</value>
+  </data>
 </root>

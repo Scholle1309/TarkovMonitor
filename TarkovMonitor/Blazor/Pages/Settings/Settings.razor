@@ -8,6 +8,7 @@
 @inject LocalizationService LocalizationService
 @inject TimersManager timersManager
 @inject MainBlazorUI WindowHost
+@inject QuestLogStore questLogStore
 @layout AppLayout
 @implements IDisposable
 
@@ -405,9 +406,47 @@
             <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
         </MudPaper>
     </MudItem>
+
+    <MudItem xs="12" lg="6" xl="4">
+        <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
+            <MudText Typo="Typo.h6" Class="d-flex align-center"><MudIcon Icon="@Icons.Material.Filled.MilitaryTech" Class="mr-2" /><span class="tm-card-heading-text">@LocalizationService.GetString("Prestige")</span></MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">@LocalizationService.GetString("PrestigeHint")</MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                @if (HistoryStart.PrestigeStart is { } prestigeAt)
+                {
+                    @string.Format(LocalizationService.GetString("PrestigeState"), HistoryStart.PrestigeLevel, prestigeAt.ToString("g"))
+                }
+                else
+                {
+                    @LocalizationService.GetString("PrestigeNone")
+                }
+            </MudText>
+            <MudDatePicker Label="@LocalizationService.GetString("PrestigeDate")" Date="@PrestigeDate" DateChanged="OnPrestigeDateChanged" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" Class="mb-3" />
+            <MudButton OnClick="PrestigeNow" Variant="Variant.Outlined" Color="Color.Warning" StartIcon="@Icons.Material.Filled.MilitaryTech">@LocalizationService.GetString("PrestigeNow")</MudButton>
+        </MudPaper>
+    </MudItem>
 </MudGrid>
 
 @code {
+    private DateTime? PrestigeDate => HistoryStart.PrestigeStart?.Date;
+
+    private void OnPrestigeDateChanged(DateTime? date)
+    {
+        if (date == null)
+        {
+            HistoryStart.SetPrestige(null, 0);
+            return;
+        }
+        HistoryStart.SetPrestige(date.Value.Date, Math.Max(1, HistoryStart.PrestigeLevel));
+        questLogStore.ClearOverrides();
+    }
+
+    private void PrestigeNow()
+    {
+        HistoryStart.SetPrestige(DateTime.Now, HistoryStart.PrestigeLevel + 1);
+        questLogStore.ClearOverrides();
+    }
+
     private DateTime? HistoryStartDate => HistoryStart.Value?.Date;
 
     private void OnHistoryStartChanged(DateTime? date)
