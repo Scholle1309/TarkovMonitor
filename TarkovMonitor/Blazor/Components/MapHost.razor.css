@@ -41,6 +41,8 @@
     flex: 1;
     min-height: 0;
     position: relative;
+    /* Same navy as around the map, so the margin while the window grows blends in. */
+    background: #132440;
 }
 
 .map-host__frame iframe {

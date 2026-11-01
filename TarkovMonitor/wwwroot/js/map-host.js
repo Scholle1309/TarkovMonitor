@@ -13,24 +13,20 @@ window.mapHost = (() => {
         return true;
     }
 
-    // While the window is dragged to a new size, the embedded page keeps its size
-    // and is only stretched to the current area with a CSS transform on every frame.
-    // That is smooth and cheap; the page reflows once, when the drag ends.
+    // While the window is dragged to a new size, the embedded page keeps its size and
+    // scale and stays centred in the current area; nothing is stretched or reflowed.
+    // Leaflet keeps the map centre when it is resized at the end, so the map content
+    // stays where it was and only the visible part grows or shrinks.
     const resizing = { frame: null, width: 0, height: 0 };
 
-    function stretchFrame() {
+    function centreFrame() {
         const frame = resizing.frame;
-        if (!frame || !resizing.width || !resizing.height) {
+        if (!frame) {
             return;
         }
         const area = frame.parentElement;
-        frame.style.transform = "scale(" + (area.clientWidth / resizing.width) + ", " + (area.clientHeight / resizing.height) + ")";
-    }
-
-    // Resize events come at most once per frame, so the stretch is applied right away;
-    // waiting for the next animation frame let the map trail the window edge.
-    function onResizeFrame() {
-        stretchFrame();
+        frame.style.left = Math.round((area.clientWidth - resizing.width) / 2) + "px";
+        frame.style.top = Math.round((area.clientHeight - resizing.height) / 2) + "px";
     }
 
     return {
@@ -44,23 +40,23 @@ window.mapHost = (() => {
                 resizing.frame = frame;
                 resizing.width = frame.clientWidth;
                 resizing.height = frame.clientHeight;
+                frame.parentElement.style.overflow = "hidden";
                 frame.style.position = "absolute";
-                frame.style.left = "0";
-                frame.style.top = "0";
                 frame.style.width = resizing.width + "px";
                 frame.style.height = resizing.height + "px";
-                frame.style.transformOrigin = "0 0";
-                window.addEventListener("resize", onResizeFrame);
+                centreFrame();
+                frame.contentWindow && frame.contentWindow.postMessage({ type: "tarkov-monitor-resizing", on: true }, targetOrigin);
+                window.addEventListener("resize", centreFrame);
             } else {
-                window.removeEventListener("resize", onResizeFrame);
+                window.removeEventListener("resize", centreFrame);
                 resizing.frame = null;
+                frame.parentElement.style.overflow = "";
                 frame.style.position = "";
                 frame.style.left = "";
                 frame.style.top = "";
                 frame.style.width = "";
                 frame.style.height = "";
-                frame.style.transform = "";
-                frame.style.transformOrigin = "";
+                frame.contentWindow && frame.contentWindow.postMessage({ type: "tarkov-monitor-resizing", on: false }, targetOrigin);
             }
         },
         // Highlight the markers of a task on the map (empty text clears the highlight).
