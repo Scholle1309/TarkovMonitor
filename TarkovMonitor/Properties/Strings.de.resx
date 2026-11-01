@@ -1164,7 +1164,7 @@
     <value>Diese Karte</value>
   </data>
   <data name="BringIntoRaid" xml:space="preserve">
-    <value>In diesen Raid mitnehmen</value>
+    <value>Mitnehmen</value>
   </data>
   <data name="NeedKeys" xml:space="preserve">
     <value>Schlüssel</value>
@@ -1183,5 +1183,11 @@
   </data>
   <data name="NeedOneOf" xml:space="preserve">
     <value>1 von {0} Items</value>
+  </data>
+  <data name="ShowTakeAlongOnMap" xml:space="preserve">
+    <value>Schlüssel und Items zum Mitnehmen anzeigen</value>
+  </data>
+  <data name="ShowFindInRaidOnMap" xml:space="preserve">
+    <value>Im Raid zu findende Items anzeigen</value>
   </data>
 </root>

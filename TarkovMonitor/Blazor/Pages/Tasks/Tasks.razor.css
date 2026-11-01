@@ -806,7 +806,7 @@
     align-items: center;
     gap: 5px;
     height: 20px;
-    padding: 0 8px 0 3px;
+    padding: 0 8px 0 6px;
     border-radius: 10px;
     background: rgba(79, 143, 239, 0.12);
     border: 1px solid rgba(79, 143, 239, 0.3);
@@ -821,24 +821,13 @@
     padding-left: 6px;
 }
 
-.task-need__icons {
-    display: inline-flex;
-    align-items: center;
-}
-
-.task-need__icons .task-need__icon + .task-need__icon {
-    margin-left: -6px;
-}
-
-.task-need__icon {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-    border-radius: 3px;
-}
-
-::deep .task-need__key {
+::deep .task-need__kind {
     font-size: 13px !important;
+    color: #8fb8f5;
+}
+
+.task-need--key ::deep .task-need__kind,
+::deep .task-need--key .task-need__kind {
     color: #ffb300;
 }
 

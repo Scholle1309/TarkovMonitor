@@ -345,21 +345,14 @@
     padding: 3px 0;
 }
 
-.map-need__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+::deep .map-need__kind {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.06);
+    font-size: 16px !important;
+    color: #8fb8f5;
 }
 
-.map-need__icon img {
-    max-width: 26px;
-    max-height: 26px;
-    object-fit: contain;
+::deep .map-need__kind--key {
+    color: #ffb300;
 }
 
 .map-need__text {
@@ -387,6 +380,8 @@
 
 .map-need__count {
     flex-shrink: 0;
+    min-width: 28px;
+    text-align: right;
     color: #8fb8f5;
     font-size: var(--tm-fs-md);
     font-variant-numeric: tabular-nums;

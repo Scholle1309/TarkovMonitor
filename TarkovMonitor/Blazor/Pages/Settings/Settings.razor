@@ -350,6 +350,8 @@
             <div class="tm-settings-section">@LocalizationService.GetString("MapTasksSection")</div>
             <MudSwitch @bind-Value="@MapHideUnacceptedTasksSwitch" Label="@LocalizationService.GetString("HideUnacceptedTasksOnMap")" Color="Color.Info" />
             <MudSwitch @bind-Value="@MapStrictAcceptedTasksSwitch" Label="@LocalizationService.GetString("StrictAcceptedTasksOnMap")" Color="Color.Info" />
+            <MudSwitch @bind-Value="@MapShowTakeAlongSwitch" Label="@LocalizationService.GetString("ShowTakeAlongOnMap")" Color="Color.Info" />
+            <MudSwitch @bind-Value="@MapShowFindInRaidSwitch" Label="@LocalizationService.GetString("ShowFindInRaidOnMap")" Color="Color.Info" />
             <div class="tm-settings-section">@LocalizationService.GetString("Other")</div>
             <MudSwitch @bind-Value="@AutomaticallyDeleteScreenshotsAfterRaid" Label="@LocalizationService.GetString("AutomaticallyDeleteScreenshotsAfterRaid")" Color="Color.Info" />
             <MudSelect @bind-Value="@MapOverrideSelect" T="string" Label="@LocalizationService.GetString("OfflineMap")" RelativeWidth="DropdownWidth.Adaptive" ShrinkLabel="true" HelperText="@LocalizationService.GetString("MapToUseForOfflineRaids")" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list" xs="3">
@@ -1752,6 +1754,24 @@
         set
         {
             Properties.Settings.Default.remoteId = value;
+            Properties.Settings.Default.Save();
+        }
+    }
+    public bool MapShowTakeAlongSwitch
+    {
+        get => Properties.Settings.Default.mapShowTakeAlong;
+        set
+        {
+            Properties.Settings.Default.mapShowTakeAlong = value;
+            Properties.Settings.Default.Save();
+        }
+    }
+    public bool MapShowFindInRaidSwitch
+    {
+        get => Properties.Settings.Default.mapShowFindInRaid;
+        set
+        {
+            Properties.Settings.Default.mapShowFindInRaid = value;
             Properties.Settings.Default.Save();
         }
     }

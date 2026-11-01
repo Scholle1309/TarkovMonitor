@@ -1017,3 +1017,14 @@ html body *::-webkit-scrollbar-corner {
     height: 20px;
     object-fit: contain;
 }
+
+.mud-tooltip .tm-tip__key--item {
+    color: #8fb8f5;
+}
+
+.mud-tooltip .tm-tip__note {
+    margin-top: 3px;
+    color: #ffcf6b;
+    font-weight: 400;
+    text-align: left;
+}

@@ -842,15 +842,49 @@ namespace TarkovMonitor
                 Math.Clamp((int)(width * scale), MinimumWindowWidth, area.Width),
                 Math.Clamp((int)(height * scale), MinimumWindowHeight, area.Height));
             ClientSize = size;
-            // Program.cs centred the window at its designer size; centre it again
-            // at the final size so a larger window does not sit off to one side.
+            // Back where it was last time (also on a second screen), else centred
+            // on the start screen at the final size.
+            var center = TryGetSavedCenter(out var saved) && area.Contains(saved)
+                ? saved
+                : new System.Drawing.Point(area.Left + area.Width / 2, area.Top + area.Height / 2);
             Location = new System.Drawing.Point(
-                area.Left + Math.Max(0, (area.Width - Width) / 2),
-                area.Top + Math.Max(0, (area.Height - Height) / 2));
+                Math.Clamp(center.X - Width / 2, area.Left, Math.Max(area.Left, area.Right - Width)),
+                Math.Clamp(center.Y - Height / 2, area.Top, Math.Max(area.Top, area.Bottom - Height)));
             if (Properties.Settings.Default.windowMaximized)
             {
                 WindowState = FormWindowState.Maximized;
             }
+        }
+
+        /// <summary>
+        /// The screen the window was on last time, while that screen is still connected;
+        /// otherwise the primary screen. The splash and the first placement use it too.
+        /// </summary>
+        internal static Screen StartScreen()
+        {
+            if (TryGetSavedCenter(out var center))
+            {
+                var screen = Screen.AllScreens.FirstOrDefault(candidate => candidate.WorkingArea.Contains(center));
+                if (screen != null)
+                {
+                    return screen;
+                }
+            }
+            return Screen.PrimaryScreen ?? Screen.AllScreens.First();
+        }
+
+        private static bool TryGetSavedCenter(out System.Drawing.Point center)
+        {
+            center = default;
+            var parts = (Properties.Settings.Default.windowCenter ?? "").Split(',');
+            if (parts.Length != 2
+                || !int.TryParse(parts[0], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var x)
+                || !int.TryParse(parts[1], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var y))
+            {
+                return false;
+            }
+            center = new System.Drawing.Point(x, y);
+            return true;
         }
 
         private void SaveWindowSize()
@@ -859,6 +893,12 @@ namespace TarkovMonitor
             {
                 var scale = DeviceDpi / 96f;
                 var maximized = WindowState == FormWindowState.Maximized;
+                if (WindowState != FormWindowState.Minimized)
+                {
+                    var bounds = maximized ? RestoreBounds : Bounds;
+                    Properties.Settings.Default.windowCenter = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                        $"{bounds.Left + bounds.Width / 2},{bounds.Top + bounds.Height / 2}");
+                }
                 var client = maximized ? RestoreBounds.Size - (Size - ClientSize) : ClientSize;
                 if (client.Width >= MinimumWindowWidth && client.Height >= MinimumWindowHeight)
                 {
@@ -1047,6 +1087,8 @@ namespace TarkovMonitor
         {
             base.OnResizeEnd(e);
             _ = SetMapFrozen(false);
+            // Also after moving, so the screen is remembered even without a clean exit.
+            SaveWindowSize();
         }
 
         private async Task SetMapFrozen(bool frozen)

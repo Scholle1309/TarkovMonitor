@@ -169,6 +169,66 @@ namespace TarkovMonitor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool mapShowTakeAlong {
+            get {
+                return ((bool)(this["mapShowTakeAlong"]));
+            }
+            set {
+                this["mapShowTakeAlong"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool mapTakeAlongCollapsed {
+            get {
+                return ((bool)(this["mapTakeAlongCollapsed"]));
+            }
+            set {
+                this["mapTakeAlongCollapsed"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool mapShowFindInRaid {
+            get {
+                return ((bool)(this["mapShowFindInRaid"]));
+            }
+            set {
+                this["mapShowFindInRaid"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool mapFindInRaidCollapsed {
+            get {
+                return ((bool)(this["mapFindInRaidCollapsed"]));
+            }
+            set {
+                this["mapFindInRaidCollapsed"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string windowCenter {
+            get {
+                return ((string)(this["windowCenter"]));
+            }
+            set {
+                this["windowCenter"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
         public int windowWidth {
             get {

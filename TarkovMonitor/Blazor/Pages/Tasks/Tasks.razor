@@ -199,11 +199,11 @@
                                 <TooltipContent>
                                     @foreach (var need in taskNeeds)
                                     {
-                                        <div class="tm-tip__text">@if (need.Kind == QuestNeedKind.Key) { <MudIcon Icon="@Icons.Material.Filled.VpnKey" Class="tm-tip__key" /> }@QuestNeeds.Label(need, LocalizationService.GetString)@(need.Count > 1 ? $" ×{need.Count}" : "")@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                        <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
                                     }
                                 </TooltipContent>
                                 <ChildContent>
-                                    <MudIcon Icon="@(taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? Icons.Material.Outlined.VpnKey : Icons.Material.Outlined.Backpack)" Class="task-row__needs" />
+                                    <MudIcon Icon="@QuestNeeds.Icon(taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? QuestNeedKind.Key : taskNeeds[0].Kind)" Class="task-row__needs" />
                                 </ChildContent>
                             </MudTooltip>
                         }
@@ -405,7 +405,7 @@
                                         <div class="task-objective__needs">
                                             @foreach (var need in needs)
                                             {
-                                                <MudTooltip Disabled="@(need.Items.Count < 2)">
+                                                <MudTooltip>
                                                     <TooltipContent>
                                                         @foreach (var option in need.Items)
                                                         {
@@ -417,28 +417,22 @@
                                                                 <span>@option.name</span>
                                                             </div>
                                                         }
+                                                        @if (need.FoundInRaid)
+                                                        {
+                                                            <div class="tm-tip__note">@LocalizationService.GetString("FoundInRaid")</div>
+                                                        }
                                                     </TooltipContent>
                                                     <ChildContent>
                                                         <span class="@("task-need task-need--" + need.Kind.ToString().ToLowerInvariant())">
-                                                            @if (need.Kind == QuestNeedKind.Key)
-                                                            {
-                                                                <MudIcon Icon="@Icons.Material.Filled.VpnKey" Class="task-need__key" />
-                                                            }
-                                                            @* Up to three icons, overlapping, for alternatives. *@
-                                                            <span class="task-need__icons">
-                                                                @foreach (var option in need.Items.Where(candidate => !string.IsNullOrEmpty(candidate.iconLink)).Take(3))
-                                                                {
-                                                                    <img class="task-need__icon" src="@option.iconLink" alt="" loading="lazy" />
-                                                                }
-                                                            </span>
-                                                            <span>@QuestNeeds.Label(need, LocalizationService.GetString)</span>
+                                                            <MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="task-need__kind" />
                                                             @if (need.Count > 1)
                                                             {
-                                                                <span class="task-need__count">×@need.Count</span>
+                                                                <span class="task-need__count">@(need.Count)×</span>
                                                             }
+                                                            <span>@QuestNeeds.Label(need, LocalizationService.GetString)</span>
                                                             @if (need.FoundInRaid)
                                                             {
-                                                                <span class="task-need__fir" title="@LocalizationService.GetString("FoundInRaid")">FIR</span>
+                                                                <span class="task-need__fir">FIR</span>
                                                             }
                                                         </span>
                                                     </ChildContent>

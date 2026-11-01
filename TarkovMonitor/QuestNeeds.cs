@@ -25,6 +25,15 @@ namespace TarkovMonitor
     /// </summary>
     public static class QuestNeeds
     {
+        /// <summary>The symbol for a kind of need (Material icon), so needs read at a glance without item pictures.</summary>
+        public static string Icon(QuestNeedKind kind) => kind switch
+        {
+            QuestNeedKind.Key => MudBlazor.Icons.Material.Filled.VpnKey,
+            QuestNeedKind.Place => MudBlazor.Icons.Material.Filled.MoveToInbox,
+            QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.Backpack,
+            _ => MudBlazor.Icons.Material.Filled.Build,
+        };
+
         /// <summary>Keys and items one objective needs, keys first.</summary>
         public static List<QuestNeed> Of(TarkovDev.TaskObjective objective)
         {

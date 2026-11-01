@@ -83,7 +83,8 @@ namespace TarkovMonitor
 			{
 				ShowInTaskbar = false
 			};
-			var primaryScreen = Screen.PrimaryScreen ?? Screen.AllScreens.FirstOrDefault();
+			// The screen the window was on last time (see MainBlazorUI.StartScreen).
+			var primaryScreen = MainBlazorUI.StartScreen();
 			if (primaryScreen is not null)
 			{
 				mainWindow.StartPosition = FormStartPosition.Manual;
@@ -113,7 +114,7 @@ namespace TarkovMonitor
 						mainWindow.ReleaseSplashGate();
 					};
 					startupSplash.FormClosed += (_, _) => startupFallback.Dispose();
-					var startupWorkArea = Screen.PrimaryScreen!.WorkingArea;
+					var startupWorkArea = MainBlazorUI.StartScreen().WorkingArea;
 					var startupLeft = startupWorkArea.Left + Math.Max(0, (startupWorkArea.Width - startupSplash.Width) / 2);
 					var startupTop = startupWorkArea.Top + Math.Max(0, (startupWorkArea.Height - startupSplash.Height) / 2);
 					startupSplash.SetStartupLocation(new Point(startupLeft, startupTop));

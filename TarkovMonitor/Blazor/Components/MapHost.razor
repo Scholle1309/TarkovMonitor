@@ -138,51 +138,76 @@
                     {
                         <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoTasksOnThisMap")</MudText>
                     }
-                    @* What to take into a raid on this map: keys, items to stash or mark, items to find in raid. *@
-                    @if (raidNeeds.Count > 0)
+                    @* Two blocks: what to take into a raid on this map, and what to look for in it.
+                       Each folds (remembered) and can be switched off in the settings. *@
+                    @foreach (var block in NeedBlocks)
                     {
-                        <div class="map-needs">
-                            <button type="button" class="map-needs__head" @onclick="() => raidNeedsOpen = !raidNeedsOpen">
-                                <MudIcon Icon="@Icons.Material.Filled.Backpack" Class="map-needs__head-icon" />
-                                <span class="map-needs__title">@LocalizationService.GetString("BringIntoRaid")</span>
-                                <span class="map-tasks__count">@raidNeeds.Count</span>
-                                <MudIcon Icon="@(raidNeedsOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="map-needs__chevron" />
-                            </button>
-                            @if (raidNeedsOpen)
-                            {
-                                @foreach (var group in new[] { QuestNeedKind.Key, QuestNeedKind.Place, QuestNeedKind.HandOver })
+                        var blockEntries = raidNeeds.Where(entry => block.Kinds.Contains(entry.Need.Kind)).ToList();
+                        @if (blockEntries.Count > 0 && Setting(block.ShowSetting))
+                        {
+                            var open = !Setting(block.CollapsedSetting);
+                            <div class="map-needs">
+                                <button type="button" class="map-needs__head" @onclick="() => ToggleNeedBlock(block)">
+                                    <MudIcon Icon="@block.Icon" Class="map-needs__head-icon" />
+                                    <span class="map-needs__title">@LocalizationService.GetString(block.Title)</span>
+                                    <span class="map-tasks__count">@blockEntries.Count</span>
+                                    <MudIcon Icon="@(open ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Class="map-needs__chevron" />
+                                </button>
+                                @if (open)
                                 {
-                                    var entries = raidNeeds.Where(entry => entry.Need.Kind == group).ToList();
-                                    @if (entries.Count > 0)
+                                    @foreach (var group in block.Kinds)
                                     {
-                                        <div class="map-needs__section">@NeedSectionLabel(group)</div>
-                                        @foreach (var entry in entries)
+                                        var entries = blockEntries.Where(entry => entry.Need.Kind == group).ToList();
+                                        @if (entries.Count > 0)
                                         {
-                                            <div class="map-need">
-                                                <span class="map-need__icon">
-                                                    @if (!string.IsNullOrEmpty(entry.Need.Items[0].iconLink))
-                                                    {
-                                                        <img src="@entry.Need.Items[0].iconLink" alt="" loading="lazy" />
-                                                    }
-                                                </span>
-                                                <span class="map-need__text">
-                                                    <span class="map-need__name">@QuestNeeds.Label(entry.Need, LocalizationService.GetString)</span>
-                                                    <small>@string.Join(", ", entry.Tasks)</small>
-                                                </span>
-                                                @if (entry.Need.FoundInRaid)
-                                                {
-                                                    <span class="map-need__fir" title="@LocalizationService.GetString("FoundInRaid")">FIR</span>
-                                                }
-                                                @if (entry.Need.Kind != QuestNeedKind.Key)
-                                                {
-                                                    <span class="map-need__count">@entry.Remaining</span>
-                                                }
-                                            </div>
+                                            @if (block.Kinds.Length > 1)
+                                            {
+                                                <div class="map-needs__section">@NeedSectionLabel(group)</div>
+                                            }
+                                            @foreach (var entry in entries)
+                                            {
+                                                @* Hover shows each item with its picture. *@
+                                                <MudTooltip Inline="false" Placement="Placement.Left">
+                                                    <TooltipContent>
+                                                        @foreach (var option in entry.Need.Items)
+                                                        {
+                                                            <div class="tm-tip__item">
+                                                                @if (!string.IsNullOrEmpty(option.iconLink))
+                                                                {
+                                                                    <img src="@option.iconLink" alt="" loading="lazy" />
+                                                                }
+                                                                <span>@option.name</span>
+                                                            </div>
+                                                        }
+                                                        @if (entry.Need.FoundInRaid)
+                                                        {
+                                                            <div class="tm-tip__note">@LocalizationService.GetString("FoundInRaid")</div>
+                                                        }
+                                                    </TooltipContent>
+                                                    <ChildContent>
+                                                        <div class="map-need">
+                                                            <MudIcon Icon="@QuestNeeds.Icon(entry.Need.Kind)" Class="@("map-need__kind map-need__kind--" + entry.Need.Kind.ToString().ToLowerInvariant())" />
+                                                            <span class="map-need__text">
+                                                                <span class="map-need__name">@QuestNeeds.Label(entry.Need, LocalizationService.GetString)</span>
+                                                                <small>@string.Join(", ", entry.Tasks)</small>
+                                                            </span>
+                                                            @if (entry.Need.Kind != QuestNeedKind.Key)
+                                                            {
+                                                                <span class="map-need__count">@(entry.Remaining)×</span>
+                                                            }
+                                                            @if (entry.Need.FoundInRaid)
+                                                            {
+                                                                <span class="map-need__fir">FIR</span>
+                                                            }
+                                                        </div>
+                                                    </ChildContent>
+                                                </MudTooltip>
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        </div>
+                            </div>
+                        }
                     }
                     @foreach (var view in mapTasks)
                     {
@@ -294,7 +319,29 @@
     // Keys and items for the accepted tasks on this map; open objectives only, remaining counts.
     private sealed record RaidNeed(QuestNeed Need, int Remaining, List<string> Tasks);
     private List<RaidNeed> raidNeeds = new();
-    private bool raidNeedsOpen = true;
+    // The two blocks of the panel; open or folded is remembered, each can be switched off in the settings.
+    private sealed record NeedBlock(string Title, string Icon, QuestNeedKind[] Kinds, string ShowSetting, string CollapsedSetting);
+    private static readonly NeedBlock[] NeedBlocks =
+    {
+        new("BringIntoRaid", Icons.Material.Filled.Luggage, new[] { QuestNeedKind.Key, QuestNeedKind.Place }, nameof(Properties.Settings.Default.mapShowTakeAlong), nameof(Properties.Settings.Default.mapTakeAlongCollapsed)),
+        new("NeedFindInRaid", Icons.Material.Filled.Search, new[] { QuestNeedKind.HandOver }, nameof(Properties.Settings.Default.mapShowFindInRaid), nameof(Properties.Settings.Default.mapFindInRaidCollapsed)),
+    };
+
+    private static bool Setting(string name) => Properties.Settings.Default[name] is true;
+
+    private void ToggleNeedBlock(NeedBlock block)
+    {
+        Properties.Settings.Default[block.CollapsedSetting] = !Setting(block.CollapsedSetting);
+        Properties.Settings.Default.Save();
+    }
+
+    private void OnSettingChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (NeedBlocks.Any(block => block.ShowSetting == e.PropertyName || block.CollapsedSetting == e.PropertyName))
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
 
     private string NeedSectionLabel(QuestNeedKind kind) => kind switch
     {
@@ -382,6 +429,7 @@
         TarkovTracker.ProgressRetrieved += OnProgressRetrieved;
         TarkovTracker.ProgressChanged += OnQuestDataChanged;
         TarkovTracker.ObjectiveProgressChanged += OnQuestDataChanged;
+        Properties.Settings.Default.PropertyChanged += OnSettingChanged;
         MapsService.PositionUpdated += OnPositionUpdated;
         MapsService.HighlightRequested += OnHighlightRequested;
         eft.GameStarted += OnQuestDataChanged;
@@ -886,6 +934,7 @@
         TarkovTracker.ProgressRetrieved -= OnProgressRetrieved;
         TarkovTracker.ProgressChanged -= OnQuestDataChanged;
         TarkovTracker.ObjectiveProgressChanged -= OnQuestDataChanged;
+        Properties.Settings.Default.PropertyChanged -= OnSettingChanged;
         MapsService.PositionUpdated -= OnPositionUpdated;
         MapsService.HighlightRequested -= OnHighlightRequested;
         eft.GameStarted -= OnQuestDataChanged;
