@@ -73,6 +73,11 @@ namespace TarkovMonitor
                 var culture = new CultureInfo(cultureName);
                 CultureInfo.CurrentCulture = culture;
                 CultureInfo.CurrentUICulture = culture;
+                // Blazor renders and background callbacks do not all run on the
+                // thread that set the language; without a process-wide default
+                // they fall back to the Windows language.
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
                 
                 Properties.Settings.Default.language = cultureName;
                 Properties.Settings.Default.Save();

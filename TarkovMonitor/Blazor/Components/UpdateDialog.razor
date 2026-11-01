@@ -1,0 +1,97 @@
+@using TarkovMonitor.Updating
+@implements IDisposable
+@inject LocalizationService LocalizationService
+
+<MudDialog Class="tm-update-dialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Class="d-flex align-center tm-update-title">
+            <MudIcon Icon="@Icons.Material.Filled.SystemUpdateAlt" Class="mr-2" />
+            @string.Format(LocalizationService.GetString("UpdatePopupTitle"), Offer.Version)
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="tm-update-versions">
+            @LocalizationService.GetString("UpdateInstalledVersion") <b>@(Offer.Release.InstalledVersion?.ToString() ?? "?")</b>
+            <span class="mx-2">&rarr;</span>
+            @LocalizationService.GetString("UpdateNewVersion") <b>@Offer.Version</b>
+        </MudText>
+        <div class="tm-update-notes">
+            @foreach (var note in Offer.Release.Notes)
+            {
+                <div class="tm-update-release">
+                    <div class="tm-update-release__title">
+                        <span>@note.Version</span>
+                        @if (note.PublishedUtc is DateTime published)
+                        {
+                            <span class="tm-update-release__date">@published.ToLocalTime().ToString("d")</span>
+                        }
+                    </div>
+                    @if (string.IsNullOrWhiteSpace(note.Body))
+                    {
+                        <p class="tm-update-release__empty">@LocalizationService.GetString("UpdateNoNotes")</p>
+                    }
+                    else
+                    {
+                        <div class="tm-update-release__body">@((MarkupString)ReleaseNotes.ToHtml(note.Body))</div>
+                    }
+                </div>
+            }
+        </div>
+        @if (Offer.Busy || !string.IsNullOrEmpty(Offer.Status))
+        {
+            <div class="tm-update-progress">
+                @if (Offer.Busy)
+                {
+                    <MudProgressLinear Value="@(Offer.Percent ?? 0)" Indeterminate="@(Offer.Percent == null)" Rounded="true" Class="mb-1 tm-update-bar" />
+                }
+                <MudText Typo="Typo.caption">@Offer.Status</MudText>
+            </div>
+        }
+        else if (Offer.CanInstall)
+        {
+            <MudText Typo="Typo.caption" Class="tm-update-hint">@LocalizationService.GetString("UpdateRaidHint")</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (Offer.Busy)
+        {
+            <MudButton OnClick="Cancel" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Cancel" Class="tm-update-secondary">@LocalizationService.GetString("Cancel")</MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="Later" Variant="Variant.Text" Class="tm-update-secondary">@LocalizationService.GetString("UpdateLater")</MudButton>
+            @if (Offer.CanInstall)
+            {
+                <MudButton OnClick="Install" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Update" Class="tm-update-primary">@LocalizationService.GetString("UpdateNow")</MudButton>
+            }
+            else
+            {
+                <MudButton Href="@Offer.Release.Uri.ToString()" Target="_blank" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.OpenInNew" Class="tm-update-primary">@LocalizationService.GetString("UpdateViewRelease")</MudButton>
+            }
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public UpdateOffer Offer { get; set; } = default!;
+    [Parameter] public UpdateCoordinator Coordinator { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Offer.Changed += Offer_Changed;
+    }
+
+    private void Offer_Changed(object? sender, EventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    private void Install() => Coordinator.Install();
+
+    private void Cancel() => Coordinator.CancelInstall();
+
+    private void Later() => MudDialog.Close();
+
+    public void Dispose()
+    {
+        Offer.Changed -= Offer_Changed;
+    }
+}

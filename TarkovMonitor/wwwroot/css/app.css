@@ -818,3 +818,70 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     .tracker-key-action-grid { grid-template-columns: 1fr; }
     .tracker-key-action { min-height: auto; }
 }
+
+/* Update popup: the same surface as the TarkovTracker dialogs, gold accents. */
+.mud-dialog.tm-update-dialog {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(194, 178, 126, 0.72);
+    border-radius: 14px;
+    background: #1b1c1f;
+    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.42);
+}
+
+.mud-dialog.tm-update-dialog::before {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #8f825f, #c2b27e 50%, #f8f2df);
+    content: "";
+    pointer-events: none;
+}
+
+.mud-dialog.tm-update-dialog .mud-dialog-title {
+    padding: 13px 18px 11px;
+    border-bottom: 1px solid rgba(194, 178, 126, 0.28);
+    background: linear-gradient(180deg, rgba(194, 178, 126, 0.09), rgba(255, 255, 255, 0.015));
+}
+
+.mud-dialog.tm-update-dialog .tm-update-title,
+.mud-dialog.tm-update-dialog .tm-update-title .mud-icon-root {
+    color: #c2b27e;
+}
+
+.mud-dialog.tm-update-dialog .mud-dialog-content {
+    padding: 14px 18px 12px;
+}
+
+.mud-dialog.tm-update-dialog .mud-dialog-actions {
+    min-height: 52px;
+    padding: 8px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(0, 0, 0, 0.16);
+}
+
+.mud-dialog.tm-update-dialog .tm-update-primary {
+    border: 1px solid rgba(194, 178, 126, 0.72);
+    color: #f8f2df;
+    background: rgba(194, 178, 126, 0.14);
+}
+
+.mud-dialog.tm-update-dialog .tm-update-primary:hover {
+    border-color: #c2b27e;
+    background: rgba(194, 178, 126, 0.24);
+}
+
+.mud-dialog.tm-update-dialog .tm-update-secondary {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.mud-dialog.tm-update-dialog .tm-update-bar {
+    background-color: rgba(194, 178, 126, 0.16);
+}
+
+.mud-dialog.tm-update-dialog .tm-update-bar .mud-progress-linear-bar {
+    background-color: #c2b27e;
+}

@@ -70,6 +70,8 @@ namespace TarkovMonitor
         private readonly GameWatcher eft;
         private readonly DiagnosticsService diagnostics;
         private readonly MessageLog messageLog;
+        private Updating.UpdateCoordinator? updateCoordinator;
+        internal Updating.UpdateCoordinator? Updates => updateCoordinator;
         private readonly LogRepository logRepository;
         private readonly GroupManager groupManager;
         private readonly TimersManager timersManager;
@@ -614,6 +616,11 @@ namespace TarkovMonitor
             var serviceProvider = services.BuildServiceProvider();
             blazorWebView1.Services = serviceProvider;
             localizationService = serviceProvider.GetRequiredService<LocalizationService>();
+            updateCoordinator = new Updating.UpdateCoordinator(
+                messageLog,
+                () => BeginInvoke(new Action(Application.Exit)),
+                key => localizationService.GetString(key),
+                () => inRaid);
             blazorWebView1.RootComponents.Add<TarkovMonitor.Blazor.App>("#app");
             //services.AddSingleton<TarkovDevRepository>(tarkovdevRepository);
             // Add event watchers
@@ -1327,6 +1334,9 @@ namespace TarkovMonitor
 
             try
             {
+                // A completed update leaves its download behind, and the
+                // launcher that applied it may still be exiting.
+                updateCoordinator?.CleanStaleStaging();
                 UpdateCheck.CheckForNewVersion();
             }
             catch (Exception ex)
@@ -1407,7 +1417,16 @@ namespace TarkovMonitor
 
         private void UpdateCheck_NewVersion(object? sender, NewVersionEventArgs e)
         {
-            messageLog.AddMessage($"A new Tarkov Monitor version is available ({e.Version}). Click to open the download page, and update before reporting a bug.", null, e.Uri.ToString());
+            updateCoordinator?.Announce(e);
+        }
+
+        /// <summary>
+        /// Runs the update check on demand from the settings page. A new
+        /// version is reported through the usual notification.
+        /// </summary>
+        public Task<UpdateCheckResult> CheckForUpdates()
+        {
+            return UpdateCheck.CheckForNewVersionAsync();
         }
 
         private async void Eft_MapLoading(object? sender, EventArgs e)

@@ -11,6 +11,7 @@
 @inject NavigationManager NavigationManager
 @inject TimersManager TimersManager
 @inject MapsService MapsService
+@inject IDialogService DialogService
 
 <div style="width: 100%; height: 100%" class="tarkov-dev-bg">
 	<MudLayout>
@@ -156,6 +157,10 @@
 		TimersManager.RaidActiveChanged += OnFloatingTimerStateChanged;
 		TimersManager.FloatingPanelSettingChanged += OnFloatingTimerStateChanged;
 		MapsService.NavigationRequested += OnMapsNavigationRequested;
+		if (WindowHost.Updates != null)
+		{
+			WindowHost.Updates.PopupRequested += OnUpdatePopupRequested;
+		}
 		isWindowMaximized = WindowHost.IsMaximized;
 		timeInRaid = TimersManager.TimeInRaid;
 		runThroughRemaining = TimersManager.RunThroughRemaining;
@@ -167,10 +172,46 @@
 		if (firstRender)
 		{
 			WindowHost.MarkUiReady();
+			// An update found before the layout existed is shown now.
+			await ShowUpdatePopup();
 		}
 
 		if (ShowFloatingTimerPanel)
 			await JSRuntime.InvokeVoidAsync("floatingTimerPanel.initialize", "floating-timer-panel");
+	}
+
+	private bool updatePopupOpen;
+
+	private void OnUpdatePopupRequested(object? sender, EventArgs e)
+	{
+		_ = InvokeAsync(ShowUpdatePopup);
+	}
+
+	private async Task ShowUpdatePopup()
+	{
+		var coordinator = WindowHost.Updates;
+		var offer = coordinator?.TakePendingPopup();
+		if (coordinator == null || offer == null || updatePopupOpen)
+		{
+			return;
+		}
+
+		updatePopupOpen = true;
+		try
+		{
+			var parameters = new DialogParameters<TarkovMonitor.Blazor.Components.UpdateDialog>
+			{
+				{ dialog => dialog.Offer, offer },
+				{ dialog => dialog.Coordinator, coordinator },
+			};
+			var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseOnEscapeKey = true, BackdropClick = false };
+			var dialog = await DialogService.ShowAsync<TarkovMonitor.Blazor.Components.UpdateDialog>(null, parameters, options);
+			await dialog.Result;
+		}
+		finally
+		{
+			updatePopupOpen = false;
+		}
 	}
 
 	public void SetTitle(string value) {
@@ -350,6 +391,10 @@
 
 	public void Dispose()
 	{
+		if (WindowHost.Updates != null)
+		{
+			WindowHost.Updates.PopupRequested -= OnUpdatePopupRequested;
+		}
 		LocalizationService.LanguageChanged -= OnLanguageChanged;
 		WindowHost.WindowStateChanged -= OnWindowStateChanged;
 		MessageLog.newMessage -= OnMessageAdded;

@@ -857,4 +857,88 @@
   <data name="Releases" xml:space="preserve">
     <value>Releases auf GitHub</value>
   </data>
+  <data name="UpdateAvailableInstall" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist verfügbar. Installiere es, bevor du einen Fehler meldest.</value>
+  </data>
+  <data name="UpdateAvailableDownload" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist verfügbar. Lade es herunter, bevor du einen Fehler meldest.</value>
+  </data>
+  <data name="UpdateViewRelease" xml:space="preserve">
+    <value>Release ansehen</value>
+  </data>
+  <data name="UpdateInstallRestart" xml:space="preserve">
+    <value>Installieren und neu starten</value>
+  </data>
+  <data name="UpdateConfirmTitle" xml:space="preserve">
+    <value>Update installieren</value>
+  </data>
+  <data name="UpdateConfirmText" xml:space="preserve">
+    <value>Tarkov Monitor lädt Version {0} herunter, schließt sich und startet neu, um die Installation abzuschließen.&lt;br /&gt;&lt;br /&gt;Nicht während eines Raids ausführen.</value>
+  </data>
+  <data name="UpdateInstall" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="UpdateNotNow" xml:space="preserve">
+    <value>Nicht jetzt</value>
+  </data>
+  <data name="UpdatePreparing" xml:space="preserve">
+    <value>Download von Tarkov Monitor {0} wird vorbereitet...</value>
+  </data>
+  <data name="UpdateReady" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist bereit. Neustart...</value>
+  </data>
+  <data name="UpdateCancelled" xml:space="preserve">
+    <value>Das Update wurde abgebrochen.</value>
+  </data>
+  <data name="UpdateFailed" xml:space="preserve">
+    <value>Tarkov Monitor {0} konnte nicht installiert werden. Lade es über den Link herunter.</value>
+  </data>
+  <data name="UpdateStillAvailable" xml:space="preserve">
+    <value>{0} Tarkov Monitor {1} ist weiterhin verfügbar.</value>
+  </data>
+  <data name="UpdateDownloadingPercent" xml:space="preserve">
+    <value>Lade Tarkov Monitor {0} herunter... {1}% ({2} von {3})</value>
+  </data>
+  <data name="UpdateDownloading" xml:space="preserve">
+    <value>Lade Tarkov Monitor {0} herunter... {1}</value>
+  </data>
+  <data name="UpdateVerifying" xml:space="preserve">
+    <value>Prüfe den Download von Tarkov Monitor {0}...</value>
+  </data>
+  <data name="UpdateExtracting" xml:space="preserve">
+    <value>Entpacke Tarkov Monitor {0}...</value>
+  </data>
+  <data name="UpdateReadyToInstall" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist bereit zur Installation.</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Nach Updates suchen</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist die neueste Version.</value>
+  </data>
+  <data name="UpdateWhatsNew" xml:space="preserve">
+    <value>Was ist neu</value>
+  </data>
+  <data name="UpdatePopupTitle" xml:space="preserve">
+    <value>Tarkov Monitor {0} ist verfügbar</value>
+  </data>
+  <data name="UpdateInstalledVersion" xml:space="preserve">
+    <value>Installiert</value>
+  </data>
+  <data name="UpdateNewVersion" xml:space="preserve">
+    <value>neu</value>
+  </data>
+  <data name="UpdateNoNotes" xml:space="preserve">
+    <value>Kein Changelog für diese Version.</value>
+  </data>
+  <data name="UpdateRaidHint" xml:space="preserve">
+    <value>Tarkov Monitor schließt sich und startet neu, um das Update zu installieren. Nicht während eines Raids ausführen.</value>
+  </data>
+  <data name="UpdateLater" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Jetzt updaten</value>
+  </data>
 </root>
