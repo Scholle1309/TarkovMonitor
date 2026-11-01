@@ -119,7 +119,17 @@
                             }
                             @if (item.View.Maps.Count > 3)
                             {
-                                <span class="task-map task-map--more" title="@string.Join(", ", item.View.Maps.Skip(3).Select(map => map.name))">+@(item.View.Maps.Count - 3)</span>
+                                <MudTooltip>
+                                    <TooltipContent>
+                                        @foreach (var name in item.View.Maps.Skip(3).Select(map => map.name))
+                                        {
+                                            <div class="tm-tip__text">@name</div>
+                                        }
+                                    </TooltipContent>
+                                    <ChildContent>
+                                        <span class="task-map task-map--more">+@(item.View.Maps.Count - 3)</span>
+                                    </ChildContent>
+                                </MudTooltip>
                             }
                             @if (item.View.Task.kappaRequired)
                             {
@@ -176,10 +186,6 @@
                         }
                         @item.Task.name
                     </div>
-                    @if (item.AcceptedAt != null)
-                    {
-                        <div class="task-row__sub">@string.Format(LocalizationService.GetString("TaskAcceptedOn"), item.AcceptedAt.Value.ToString("d"))</div>
-                    }
                 </div>
                 <div class="task-row__trader">@item.TraderName</div>
                 <div class="tasks-maps">
@@ -198,7 +204,17 @@
                     }
                     @if (moreMaps.Count > 0)
                     {
-                        <span class="task-map task-map--more" title="@string.Join(", ", moreMaps.Select(map => map.name))">+@moreMaps.Count</span>
+                        <MudTooltip>
+                            <TooltipContent>
+                                @foreach (var name in moreMaps.Select(map => map.name))
+                                {
+                                    <div class="tm-tip__text">@name</div>
+                                }
+                            </TooltipContent>
+                            <ChildContent>
+                                <span class="task-map task-map--more">+@moreMaps.Count</span>
+                            </ChildContent>
+                        </MudTooltip>
                     }
                     @if (item.Task.kappaRequired)
                     {
@@ -219,15 +235,8 @@
                         <span>–</span>
                     }
                 </div>
-                <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())" title="@ReasonLabel(item)">@StateLabel(item.State)</span></div>
+                <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())">@StateLabel(item.State)</span></div>
                 <div class="task-row__actions">
-                    @* Why the task counts as accepted (logs, tracker or by hand), as a tooltip. *@
-                    @if (item.AcceptedReason != "")
-                    {
-                        <MudTooltip Text="@ReasonLabel(item)">
-                            <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Small" Class="task-row__reason" />
-                        </MudTooltip>
-                    }
                     <MudIconButton Icon="@Icons.Material.Filled.MyLocation" Size="Size.Small" Color="@(item.MarkerMapIds.Count > 0 ? Color.Inherit : Color.Default)"
                                    Disabled="@(item.MarkerMapIds.Count == 0)" Title="@LocalizationService.GetString("ShowOnMap")" OnClick="@(() => ShowOnMap(item))" />
                     @if (item.Override != QuestOverride.None)
@@ -249,6 +258,29 @@
                     <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenWiki")"
                                    Disabled="@string.IsNullOrEmpty(item.Task.wikiLink)" OnClick="@(() => OpenUrl(item.Task.wikiLink))" />
                     <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="tarkov.dev" OnClick="@(() => OpenTask(item.Task))" />
+                    @* When and why the task counts as accepted (logs, tracker or by hand), as a tooltip. *@
+                    @if (item.AcceptedAt != null || item.AcceptedReason != "")
+                    {
+                        <MudTooltip>
+                            <TooltipContent>
+                                @if (item.AcceptedAt != null)
+                                {
+                                    <div class="tm-tip__title">@string.Format(LocalizationService.GetString("TaskAcceptedOn"), item.AcceptedAt.Value.ToString("d"))</div>
+                                }
+                                @if (item.AcceptedReason != "")
+                                {
+                                    <div class="tm-tip__text">@ReasonLabel(item)</div>
+                                }
+                            </TooltipContent>
+                            <ChildContent>
+                                <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Small" Class="task-row__reason" />
+                            </ChildContent>
+                        </MudTooltip>
+                    }
+                    else
+                    {
+                        <span class="task-row__reason-slot"></span>
+                    }
                 </div>
                 @if (isOpen)
                 {
@@ -271,19 +303,13 @@
                                     <MudIcon Icon="@(progress.Complete ? Icons.Material.Filled.CheckBox : ready ? Icons.Material.Filled.IndeterminateCheckBox : Icons.Material.Filled.CheckBoxOutlineBlank)" Size="Size.Small" />
                                 </button>
                                 <div class="task-objective__body">
-                                    <span class="task-objective__text">@objective.description</span>
-                                    @if (objective.optional)
-                                    {
-                                        <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
-                                    }
-                                    @foreach (var mapId in objective.maps)
-                                    {
-                                        var map = TarkovDev.Maps.Find(candidate => candidate.id == mapId);
-                                        if (map != null)
+                                    <div class="task-objective__line">
+                                        <span class="task-objective__text">@objective.description</span>
+                                        @if (objective.optional)
                                         {
-                                            <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                                            <span class="task-objective__optional">(@LocalizationService.GetString("Optional"))</span>
                                         }
-                                    }
+                                    </div>
                                 </div>
                                 <span class="task-objective__state">
                                     @if (progress.Complete)
@@ -306,6 +332,37 @@
                                 else
                                 {
                                     <span></span>
+                                }
+                                @{
+                                    // Maps get their own row under the objective (the checkbox only belongs to the text), current map first; the rest folds into "+n" like in the row.
+                                    var objectiveMaps = objective.maps
+                                        .Select(mapId => TarkovDev.Maps.Find(candidate => candidate.id == mapId))
+                                        .OfType<TarkovDev.Map>()
+                                        .OrderByDescending(map => currentMap != null && map.id == currentMap.id)
+                                        .ToList();
+                                }
+                                @if (objectiveMaps.Count > 0)
+                                {
+                                    <div class="task-objective__maps">
+                                        @foreach (var map in objectiveMaps.Take(4))
+                                        {
+                                            <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                                        }
+                                        @if (objectiveMaps.Count > 4)
+                                        {
+                                            <MudTooltip>
+                                                <TooltipContent>
+                                                    @foreach (var name in objectiveMaps.Skip(4).Select(map => map.name))
+                                                    {
+                                                        <div class="tm-tip__text">@name</div>
+                                                    }
+                                                </TooltipContent>
+                                                <ChildContent>
+                                                    <span class="task-map task-map--more">+@(objectiveMaps.Count - 4)</span>
+                                                </ChildContent>
+                                            </MudTooltip>
+                                        }
+                                    </div>
                                 }
                             </div>
                         }

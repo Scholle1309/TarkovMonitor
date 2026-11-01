@@ -511,13 +511,13 @@
     <value>Never accepted</value>
   </data>
   <data name="AcceptedReasonLog" xml:space="preserve">
-    <value>accepted per game log</value>
+    <value>From the game log</value>
   </data>
   <data name="AcceptedReasonProgress" xml:space="preserve">
-    <value>accepted per tracker progress</value>
+    <value>From your Tarkov Tracker progress</value>
   </data>
   <data name="AcceptedReasonUser" xml:space="preserve">
-    <value>marked accepted by you</value>
+    <value>Marked as accepted by you</value>
   </data>
   <data name="ClickTaskToLocate" xml:space="preserve">
     <value>Click a task to make its markers blink on the map; click again to clear.</value>

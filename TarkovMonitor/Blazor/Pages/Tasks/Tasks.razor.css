@@ -622,11 +622,6 @@
     color: #ffb300;
 }
 
-.task-row__sub {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: var(--tm-fs-md);
-}
-
 .tasks-maps {
     display: flex;
     gap: 4px;
@@ -721,7 +716,7 @@
     display: grid;
     grid-template-columns: 28px minmax(0, 1fr) auto 118px;
     align-items: center;
-    gap: 10px;
+    gap: 2px 10px;
     padding: 3px 6px 3px 0;
     border-radius: 4px;
     font-size: var(--tm-fs-base);
@@ -733,10 +728,26 @@
 
 .task-objective__body {
     display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.task-objective__line {
+    display: flex;
     align-items: baseline;
     gap: 8px;
     flex-wrap: wrap;
     min-width: 0;
+}
+
+.task-objective__maps {
+    grid-column: 1 / -1;
+    padding: 0 0 3px 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
 }
 
 .task-objective__optional {
@@ -783,12 +794,15 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
-.task-row__actions ::deep .mud-tooltip-root {
+/* Same box as the small icon buttons, so the spacing matches; the slot keeps
+   the columns aligned in rows without the help icon. */
+.task-row__actions ::deep .mud-tooltip-root,
+.task-row__reason-slot {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
 }
 
 ::deep .task-row__reason {

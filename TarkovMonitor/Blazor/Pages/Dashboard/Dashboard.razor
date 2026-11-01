@@ -184,11 +184,11 @@ else
                         {
                             <div class="dash-reco__card">
                                 <b>@item.View.Task.name</b>
-                                <small>@item.View.TraderName · @(item.View.Maps.Count == 0 ? LocalizationService.GetString("AnyLocation") : string.Join(", ", item.View.Maps.Select(map => map.name))) · @LocalizationService.GetString("Level") @item.View.Task.minPlayerLevel</small>
-                                @* The chain count includes the tasks unlocked right away. *@
+                                <small>@item.View.TraderName · @(item.View.Task.minPlayerLevel > 0 ? string.Format(LocalizationService.GetString("LevelShort"), item.View.Task.minPlayerLevel) : LocalizationService.GetString("AnyLevel"))</small>
+                                @* Same boxes as on the Tasks page: label above the value. The chain count includes the tasks unlocked right away. *@
                                 <div class="dash-reco__stats">
-                                    <span title="@LocalizationService.GetString("UnlocksNowHint")">@LocalizationService.GetString("UnlocksNow") <b>@item.DirectUnlocks.Count</b></span>
-                                    <span title="@LocalizationService.GetString("LaterInChainHint")">@LocalizationService.GetString("LaterInChain") <b>+@Math.Max(0, item.TotalUnlocks - item.DirectUnlocks.Count)</b></span>
+                                    <div class="dash-reco__stat" title="@LocalizationService.GetString("UnlocksNowHint")"><small>@LocalizationService.GetString("UnlocksNow")</small><span>@RecoTaskCount(item.DirectUnlocks.Count)</span></div>
+                                    <div class="dash-reco__stat" title="@LocalizationService.GetString("LaterInChainHint")"><small>@LocalizationService.GetString("LaterInChain")</small><span>+@RecoTaskCount(Math.Max(0, item.TotalUnlocks - item.DirectUnlocks.Count))</span></div>
                                 </div>
                             </div>
                         }
@@ -363,6 +363,8 @@ else
 @code {
     // Says what the bars cover: "14 days", "Since Prestige 1", "Since reset" or
     // "Since history start", and "until <date>" for a past period. The dates are in the tooltip.
+    private string RecoTaskCount(int count) => string.Format(LocalizationService.GetString(count == 1 ? "TaskCountOne" : "TaskCountMany"), count);
+
     private string RaidsPerDayLabel(DashboardStats data)
     {
         if (data.RaidsPerDay.Count == 0)

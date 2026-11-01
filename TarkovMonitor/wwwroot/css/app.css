@@ -970,3 +970,27 @@ html body *::-webkit-scrollbar-corner {
     height: 0;
     background: transparent;
 }
+
+/* Tooltips in the navy theme instead of MudBlazor's grey. */
+.mud-tooltip.mud-tooltip-default {
+    background-color: #1d2e4f;
+    color: #e3eeff;
+    border: 1px solid #34548a;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+    font-size: var(--tm-fs-sm);
+}
+
+.mud-tooltip.mud-tooltip-default.mud-tooltip-arrow::after {
+    border-color: #34548a transparent transparent transparent;
+}
+
+.mud-tooltip .tm-tip__title {
+    font-weight: 600;
+    text-align: left;
+}
+
+.mud-tooltip .tm-tip__text {
+    color: rgba(227, 238, 255, 0.7);
+    font-weight: 400;
+    text-align: left;
+}

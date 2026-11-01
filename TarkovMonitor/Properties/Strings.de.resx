@@ -447,13 +447,13 @@
     <value>Nie angenommen</value>
   </data>
   <data name="AcceptedReasonLog" xml:space="preserve">
-    <value>laut Spiel-Log angenommen</value>
+    <value>Aus dem Spiel-Log</value>
   </data>
   <data name="AcceptedReasonProgress" xml:space="preserve">
-    <value>laut Tracker-Fortschritt angenommen</value>
+    <value>Aus deinem Tarkov-Tracker-Fortschritt</value>
   </data>
   <data name="AcceptedReasonUser" xml:space="preserve">
-    <value>von dir als angenommen markiert</value>
+    <value>Von dir als angenommen markiert</value>
   </data>
   <data name="ClickTaskToLocate" xml:space="preserve">
     <value>Aufgabe anklicken, dann blinken ihre Marker auf der Karte; erneut klicken hebt es auf.</value>

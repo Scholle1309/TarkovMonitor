@@ -324,7 +324,7 @@
 }
 
 .dash-reco__card {
-    padding: 8px 10px;
+    padding: 8px 9px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -348,18 +348,36 @@
     text-overflow: ellipsis;
 }
 
+/* Side by side when both labels fit, stacked otherwise; never cut off. */
 .dash-reco__stats {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px 12px;
-    margin-top: 5px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: var(--tm-fs-sm);
+    gap: 5px;
+    margin-top: 8px;
 }
 
-.dash-reco__stats b {
+/* Matches .reco-stat on the Tasks page: label above the value. */
+.dash-reco__stat {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 7px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.dash-reco__stat small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-xs);
+    white-space: nowrap;
+}
+
+.dash-reco__stat span {
     color: #8fb8f5;
+    font-size: var(--tm-fs-base);
     font-weight: 500;
+    white-space: nowrap;
 }
 
 /* ---- bars, tables, chips ---- */
