@@ -40,8 +40,8 @@ namespace TarkovMonitor
         private const int DwmCaptionColor = 35;
         private const int DwmRound = 2;
         private const int DwmColorNone = unchecked((int)0xFFFFFFFE);
-        private const int TarkovBorderColor = 0x003B555F;
-        private const int TarkovHeaderColor = 0x002D2F2F;
+        private const int TarkovBorderColor = 0x00804A2A; // #2a4a80 as COLORREF (0x00BBGGRR)
+        private const int TarkovHeaderColor = 0x0024120B; // #0b1224
 
         public event EventHandler? WindowStateChanged;
 
@@ -90,6 +90,8 @@ namespace TarkovMonitor
         private const string MapFrameInjection =
             "<style id=\"tarkov-monitor-frame\">"
             + "nav.navigation, .CookieConsent { display: none !important; }"
+            // The area around the map follows the app's navy theme instead of the site's grey.
+            + "html body { background-color: #132440 !important; background-image: none !important; }"
             // Quest markers on another floor or underground are faded to 20% by the site,
             // which makes them nearly invisible. Keep them visible and tint them light blue.
             // Everything on another level is faded to 20% by the site; 70% keeps the
@@ -923,7 +925,7 @@ namespace TarkovMonitor
             var cornerPreference = DwmRound;
             DwmSetWindowAttribute(Handle, DwmWindowCornerPreference, ref cornerPreference, sizeof(int));
 
-            // Keep the accepted gold frame around restored windows while
+            // Keep the blue frame around restored windows while
             // suppressing the native frame only for maximized windows.
             // WS_THICKFRAME remains enabled for Windows snap/resize behavior;
             // WM_NCACTIVATE below prevents it from being repainted white.

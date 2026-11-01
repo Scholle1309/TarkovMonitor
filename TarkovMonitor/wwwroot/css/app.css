@@ -829,18 +829,6 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     box-shadow: 0 20px 56px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(0, 0, 0, 0.42);
 }
 
-.mud-dialog.tm-update-dialog::before {
-    position: absolute;
-    z-index: 2;
-    top: 0;
-    right: 0;
-    left: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #4d77b8, #6ea8ff 50%, #e3eeff);
-    content: "";
-    pointer-events: none;
-}
-
 .mud-dialog.tm-update-dialog .mud-dialog-title {
     padding: 13px 18px 11px;
     border-bottom: 1px solid rgba(110, 168, 255, 0.28);
