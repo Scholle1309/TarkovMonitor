@@ -166,15 +166,18 @@
     outline-offset: -3px;
 }
 
+/* Entries span the full drawer width like the dropdown lists: no side gaps, no
+   rounded inner boxes and no bar on the active entry; icons stay where they were. */
 ::deep .navigation-menu {
-    padding: 8px;
+    padding: 8px 0;
 }
 
 ::deep .navigation-menu .mud-nav-link {
     min-height: 40px;
     margin: 2px 0;
-    border-left: 3px solid transparent;
-    border-radius: 4px;
+    padding-left: 27px;
+    border-left: 0;
+    border-radius: 0;
     color: rgba(255, 255, 255, 0.68);
 }
 
@@ -194,7 +197,6 @@
 }
 
 ::deep .navigation-menu .mud-nav-link.active:not(.mud-nav-link-disabled) {
-    border-left-color: #6690d4;
     background: #1d2b47;
     color: #ffffff;
     font-weight: 600;

@@ -55,7 +55,7 @@
                 <span>Tarkov Monitor <b>@AppVersion</b></span>
                 <MudLink Href="https://github.com/Scholle1309/TarkovMonitor/releases" Target="_blank" Typo="Typo.body2">@LocalizationService.GetString("Releases")</MudLink>
             </div>
-            <MudButton OnClick="CheckForUpdates" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Update" Disabled="@checkingForUpdates" Class="mt-2 mb-1">@LocalizationService.GetString("CheckForUpdates")</MudButton>
+            <MudButton OnClick="CheckForUpdates" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Update" Disabled="@checkingForUpdates" Class="mt-2 mb-1">@LocalizationService.GetString("CheckForUpdates")</MudButton>
             <div class="tm-settings-section">@LocalizationService.GetString("Backup")</div>
             <div class="tm-settings-inline">
                 <MudButton OnClick="ExportBackup" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.SaveAlt" Disabled="@backupBusy">@LocalizationService.GetString("ExportBackup")</MudButton>
@@ -188,12 +188,12 @@
                 <div class="tracker-key-toolbar">
                     @if (CanImportOrgKey)
                     {
-                        <MudButton @onclick="OpenImportTrackerKey" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Class="tracker-toolbar-button">Import API Token</MudButton>
+                        <MudButton @onclick="OpenImportTrackerKey" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Class="tracker-toolbar-button">Import API Token</MudButton>
                     }
                     else
                     {
                         <MudTooltip Text="@OrgImportBlockedReason">
-                            <span><MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Class="tracker-toolbar-button">Import API Token</MudButton></span>
+                            <span><MudButton Disabled="true" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Class="tracker-toolbar-button">Import API Token</MudButton></span>
                         </MudTooltip>
                     }
                     <MudButton @onclick="OpenTrackerSettings" Variant="Variant.Text" Color="Color.Info" StartIcon="@Icons.Material.Filled.OpenInNew" Class="tracker-toolbar-button">@LocalizationService.GetString("GetAToken")</MudButton>
