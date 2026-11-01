@@ -192,7 +192,7 @@
                             <TooltipContent>
                                 @foreach (var need in taskNeeds)
                                 {
-                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" /><span class="tm-tip__verb">@NeedVerb(need.Kind)</span>@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                    <div class="tm-tip__text tm-tip__need"><MudIcon Icon="@QuestNeeds.Icon(need)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" /><span class="tm-tip__verb">@NeedVerb(need.Kind)</span>@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
                                 }
                             </TooltipContent>
                             <ChildContent>

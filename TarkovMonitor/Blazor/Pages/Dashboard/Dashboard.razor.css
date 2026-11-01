@@ -235,7 +235,9 @@
 .dash__messages {
     max-height: 460px;
     overflow-y: auto;
-    /* Room between the message rows and the scroll bar. */
+    /* Room between the message rows and the scroll bar, taken from the card's
+       own padding: without a scroll bar both sides line up. */
+    margin-right: -8px;
     padding-right: 8px;
 }
 

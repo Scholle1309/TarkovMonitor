@@ -1030,6 +1030,58 @@ html body *::-webkit-scrollbar-corner {
 }
 
 .mud-tooltip .tm-tip__verb {
-    margin-right: 5px;
+    margin-right: 0.3em;
     color: rgba(227, 238, 255, 0.55);
+}
+
+/* Need lines in the tab tooltip: symbol centred on the text line. */
+.mud-tooltip .tm-tip__need {
+    display: flex;
+    align-items: center;
+}
+
+.mud-tooltip .tm-tip__need .tm-tip__key {
+    flex-shrink: 0;
+    margin-right: 5px;
+    vertical-align: 0;
+}
+
+
+/* No click ripple (the growing circle) in app dropdowns, menus and selects. */
+.tm-select-popover .mud-ripple-effect,
+.tm-menu-popover .mud-ripple-effect,
+.tm-select .mud-ripple-effect {
+    display: none !important;
+}
+
+/* Dropdown entries span the full width of the list: no side gaps, no rounded
+   inner boxes and no blue bar on the selected entry. */
+.tm-select-list {
+    padding: 0 !important;
+}
+
+/* First and last entry follow the rounded list corners (popover radius 10px minus its border). */
+.tm-select-list .mud-list-item:first-child {
+    border-top-left-radius: 9px !important;
+    border-top-right-radius: 9px !important;
+}
+
+.tm-select-list .mud-list-item:last-child {
+    border-bottom-left-radius: 9px !important;
+    border-bottom-right-radius: 9px !important;
+}
+
+.tm-select-list .mud-list-item {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+}
+
+.tm-select-list .mud-list-item.mud-list-item-selected,
+.tm-select-list .mud-list-item.mud-selected,
+.tm-select-list .mud-list-item.mud-selected-item,
+.tm-select-list .mud-list-item[aria-selected="true"],
+.tm-select-list .mud-list-item[data-selected="true"] {
+    box-shadow: none !important;
 }
