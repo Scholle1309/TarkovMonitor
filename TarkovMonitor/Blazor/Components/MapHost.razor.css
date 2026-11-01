@@ -162,7 +162,7 @@
 
 .map-boss__chance {
     font-weight: 600;
-    color: #ffb74d;
+    color: #8fb8f5;
     white-space: nowrap;
 }
 
@@ -277,8 +277,8 @@
 }
 
 .map-task--highlighted {
-    border-color: #ffb300;
-    background: rgba(255, 179, 0, 0.15);
+    border-color: #6ea8ff;
+    background: rgba(110, 168, 255, 0.15);
 }
 
 .map-task--no-marker {
@@ -293,7 +293,7 @@
 ::deep .map-task__pin {
     vertical-align: -3px;
     margin-right: 2px;
-    color: #ffb300;
+    color: #6ea8ff;
 }
 
 .map-task__title {
@@ -314,7 +314,7 @@
 }
 
 .map-task__link:hover {
-    color: #ffd54f;
+    color: #a9caff;
     border-bottom-color: currentColor;
 }
 
