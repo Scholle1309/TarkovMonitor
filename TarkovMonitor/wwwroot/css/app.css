@@ -382,6 +382,11 @@ html.tm-keyboard-input .tm-select-list .mud-list-item.mud-selected-item[tabindex
     z-index: 1250;
 }
 
+/* Room below the last log line, so the floating button never covers its time. */
+.mud-paper.tm-raw-logs {
+    padding-bottom: 4rem !important;
+}
+
 @media (max-width: 520px) {
     .tm-select,
     .tm-select .mud-input-control {

@@ -9,17 +9,26 @@
 
 <MudGrid Class="pa-0" Spacing="0" Style="position:relative;">
 	<MudItem xs="12">
-        <MudPaper Class="app-surface pa-2 ma-2 mx-4" Elevation="3">
+        <MudPaper Class="app-surface pa-2 ma-2 mx-4 tm-raw-logs" Elevation="3">
             <LogBoard>
             </LogBoard>
         </MudPaper>
     </MudItem>
-    @if (DebugMode() || LogsFolderSet())
+    @if (!DebugMode() && LogsFolderSet())
+    {
+        @* Only one action outside the debugger: open the folder directly. *@
+        <div class="tm-menu-host">
+            <MudTooltip Text="@LocalizationService.GetString("OpenLogsFolder")" Placement="Placement.Left">
+                <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.FolderOpen" Size="Size.Small" Class="tm-menu-activator" OnClick="OpenLogsFolder" aria-label="@LocalizationService.GetString("OpenLogsFolder")" />
+            </MudTooltip>
+        </div>
+    }
+    else if (DebugMode())
     {
         <div class="tm-menu-host">
             <MudMenu AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.BottomRight" RelativeWidth="DropdownWidth.Adaptive" PopoverFixed="false" Modal="false" Dense="true" MaxHeight="280" Class="tm-menu" PopoverClass="tm-menu-popover" ListClass="tm-menu-list">
                 <ActivatorContent>
-                    <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" Class="tm-menu-activator" aria-label="Log actions" />
+                    <MudFab Color="Color.Secondary" StartIcon="@Icons.Material.Filled.MoreVert" Size="Size.Small" Class="tm-menu-activator" aria-label="Log actions" />
                 </ActivatorContent>
                 <ChildContent>
                     @if(DebugMode())

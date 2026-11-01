@@ -756,8 +756,13 @@ namespace TarkovMonitor
         public bool IsMaximized => WindowState == FormWindowState.Maximized;
 
         // Default window size in logical pixels; the last size and state are remembered.
+        // First start without a saved size: three quarters of the screen, kept
+        // between a comfortable minimum and a maximum that still looks like an app.
         private const int DefaultWindowWidth = 1100;
         private const int DefaultWindowHeight = 720;
+        private const int MaximumDefaultWindowWidth = 1600;
+        private const int MaximumDefaultWindowHeight = 1000;
+        private const float DefaultWindowScreenShare = 0.75f;
 
         protected override void OnLoad(EventArgs e)
         {
@@ -769,17 +774,22 @@ namespace TarkovMonitor
         private void RestoreWindowSize()
         {
             var scale = DeviceDpi / 96f;
-            var width = Properties.Settings.Default.windowWidth > 0 ? Properties.Settings.Default.windowWidth : DefaultWindowWidth;
-            var height = Properties.Settings.Default.windowHeight > 0 ? Properties.Settings.Default.windowHeight : DefaultWindowHeight;
             var area = Screen.FromControl(this).WorkingArea;
+            var width = Properties.Settings.Default.windowWidth > 0
+                ? Properties.Settings.Default.windowWidth
+                : Math.Clamp((int)(area.Width * DefaultWindowScreenShare / scale), DefaultWindowWidth, MaximumDefaultWindowWidth);
+            var height = Properties.Settings.Default.windowHeight > 0
+                ? Properties.Settings.Default.windowHeight
+                : Math.Clamp((int)(area.Height * DefaultWindowScreenShare / scale), DefaultWindowHeight, MaximumDefaultWindowHeight);
             var size = new System.Drawing.Size(
                 Math.Clamp((int)(width * scale), MinimumWindowWidth, area.Width),
                 Math.Clamp((int)(height * scale), MinimumWindowHeight, area.Height));
             ClientSize = size;
-            // Keep the window on screen after the resize.
+            // Program.cs centred the window at its designer size; centre it again
+            // at the final size so a larger window does not sit off to one side.
             Location = new System.Drawing.Point(
-                Math.Max(area.Left, Math.Min(Location.X, area.Right - Width)),
-                Math.Max(area.Top, Math.Min(Location.Y, area.Bottom - Height)));
+                area.Left + Math.Max(0, (area.Width - Width) / 2),
+                area.Top + Math.Max(0, (area.Height - Height) / 2));
             if (Properties.Settings.Default.windowMaximized)
             {
                 WindowState = FormWindowState.Maximized;
