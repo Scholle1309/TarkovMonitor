@@ -353,8 +353,18 @@ namespace TarkovMonitor
                     }
                 }
             }
+            Volatile.Write(ref itemCategoryNames, response.itemCategories.Values
+                .Where(category => !string.IsNullOrEmpty(category.id))
+                .GroupBy(category => category.id)
+                .ToDictionary(group => group.Key, group => group.First().name));
             return new ItemsData(items, response.playerLevels, response.settings.scavCooldownSeconds);
         }
+
+        private static Dictionary<string, string> itemCategoryNames = new();
+
+        /// <summary>Translated name of an item category, or null.</summary>
+        public static string? ItemCategoryName(string? id) =>
+            id != null && Volatile.Read(ref itemCategoryNames).TryGetValue(id, out var name) && !string.IsNullOrWhiteSpace(name) ? name : null;
 
         public async static Task<List<Trader>> GetTraders()
         {
@@ -866,13 +876,23 @@ namespace TarkovMonitor
         public class ItemsResponse
         {
             public Dictionary<string, Item> items { get; set; } = new();
+            public Dictionary<string, ItemCategory> itemCategories { get; set; } = new();
             public List<PlayerLevel> playerLevels { get; set; } = new();
             public GameSettings settings { get; set; } = new();
         }
+        public class ItemCategory
+        {
+            public string id { get; set; } = "";
+            public string name { get; set; } = "";
+        }
+
         public class Item
         {
             public string id { get; set; }
             public string name { get; set; }
+            public string? shortName { get; set; }
+            /// <summary>Category ids, most specific first.</summary>
+            public List<string> categories { get; set; } = new();
             public int width { get; set; }
             public int height { get; set; }
 			public string link { get; set; }

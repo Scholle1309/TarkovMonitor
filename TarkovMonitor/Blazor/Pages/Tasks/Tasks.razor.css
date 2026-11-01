@@ -769,8 +769,22 @@
 }
 
 /* Maps and needed items in one row under the objective; the items keep a little distance. */
+/* With a second line, the state and the counter centre over both lines;
+   the maps and items stay left of them. */
+.task-objective > .task-objective__check { grid-column: 1; grid-row: 1; }
+.task-objective > .task-objective__body { grid-column: 2; grid-row: 1; }
+.task-objective > .task-objective__state { grid-column: 3; grid-row: 1; }
+.task-objective > .task-objective__counter { grid-column: 4; grid-row: 1; }
+
+.task-objective--extras > .task-objective__state,
+.task-objective--extras > .task-objective__counter {
+    grid-row: 1 / span 2;
+}
+
+.task-objective > .task-objective__extras { grid-row: 2; }
+
 .task-objective__extras {
-    grid-column: 1 / -1;
+    grid-column: 1 / 3;
     padding: 0 0 3px 6px;
     display: flex;
     flex-wrap: wrap;
@@ -805,6 +819,15 @@
     background: rgba(255, 179, 0, 0.1);
     border-color: rgba(255, 179, 0, 0.35);
     padding-left: 6px;
+}
+
+.task-need__icons {
+    display: inline-flex;
+    align-items: center;
+}
+
+.task-need__icons .task-need__icon + .task-need__icon {
+    margin-left: -6px;
 }
 
 .task-need__icon {

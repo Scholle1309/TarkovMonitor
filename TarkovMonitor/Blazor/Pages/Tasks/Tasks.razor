@@ -327,7 +327,16 @@
                             var busy = busyObjectives.Contains(objective.id);
                             var ready = !progress.Complete && objective.count >= 1 && progress.Count >= objective.count;
                             var canWrite = !busy && TaskStateService.CanWriteObjectives;
-                            <div class="@("task-objective" + (progress.Complete ? " task-objective--done" : "") + (ready ? " task-objective--ready" : ""))">
+                                // Maps get their own row under the objective (the checkbox only belongs to the text), current map first; the rest folds into "+n" like in the row.
+                                var objectiveMaps = objective.maps
+                                    .Select(mapId => TarkovDev.Maps.Find(candidate => candidate.id == mapId))
+                                    .OfType<TarkovDev.Map>()
+                                    .OrderByDescending(map => currentMap != null && map.id == currentMap.id)
+                                    .ToList();
+                                // Keys and items the objective needs share the row with the maps.
+                                var needs = QuestNeeds.Of(objective);
+                            var hasExtras = objectiveMaps.Count > 0 || needs.Count > 0;
+                            <div class="@("task-objective" + (progress.Complete ? " task-objective--done" : "") + (ready ? " task-objective--ready" : "") + (hasExtras ? " task-objective--extras" : ""))">
                                 @* green check = handed over / completed, blue half mark = collected but not handed over *@
                                 <button type="button" class="@("task-objective__check" + (progress.Complete ? " task-objective__check--done" : ready ? " task-objective__check--ready" : ""))"
                                         disabled="@(!canWrite)" title="@(progress.Complete ? LocalizationService.GetString("ObjectiveDone") : ready ? LocalizationService.GetString("ObjectiveReady") : "")"
@@ -365,17 +374,7 @@
                                 {
                                     <span></span>
                                 }
-                                @{
-                                    // Maps get their own row under the objective (the checkbox only belongs to the text), current map first; the rest folds into "+n" like in the row.
-                                    var objectiveMaps = objective.maps
-                                        .Select(mapId => TarkovDev.Maps.Find(candidate => candidate.id == mapId))
-                                        .OfType<TarkovDev.Map>()
-                                        .OrderByDescending(map => currentMap != null && map.id == currentMap.id)
-                                        .ToList();
-                                    // Keys and items the objective needs share the row with the maps.
-                                    var needs = QuestNeeds.Of(objective);
-                                }
-                                @if (objectiveMaps.Count > 0 || needs.Count > 0)
+                                @if (hasExtras)
                                 {
                                     <div class="task-objective__extras">
                                     @if (objectiveMaps.Count > 0)
@@ -408,9 +407,15 @@
                                             {
                                                 <MudTooltip Disabled="@(need.Items.Count < 2)">
                                                     <TooltipContent>
-                                                        @foreach (var name in need.Items.Select(candidate => candidate.name))
+                                                        @foreach (var option in need.Items)
                                                         {
-                                                            <div class="tm-tip__text">@name</div>
+                                                            <div class="tm-tip__item">
+                                                                @if (!string.IsNullOrEmpty(option.iconLink))
+                                                                {
+                                                                    <img src="@option.iconLink" alt="" loading="lazy" />
+                                                                }
+                                                                <span>@option.name</span>
+                                                            </div>
                                                         }
                                                     </TooltipContent>
                                                     <ChildContent>
@@ -419,10 +424,13 @@
                                                             {
                                                                 <MudIcon Icon="@Icons.Material.Filled.VpnKey" Class="task-need__key" />
                                                             }
-                                                            @if (!string.IsNullOrEmpty(need.Items[0].iconLink))
-                                                            {
-                                                                <img class="task-need__icon" src="@need.Items[0].iconLink" alt="" loading="lazy" />
-                                                            }
+                                                            @* Up to three icons, overlapping, for alternatives. *@
+                                                            <span class="task-need__icons">
+                                                                @foreach (var option in need.Items.Where(candidate => !string.IsNullOrEmpty(candidate.iconLink)).Take(3))
+                                                                {
+                                                                    <img class="task-need__icon" src="@option.iconLink" alt="" loading="lazy" />
+                                                                }
+                                                            </span>
                                                             <span>@QuestNeeds.Label(need, LocalizationService.GetString)</span>
                                                             @if (need.Count > 1)
                                                             {

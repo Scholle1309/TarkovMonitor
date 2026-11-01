@@ -1239,13 +1239,13 @@
   <data name="NeedFindInRaid" xml:space="preserve">
     <value>Find in raid</value>
   </data>
-  <data name="NeedOr" xml:space="preserve">
-    <value>{0} or {1}</value>
-  </data>
-  <data name="NeedOrMore" xml:space="preserve">
-    <value>{0} or {1} more</value>
-  </data>
   <data name="FoundInRaid" xml:space="preserve">
     <value>Found in raid</value>
+  </data>
+  <data name="NeedOneOfCategory" xml:space="preserve">
+    <value>{0} · 1 of {1}</value>
+  </data>
+  <data name="NeedOneOf" xml:space="preserve">
+    <value>1 of {0} items</value>
   </data>
 </root>

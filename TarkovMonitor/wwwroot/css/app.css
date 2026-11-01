@@ -1001,3 +1001,19 @@ html body *::-webkit-scrollbar-corner {
     vertical-align: -1px;
     color: #ffb300;
 }
+
+/* Item lists in tooltips: icon and full name per line. */
+.mud-tooltip .tm-tip__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    text-align: left;
+    font-weight: 400;
+}
+
+.mud-tooltip .tm-tip__item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}

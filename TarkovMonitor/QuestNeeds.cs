@@ -84,13 +84,42 @@ namespace TarkovMonitor
                 .Select(group => group.First())
                 .ToList();
 
-        /// <summary>"Item", "Item or Other", or "Item or 4 more" for alternatives.</summary>
-        public static string Label(QuestNeed need, Func<string, string> text) => need.Items.Count switch
+        // Categories too broad to tell the player anything.
+        private static readonly HashSet<string> GenericCategories = new()
         {
-            1 => need.Items[0].name,
-            2 => string.Format(text("NeedOr"), need.Items[0].name, need.Items[1].name),
-            _ => string.Format(text("NeedOrMore"), need.Items[0].name, need.Items.Count - 1),
+            "54009119af1c881c07000029", // Item
+            "566162e44bdc2d3f298b4573", // Compound item
+            "5661632d4bdc2d903d8b456b", // Stackable item
+            "566168634bdc2d144c8b456c", // Searchable item
+            "590c745b86f7743cc433c5f2", // Other
+            "5448eb774bdc2d0a728b4567", // Barter item
         };
+
+        /// <summary>
+        /// One item by name; up to three alternatives by short name ("Wilston / Malboro / Strike");
+        /// more by their shared category ("Armor · 1 of 7").
+        /// </summary>
+        public static string Label(QuestNeed need, Func<string, string> text)
+        {
+            if (need.Items.Count == 1)
+            {
+                return need.Items[0].name;
+            }
+            var shortNames = need.Items
+                .Select(item => string.IsNullOrWhiteSpace(item.shortName) ? item.name : item.shortName!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (shortNames.Count <= 3)
+            {
+                return string.Join(" / ", shortNames);
+            }
+            var shared = need.Items[0].categories
+                .FirstOrDefault(id => !GenericCategories.Contains(id) && need.Items.All(item => item.categories.Contains(id)));
+            var category = TarkovDev.ItemCategoryName(shared);
+            return category != null
+                ? string.Format(text("NeedOneOfCategory"), category, need.Items.Count)
+                : string.Format(text("NeedOneOf"), need.Items.Count);
+        }
 
         private static List<string> Single(string? id) => string.IsNullOrEmpty(id) ? new List<string>() : new List<string> { id };
 
