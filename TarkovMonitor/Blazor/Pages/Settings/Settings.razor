@@ -117,19 +117,25 @@
             }
             @if (!IsRetiredTrackerService)
             {
-                <MudButton @onclick="OpenTrackerSettings" Variant="Variant.Text" Color="Color.Info">@LocalizationService.GetString("GetAToken")</MudButton>
-                <span>@LocalizationService.GetString("CurrentProfile"):&nbsp;</span>
-                @if (HasCurrentProfileRoute)
-                {
-                    <MudLink Href="@CurrentProfileUrl" Class="tm-profile-link">@CurrentProfileName (@GetProfileTypeDisplayName(GameWatcher.CurrentProfile.Type))</MudLink>
-                }
-                else
-                {
-                    <span>No EFT profile detected.</span>
-                }
-                <div class="tm-settings-inline">
-                    <MudText Typo="Typo.caption" Class="tm-settings-hint">@TrackerSyncText</MudText>
-                    <MudButton OnClick="SyncTrackerNow" Variant="Variant.Text" Size="Size.Small" Color="Color.Info" StartIcon="@Icons.Material.Filled.Sync" Disabled="@syncingTracker">@LocalizationService.GetString("SyncNow")</MudButton>
+                @* Status as label/value rows; the actions sit together in the toolbar below. *@
+                <div class="tracker-status">
+                    <span class="tracker-status__label">@LocalizationService.GetString("CurrentProfile")</span>
+                    <span class="tracker-status__value">
+                        @if (HasCurrentProfileRoute)
+                        {
+                            <MudLink Href="@CurrentProfileUrl" Class="tm-profile-link">@CurrentProfileName (@GetProfileTypeDisplayName(GameWatcher.CurrentProfile.Type))</MudLink>
+                        }
+                        else
+                        {
+                            <span>No EFT profile detected.</span>
+                        }
+                    </span>
+                    <span></span>
+                    <span class="tracker-status__label">@LocalizationService.GetString("Progress")</span>
+                    <span class="tracker-status__value">@TrackerSyncText</span>
+                    <MudTooltip Text="@LocalizationService.GetString("SyncNow")">
+                        <MudIconButton Icon="@Icons.Material.Filled.Sync" Size="Size.Small" Color="Color.Info" OnClick="SyncTrackerNow" Disabled="@syncingTracker" aria-label="@LocalizationService.GetString("SyncNow")" Class="tracker-status__action" />
+                    </MudTooltip>
                 </div>
                 @foreach (var warning in TrackerStorageWarnings)
                 {
@@ -149,6 +155,7 @@
                     <MudTooltip Text="@OrgProfileScanHelpText">
                         <span><MudButton @onclick="ScanOrgProfiles" Variant="Variant.Text" Color="Color.Info" StartIcon="@Icons.Material.Filled.Search" Disabled="@(scanningOrgProfiles || !OrgKeyChangesEnabled)" Class="tracker-toolbar-button">Scan profiles</MudButton></span>
                     </MudTooltip>
+                    <MudButton @onclick="OpenTrackerSettings" Variant="Variant.Text" Color="Color.Info" StartIcon="@Icons.Material.Filled.OpenInNew" Class="tracker-toolbar-button">@LocalizationService.GetString("GetAToken")</MudButton>
                 </div>
 
                 <div class="tracker-key-manager">

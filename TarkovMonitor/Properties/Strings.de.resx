@@ -1032,10 +1032,10 @@
     <value>Jetzt synchronisieren</value>
   </data>
   <data name="TrackerSynced" xml:space="preserve">
-    <value>Fortschritt synchronisiert: {0}</value>
+    <value>Synchronisiert {0}</value>
   </data>
   <data name="TrackerNotSynced" xml:space="preserve">
-    <value>Fortschritt noch nicht synchronisiert</value>
+    <value>Noch nicht synchronisiert</value>
   </data>
   <data name="TrackerSyncFailed" xml:space="preserve">
     <value>Tarkov-Tracker-Synchronisierung fehlgeschlagen: {0}</value>
@@ -1129,5 +1129,8 @@
   </data>
   <data name="Off" xml:space="preserve">
     <value>aus</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Fortschritt</value>
   </data>
 </root>

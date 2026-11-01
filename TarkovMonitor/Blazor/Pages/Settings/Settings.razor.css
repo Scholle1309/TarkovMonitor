@@ -597,3 +597,28 @@
     overflow-wrap: anywhere;
     text-align: left;
 }
+
+.tracker-status {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 12px;
+    margin: 8px 0 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.tracker-status__label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-sm);
+}
+
+.tracker-status__value {
+    min-width: 0;
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: var(--tm-fs-md);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1096,10 +1096,10 @@
     <value>Sync now</value>
   </data>
   <data name="TrackerSynced" xml:space="preserve">
-    <value>Progress synced {0}</value>
+    <value>Synced {0}</value>
   </data>
   <data name="TrackerNotSynced" xml:space="preserve">
-    <value>Progress not synced yet</value>
+    <value>Not synced yet</value>
   </data>
   <data name="TrackerSyncFailed" xml:space="preserve">
     <value>Tarkov Tracker sync failed: {0}</value>
@@ -1193,5 +1193,8 @@
   </data>
   <data name="Off" xml:space="preserve">
     <value>off</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
   </data>
 </root>
