@@ -192,7 +192,7 @@
                             <TooltipContent>
                                 @foreach (var need in taskNeeds)
                                 {
-                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" /><span class="tm-tip__verb">@NeedVerb(need.Kind)</span>@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
                                 }
                             </TooltipContent>
                             <ChildContent>
@@ -685,6 +685,16 @@
     private void ToggleKappa() { kappaOnly = !kappaOnly; ApplyFilter(); }
     private void OnSearchChanged(string value) { search = value ?? ""; ApplyFilter(); }
     private void OnMapFilterChanged(string value) { mapFilter = value ?? ""; ApplyFilter(); }
+    // What to do with a need, in front of it in the tab tooltip ("Stash 3× Golden neck chain").
+    private string NeedVerb(QuestNeedKind kind) => LocalizationService.GetString(kind switch
+    {
+        QuestNeedKind.Key => "NeedVerbKey",
+        QuestNeedKind.Place => "NeedVerbStash",
+        QuestNeedKind.Mark => "NeedVerbInstall",
+        QuestNeedKind.HandOver => "NeedVerbHandOver",
+        _ => "NeedVerbBuild",
+    });
+
     private string MapFilterLabel(string? id) => string.IsNullOrEmpty(id)
         ? LocalizationService.GetString("AllMaps")
         : MapChoices.FirstOrDefault(map => map.id == id)?.name ?? id;

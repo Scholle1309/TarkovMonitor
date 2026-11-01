@@ -1028,3 +1028,8 @@ html body *::-webkit-scrollbar-corner {
     font-weight: 400;
     text-align: left;
 }
+
+.mud-tooltip .tm-tip__verb {
+    margin-right: 5px;
+    color: rgba(227, 238, 255, 0.55);
+}

@@ -1193,4 +1193,19 @@
   <data name="NeedMark" xml:space="preserve">
     <value>Installieren</value>
   </data>
+  <data name="NeedVerbKey" xml:space="preserve">
+    <value>Schlüssel</value>
+  </data>
+  <data name="NeedVerbStash" xml:space="preserve">
+    <value>Verstecken</value>
+  </data>
+  <data name="NeedVerbInstall" xml:space="preserve">
+    <value>Installieren</value>
+  </data>
+  <data name="NeedVerbHandOver" xml:space="preserve">
+    <value>Abgeben</value>
+  </data>
+  <data name="NeedVerbBuild" xml:space="preserve">
+    <value>Bauen</value>
+  </data>
 </root>
