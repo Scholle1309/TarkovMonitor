@@ -888,4 +888,31 @@
   <data name="NewCharacter" xml:space="preserve">
     <value>New character</value>
   </data>
+  <data name="MyMarkers" xml:space="preserve">
+    <value>My markers</value>
+  </data>
+  <data name="MarkersOnMap" xml:space="preserve">
+    <value>Markers on {0}</value>
+  </data>
+  <data name="MarkersHint" xml:space="preserve">
+    <value>Your own markers on this map. Click one to show it; click a pin on the map to rename or delete it.</value>
+  </data>
+  <data name="PlaceMarkerHint" xml:space="preserve">
+    <value>Click on the map to place the marker.</value>
+  </data>
+  <data name="PlaceMarker" xml:space="preserve">
+    <value>Place marker</value>
+  </data>
+  <data name="CancelPlacing" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="NoMarkersYet" xml:space="preserve">
+    <value>No markers on this map yet.</value>
+  </data>
+  <data name="UnnamedMarker" xml:space="preserve">
+    <value>Unnamed marker</value>
+  </data>
+  <data name="DeleteMarker" xml:space="preserve">
+    <value>Delete marker</value>
+  </data>
 </root>

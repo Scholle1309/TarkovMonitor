@@ -58,6 +58,23 @@ namespace TarkovMonitor
         public static Dictionary<string, int> GetTotalRaidsPerMap(RaidType raidType) =>
             Database.Value.GetTotalRaidsPerMap(raidType, TarkovDev.Maps);
 
+        /// <summary>Raised after a marker was saved or deleted.</summary>
+        public static event EventHandler? MarkersChanged;
+
+        public static List<MapMarker> GetMarkers(string map) => Database.Value.GetMarkers(map);
+
+        public static void SaveMarker(MapMarker marker)
+        {
+            Database.Value.SaveMarker(marker);
+            MarkersChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        public static void DeleteMarker(string id)
+        {
+            Database.Value.DeleteMarker(id);
+            MarkersChanged?.Invoke(null, EventArgs.Empty);
+        }
+
         /// <summary>Everything the dashboard shows from the local database.</summary>
         public static DashboardStats GetDashboardStats(string? profileId, DateTime? fromUtc, DateTime? toUtc) =>
             Database.Value.GetDashboardStats(profileId, fromUtc, toUtc);
@@ -66,6 +83,14 @@ namespace TarkovMonitor
     internal sealed record RaidRecord(string? MapNameId, RaidType Type, double QueueSeconds, DateTime TimeUtc, DateTime? EndedUtc)
     {
         public TimeSpan? Duration => EndedUtc.HasValue && EndedUtc > TimeUtc ? EndedUtc - TimeUtc : null;
+    }
+
+    /// <summary>A marker the player placed on a map (Leaflet coordinates of the Tarkov.dev map).</summary>
+    /// <summary>Modes is a comma list of EftSessionMode names the marker is shown in (empty = all).</summary>
+    public sealed record MapMarker(string Id, string Map, double Lat, double Lng, string Label, string Description, string Icon, string Color, string Modes)
+    {
+        public bool ShownIn(EftSessionMode mode) => mode == EftSessionMode.Unknown || string.IsNullOrEmpty(Modes)
+            || Modes.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(mode.ToString(), StringComparer.OrdinalIgnoreCase);
     }
 
     internal sealed record FleaSaleRecord(string ItemId, string? Buyer, int Count, string Currency, int Price, DateTime TimeUtc);
@@ -392,10 +417,46 @@ namespace TarkovMonitor
                 : null;
         }
 
+        internal List<MapMarker> GetMarkers(string map)
+        {
+            var result = new List<MapMarker>();
+            lock (gate)
+            {
+                using var command = CreateCommand("SELECT id, map, lat, lng, label, description, icon, color, modes FROM map_markers WHERE map = @map ORDER BY created;",
+                    parameters: new Dictionary<string, object?> { ["map"] = map });
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(new MapMarker(reader.GetString(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3),
+                        reader.IsDBNull(4) ? "" : reader.GetString(4), reader.IsDBNull(5) ? "" : reader.GetString(5),
+                        reader.IsDBNull(6) ? "" : reader.GetString(6), reader.IsDBNull(7) ? "#e53935" : reader.GetString(7),
+                        reader.IsDBNull(8) ? "" : reader.GetString(8)));
+                }
+            }
+            return result;
+        }
+
+        internal void SaveMarker(MapMarker marker)
+        {
+            ExecuteNonQuery("INSERT INTO map_markers (id, map, lat, lng, label, description, icon, color, modes) VALUES (@id, @map, @lat, @lng, @label, @description, @icon, @color, @modes)"
+                + " ON CONFLICT(id) DO UPDATE SET map = excluded.map, lat = excluded.lat, lng = excluded.lng, label = excluded.label, description = excluded.description, icon = excluded.icon, color = excluded.color, modes = excluded.modes;",
+                new Dictionary<string, object?>
+                {
+                    ["id"] = marker.Id, ["map"] = marker.Map, ["lat"] = marker.Lat, ["lng"] = marker.Lng,
+                    ["label"] = marker.Label, ["description"] = marker.Description, ["icon"] = marker.Icon, ["color"] = marker.Color, ["modes"] = marker.Modes,
+                });
+        }
+
+        internal void DeleteMarker(string id)
+        {
+            ExecuteNonQuery("DELETE FROM map_markers WHERE id = @id;", new Dictionary<string, object?> { ["id"] = id });
+        }
+
         private void CreateTables()
         {
             var commands = new[]
             {
+                "CREATE TABLE IF NOT EXISTS map_markers (id TEXT PRIMARY KEY, map TEXT NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL, label TEXT, description TEXT, icon TEXT, color TEXT, modes TEXT, created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
                 "CREATE TABLE IF NOT EXISTS flea_sales (id INTEGER PRIMARY KEY, profile_id VARCHAR(24), item_id CHAR(24), buyer VARCHAR(14), count INT, currency CHAR(24), price INT, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
                 "CREATE TABLE IF NOT EXISTS raids (id INTEGER PRIMARY KEY, profile_id VARCHAR(24), map VARCHAR(24), raid_type INT, queue_time DECIMAL(6,2), raid_id VARCHAR(24), time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ended TIMESTAMP);",
             };

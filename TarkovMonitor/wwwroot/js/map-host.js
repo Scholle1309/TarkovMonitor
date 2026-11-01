@@ -26,11 +26,36 @@ window.mapHost = (() => {
         closePanels(frameId) {
             return post(frameId, { type: "tarkov-monitor-close-panels" });
         },
-        // The page reports when one of its panels opened, so the Maps tab closes its own.
+        // Own markers of the shown map, drawn by the page.
+        setMarkers(frameId, markers) {
+            return post(frameId, { type: "tarkov-monitor-markers", markers: markers || [] });
+        },
+        // The next click on the map places a marker.
+        setPlacing(frameId, on) {
+            return post(frameId, { type: "tarkov-monitor-place", on: !!on });
+        },
+        focusMarker(frameId, id) {
+            return post(frameId, { type: "tarkov-monitor-focus-marker", id });
+        },
+        // The page reports panel openings, a new map instance, a placed marker and marker edits.
         register(dotNetRef) {
             window.addEventListener("message", (event) => {
-                if (event.origin === targetOrigin && event.data && event.data.type === "tarkov-monitor-panel-opened") {
-                    dotNetRef.invokeMethodAsync("OnFramePanelOpened");
+                if (event.origin !== targetOrigin || !event.data) {
+                    return;
+                }
+                switch (event.data.type) {
+                    case "tarkov-monitor-panel-opened":
+                        dotNetRef.invokeMethodAsync("OnFramePanelOpened");
+                        break;
+                    case "tarkov-monitor-ready":
+                        dotNetRef.invokeMethodAsync("OnFrameMapReady", event.data.map || "");
+                        break;
+                    case "tarkov-monitor-placed":
+                        dotNetRef.invokeMethodAsync("OnFramePlaced");
+                        break;
+                    case "tarkov-monitor-marker":
+                        dotNetRef.invokeMethodAsync("OnFrameMarker", event.data.action || "", JSON.stringify(event.data.marker || {}));
+                        break;
                 }
             });
         }

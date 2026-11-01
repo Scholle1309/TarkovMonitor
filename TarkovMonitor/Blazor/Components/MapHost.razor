@@ -31,7 +31,51 @@
         <MudIconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Inherit" Title="@LocalizationService.GetString("OpenMapInBrowser")" OnClick="OpenExternal" />
     </div>
     <div class="map-host__frame">
-        @* Floating buttons in the corner where the site's settings gear used to be: bosses above, tasks below. *@
+        @* Floating buttons in the corner where the site's settings gear used to be: markers, bosses, tasks. *@
+        <button type="button" class="@("map-host__fab map-host__fab--markers" + (markersPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("MyMarkers")" @onclick="ToggleMarkersPanel">
+            <MudIcon Icon="@Icons.Material.Filled.PushPin" Size="Size.Medium" />
+            @if (markers.Count > 0)
+            {
+                <span class="map-host__fab-count map-host__fab-count--markers">@markers.Count</span>
+            }
+        </button>
+        @if (markersPanelOpen)
+        {
+            <div class="map-tasks map-bosses map-markers">
+                <div class="map-tasks__header">
+                    <span class="map-tasks__title"><MudText Typo="Typo.subtitle2">@string.Format(LocalizationService.GetString("MarkersOnMap"), MapsService.ShownMap?.name ?? MapsService.CurrentMapName)</MudText></span>
+                    <span class="map-tasks__count map-tasks__count--markers">@markers.Count</span>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Inherit" OnClick="ToggleMarkersPanel" />
+                </div>
+                <div class="map-tasks__hint">@(placing ? LocalizationService.GetString("PlaceMarkerHint") : LocalizationService.GetString("MarkersHint"))</div>
+                <div class="map-markers__actions">
+                    <button type="button" class="@("map-markers__place" + (placing ? " map-markers__place--on" : ""))" @onclick="TogglePlacing">
+                        <MudIcon Icon="@Icons.Material.Filled.AddLocation" Size="Size.Small" />
+                        <span>@(placing ? LocalizationService.GetString("CancelPlacing") : LocalizationService.GetString("PlaceMarker"))</span>
+                    </button>
+                </div>
+                <div class="map-tasks__list">
+                    @if (markers.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoMarkersYet")</MudText>
+                    }
+                    @foreach (var marker in markers)
+                    {
+                        <div class="map-task map-marker" @onclick="() => FocusMarker(marker)">
+                            <div class="map-task__title">
+                                <span class="map-task__name"><span class="map-marker__dot" style="@($"background: {marker.Color}")">@marker.Icon</span>@(string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label)</span>
+                                <span class="map-marker__delete" title="@LocalizationService.GetString("DeleteMarker")" @onclick="() => DeleteMarker(marker)" @onclick:stopPropagation><MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /></span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(marker.Description))
+                            {
+                                <div class="map-task__objective"><span>@marker.Description</span></div>
+                            }
+                            <div class="map-marker__modes">@ModesLabel(marker)</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
         <button type="button" class="@("map-host__fab map-host__fab--bosses" + (bossesPanelOpen ? " map-host__fab--on" : ""))" title="@LocalizationService.GetString("ShowMapBosses")" @onclick="ToggleBossesPanel">
             <MudIcon Icon="@RifleIcon" Size="Size.Medium" />
         </button>
@@ -315,8 +359,164 @@
         if (tasksPanelOpen)
         {
             bossesPanelOpen = false;
+            markersPanelOpen = false;
             CloseFramePanels();
         }
+    }
+
+    // ---- own markers: stored per map in the local database, drawn by the page ----
+    private bool markersPanelOpen;
+    private bool placing;
+    private List<MapMarker> markers = new();
+    private string markersMap = "";
+
+    private void ToggleMarkersPanel()
+    {
+        markersPanelOpen = !markersPanelOpen;
+        if (markersPanelOpen)
+        {
+            tasksPanelOpen = false;
+            bossesPanelOpen = false;
+            CloseFramePanels();
+            LoadMarkers();
+        }
+        else if (placing)
+        {
+            placing = false;
+            _ = JSRuntime.InvokeVoidAsync("mapHost.setPlacing", FrameElementId, false).AsTask();
+        }
+    }
+
+    private void TogglePlacing()
+    {
+        placing = !placing;
+        _ = JSRuntime.InvokeVoidAsync("mapHost.setPlacing", FrameElementId, placing).AsTask();
+    }
+
+    private void LoadMarkers()
+    {
+        markersMap = MapsService.CurrentMapName;
+        try
+        {
+            var mode = HistoryStart.CurrentMode;
+            markers = Stats.GetMarkers(markersMap).Where(marker => marker.ShownIn(mode)).ToList();
+        }
+        catch
+        {
+            markers = new List<MapMarker>();
+        }
+    }
+
+    private async Task SendMarkers(string map)
+    {
+        List<MapMarker> list;
+        try
+        {
+            list = Stats.GetMarkers(map);
+        }
+        catch
+        {
+            list = new List<MapMarker>();
+        }
+        var mode = HistoryStart.CurrentMode;
+        var payload = list.Where(marker => marker.ShownIn(mode))
+            .Select(marker => new { id = marker.Id, map = marker.Map, lat = marker.Lat, lng = marker.Lng, label = marker.Label, description = marker.Description, icon = marker.Icon, color = marker.Color, modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries) })
+            .ToList();
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("mapHost.setMarkers", FrameElementId, payload);
+        }
+        catch
+        {
+            // Frame not reachable yet; the page asks again when its map is ready.
+        }
+    }
+
+    private static string ModesLabel(MapMarker marker)
+    {
+        var modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (modes.Length == 0 || modes.Length >= 3)
+        {
+            return "PVE · PVP · PVP Season";
+        }
+        return string.Join(" · ", modes.Select(mode => mode switch { "Regular" => "PVP", "Seasonal" => "PVP Season", _ => mode }));
+    }
+
+    private void FocusMarker(MapMarker marker)
+    {
+        _ = JSRuntime.InvokeVoidAsync("mapHost.focusMarker", FrameElementId, marker.Id).AsTask();
+    }
+
+    private async Task DeleteMarker(MapMarker marker)
+    {
+        Stats.DeleteMarker(marker.Id);
+        LoadMarkers();
+        await SendMarkers(markersMap);
+    }
+
+    [JSInvokable]
+    public async Task OnFrameMapReady(string map)
+    {
+        placing = false;
+        await SendMarkers(string.IsNullOrEmpty(map) ? MapsService.CurrentMapName : map);
+        await InvokeAsync(() =>
+        {
+            if (markersPanelOpen)
+            {
+                LoadMarkers();
+            }
+            StateHasChanged();
+        });
+    }
+
+    [JSInvokable]
+    public void OnFramePlaced()
+    {
+        placing = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnFrameMarker(string action, string json)
+    {
+        try
+        {
+            var data = System.Text.Json.JsonDocument.Parse(json).RootElement;
+            var id = data.GetProperty("id").GetString() ?? "";
+            if (string.IsNullOrEmpty(id))
+            {
+                return;
+            }
+            if (action == "delete")
+            {
+                Stats.DeleteMarker(id);
+            }
+            else
+            {
+                var modes = data.TryGetProperty("modes", out var modesElement) && modesElement.ValueKind == System.Text.Json.JsonValueKind.Array
+                    ? string.Join(",", modesElement.EnumerateArray().Select(item => item.GetString()).Where(item => !string.IsNullOrEmpty(item)))
+                    : "";
+                Stats.SaveMarker(new MapMarker(
+                    id,
+                    data.TryGetProperty("map", out var map) ? map.GetString() ?? MapsService.CurrentMapName : MapsService.CurrentMapName,
+                    data.GetProperty("lat").GetDouble(),
+                    data.GetProperty("lng").GetDouble(),
+                    data.TryGetProperty("label", out var label) ? label.GetString() ?? "" : "",
+                    data.TryGetProperty("description", out var description) ? description.GetString() ?? "" : "",
+                    data.TryGetProperty("icon", out var icon) ? icon.GetString() ?? "" : "",
+                    data.TryGetProperty("color", out var color) ? color.GetString() ?? "#e53935" : "#e53935",
+                    modes));
+            }
+        }
+        catch
+        {
+            return;
+        }
+        _ = InvokeAsync(() =>
+        {
+            LoadMarkers();
+            StateHasChanged();
+        });
     }
     // One panel at a time across both sides: opening ours closes the page's, and vice versa.
     private DotNetObjectReference<MapHost>? selfReference;
@@ -343,10 +543,11 @@
     [JSInvokable]
     public void OnFramePanelOpened()
     {
-        if (!tasksPanelOpen && !bossesPanelOpen)
+        if (!tasksPanelOpen && !bossesPanelOpen && !markersPanelOpen)
         {
             return;
         }
+        markersPanelOpen = false;
         tasksPanelOpen = false;
         bossesPanelOpen = false;
         _ = InvokeAsync(StateHasChanged);
@@ -381,6 +582,7 @@
         if (bossesPanelOpen)
         {
             tasksPanelOpen = false;
+            markersPanelOpen = false;
             CloseFramePanels();
         }
     }

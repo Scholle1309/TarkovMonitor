@@ -824,4 +824,31 @@
   <data name="NewCharacter" xml:space="preserve">
     <value>Neuer Charakter</value>
   </data>
+  <data name="MyMarkers" xml:space="preserve">
+    <value>Meine Marker</value>
+  </data>
+  <data name="MarkersOnMap" xml:space="preserve">
+    <value>Marker auf {0}</value>
+  </data>
+  <data name="MarkersHint" xml:space="preserve">
+    <value>Deine eigenen Marker auf dieser Map. Klick zeigt den Marker; ein Klick auf den Pin in der Karte benennt oder löscht ihn.</value>
+  </data>
+  <data name="PlaceMarkerHint" xml:space="preserve">
+    <value>Klicke in die Karte, um den Marker zu setzen.</value>
+  </data>
+  <data name="PlaceMarker" xml:space="preserve">
+    <value>Marker setzen</value>
+  </data>
+  <data name="CancelPlacing" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="NoMarkersYet" xml:space="preserve">
+    <value>Noch keine Marker auf dieser Map.</value>
+  </data>
+  <data name="UnnamedMarker" xml:space="preserve">
+    <value>Marker ohne Namen</value>
+  </data>
+  <data name="DeleteMarker" xml:space="preserve">
+    <value>Marker löschen</value>
+  </data>
 </root>

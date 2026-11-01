@@ -78,6 +78,74 @@
     right: 64px;
 }
 
+.map-host__fab--markers {
+    right: 116px;
+}
+
+.map-host__fab-count--markers,
+.map-tasks__count--markers {
+    background: rgba(30, 136, 229, 0.7);
+}
+
+.map-markers__actions {
+    padding: 6px 12px 2px;
+}
+
+.map-markers__place {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.map-markers__place--on {
+    border-color: #2196f3;
+    color: #64b5f6;
+}
+
+.map-marker {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.map-marker__dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: -4px;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    font-size: 11px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+}
+
+.map-marker__modes {
+    margin-top: 3px;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.map-marker__delete {
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+}
+
+.map-marker__delete:hover {
+    color: #ff8a75;
+}
+
 .map-tasks.map-bosses {
     top: auto;
     bottom: 68px;
