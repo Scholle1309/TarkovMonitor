@@ -366,16 +366,13 @@
                                 }
                             </div>
                         }
-                        <div class="task-row__meta">
-                            @if (UnlocksOf(item).Count > 0)
-                            {
+                        @* Only the follow-up tasks; the row is left out when there are none, so no empty gap remains. *@
+                        @if (UnlocksOf(item).Count > 0)
+                        {
+                            <div class="task-row__meta">
                                 <span>@LocalizationService.GetString("Unlocks"): @string.Join(", ", UnlocksOf(item).Select(task => task.name))</span>
-                            }
-                            @if (item.Task.minPlayerLevel > 0)
-                            {
-                                <span>@LocalizationService.GetString("Level") @item.Task.minPlayerLevel</span>
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
                 }
             </div>
