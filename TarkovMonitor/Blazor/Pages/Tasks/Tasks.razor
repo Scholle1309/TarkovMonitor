@@ -189,6 +189,24 @@
                             <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="task-row__pin" />
                         }
                         @item.Task.name
+                        @{
+                            // A small item symbol when the task needs keys or items; the tooltip lists them.
+                            var taskNeeds = item.State == TaskState.Completed ? new List<QuestNeed>() : QuestNeeds.OfTask(item.Task);
+                        }
+                        @if (taskNeeds.Count > 0)
+                        {
+                            <MudTooltip>
+                                <TooltipContent>
+                                    @foreach (var need in taskNeeds)
+                                    {
+                                        <div class="tm-tip__text">@if (need.Kind == QuestNeedKind.Key) { <MudIcon Icon="@Icons.Material.Filled.VpnKey" Class="tm-tip__key" /> }@QuestNeeds.Label(need, LocalizationService.GetString)@(need.Count > 1 ? $" ×{need.Count}" : "")@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                    }
+                                </TooltipContent>
+                                <ChildContent>
+                                    <MudIcon Icon="@(taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? Icons.Material.Outlined.VpnKey : Icons.Material.Outlined.Backpack)" Class="task-row__needs" />
+                                </ChildContent>
+                            </MudTooltip>
+                        }
                     </div>
                 </div>
                 <div class="task-row__trader">@item.TraderName</div>
@@ -354,28 +372,72 @@
                                         .OfType<TarkovDev.Map>()
                                         .OrderByDescending(map => currentMap != null && map.id == currentMap.id)
                                         .ToList();
+                                    // Keys and items the objective needs share the row with the maps.
+                                    var needs = QuestNeeds.Of(objective);
                                 }
-                                @if (objectiveMaps.Count > 0)
+                                @if (objectiveMaps.Count > 0 || needs.Count > 0)
                                 {
-                                    <div class="task-objective__maps">
-                                        @foreach (var map in objectiveMaps.Take(4))
-                                        {
-                                            <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
-                                        }
-                                        @if (objectiveMaps.Count > 4)
-                                        {
-                                            <MudTooltip>
-                                                <TooltipContent>
-                                                    @foreach (var name in objectiveMaps.Skip(4).Select(map => map.name))
-                                                    {
-                                                        <div class="tm-tip__text">@name</div>
-                                                    }
-                                                </TooltipContent>
-                                                <ChildContent>
-                                                    <span class="task-map task-map--more">+@(objectiveMaps.Count - 4)</span>
-                                                </ChildContent>
-                                            </MudTooltip>
-                                        }
+                                    <div class="task-objective__extras">
+                                    @if (objectiveMaps.Count > 0)
+                                    {
+                                        <div class="task-objective__maps">
+                                            @foreach (var map in objectiveMaps.Take(4))
+                                            {
+                                                <span class="@("task-map" + (currentMap != null && map.id == currentMap.id ? " task-map--current" : ""))">@map.name</span>
+                                            }
+                                            @if (objectiveMaps.Count > 4)
+                                            {
+                                                <MudTooltip>
+                                                    <TooltipContent>
+                                                        @foreach (var name in objectiveMaps.Skip(4).Select(map => map.name))
+                                                        {
+                                                            <div class="tm-tip__text">@name</div>
+                                                        }
+                                                    </TooltipContent>
+                                                    <ChildContent>
+                                                        <span class="task-map task-map--more">+@(objectiveMaps.Count - 4)</span>
+                                                    </ChildContent>
+                                                </MudTooltip>
+                                            }
+                                        </div>
+                                    }
+                                    @if (needs.Count > 0)
+                                    {
+                                        <div class="task-objective__needs">
+                                            @foreach (var need in needs)
+                                            {
+                                                <MudTooltip Disabled="@(need.Items.Count < 2)">
+                                                    <TooltipContent>
+                                                        @foreach (var name in need.Items.Select(candidate => candidate.name))
+                                                        {
+                                                            <div class="tm-tip__text">@name</div>
+                                                        }
+                                                    </TooltipContent>
+                                                    <ChildContent>
+                                                        <span class="@("task-need task-need--" + need.Kind.ToString().ToLowerInvariant())">
+                                                            @if (need.Kind == QuestNeedKind.Key)
+                                                            {
+                                                                <MudIcon Icon="@Icons.Material.Filled.VpnKey" Class="task-need__key" />
+                                                            }
+                                                            @if (!string.IsNullOrEmpty(need.Items[0].iconLink))
+                                                            {
+                                                                <img class="task-need__icon" src="@need.Items[0].iconLink" alt="" loading="lazy" />
+                                                            }
+                                                            <span>@QuestNeeds.Label(need, LocalizationService.GetString)</span>
+                                                            @if (need.Count > 1)
+                                                            {
+                                                                <span class="task-need__count">×@need.Count</span>
+                                                            }
+                                                            @if (need.FoundInRaid)
+                                                            {
+                                                                <span class="task-need__fir" title="@LocalizationService.GetString("FoundInRaid")">FIR</span>
+                                                            }
+                                                        </span>
+                                                    </ChildContent>
+                                                </MudTooltip>
+                                            }
+                                        </div>
+                                    }
                                     </div>
                                 }
                             </div>

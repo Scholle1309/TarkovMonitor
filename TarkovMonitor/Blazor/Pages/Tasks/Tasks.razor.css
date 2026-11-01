@@ -760,7 +760,16 @@
     min-width: 0;
 }
 
-.task-objective__maps {
+::deep .task-row__needs {
+    font-size: 15px !important;
+    margin-left: 5px;
+    vertical-align: -2px;
+    color: rgba(143, 184, 245, 0.8);
+    cursor: help;
+}
+
+/* Maps and needed items in one row under the objective; the items keep a little distance. */
+.task-objective__extras {
     grid-column: 1 / -1;
     padding: 0 0 3px 6px;
     display: flex;
@@ -768,6 +777,61 @@
     align-items: center;
     gap: 4px;
 }
+
+.task-objective__maps,
+.task-objective__needs {
+    display: contents;
+}
+
+.task-objective__maps + .task-objective__needs > :first-child {
+    margin-left: 8px;
+}
+
+.task-need {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 20px;
+    padding: 0 8px 0 3px;
+    border-radius: 10px;
+    background: rgba(79, 143, 239, 0.12);
+    border: 1px solid rgba(79, 143, 239, 0.3);
+    color: #dbe7ff;
+    font-size: var(--tm-fs-sm);
+    white-space: nowrap;
+}
+
+.task-need--key {
+    background: rgba(255, 179, 0, 0.1);
+    border-color: rgba(255, 179, 0, 0.35);
+    padding-left: 6px;
+}
+
+.task-need__icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+::deep .task-need__key {
+    font-size: 13px !important;
+    color: #ffb300;
+}
+
+.task-need__count {
+    color: #8fb8f5;
+}
+
+.task-need__fir {
+    padding: 0 4px;
+    border-radius: 6px;
+    border: 1px solid #a8771c;
+    color: #ffcf6b;
+    font-size: var(--tm-fs-xs);
+    line-height: 14px;
+}
+
 
 .task-objective__optional {
     color: rgba(255, 255, 255, 0.45);

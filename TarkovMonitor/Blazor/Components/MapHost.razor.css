@@ -292,6 +292,116 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.map-needs {
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(79, 143, 239, 0.08);
+    border: 1px solid rgba(79, 143, 239, 0.25);
+}
+
+.map-needs__head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #e3eeff;
+    font: inherit;
+    font-size: var(--tm-fs-base);
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+}
+
+::deep .map-needs__head-icon {
+    font-size: 18px !important;
+    color: #8fb8f5;
+}
+
+.map-needs__title {
+    flex: 1;
+}
+
+::deep .map-needs__chevron {
+    font-size: 18px !important;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.map-needs__section {
+    margin: 8px 0 2px;
+    font-size: var(--tm-fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.map-need {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+}
+
+.map-need__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.map-need__icon img {
+    max-width: 26px;
+    max-height: 26px;
+    object-fit: contain;
+}
+
+.map-need__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.map-need__name {
+    font-size: var(--tm-fs-md);
+    color: #e3eeff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.map-need__text small {
+    font-size: var(--tm-fs-xs);
+    color: rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.map-need__count {
+    flex-shrink: 0;
+    color: #8fb8f5;
+    font-size: var(--tm-fs-md);
+    font-variant-numeric: tabular-nums;
+}
+
+.map-need__fir {
+    flex-shrink: 0;
+    padding: 0 4px;
+    border-radius: 6px;
+    border: 1px solid #a8771c;
+    color: #ffcf6b;
+    font-size: var(--tm-fs-xs);
+    line-height: 14px;
+}
+
 .map-tasks__section--first {
     margin-top: 0;
     padding-top: 0;

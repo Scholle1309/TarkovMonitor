@@ -1227,4 +1227,25 @@
   <data name="ThisMap" xml:space="preserve">
     <value>This map</value>
   </data>
+  <data name="BringIntoRaid" xml:space="preserve">
+    <value>Bring into this raid</value>
+  </data>
+  <data name="NeedKeys" xml:space="preserve">
+    <value>Keys</value>
+  </data>
+  <data name="NeedPlace" xml:space="preserve">
+    <value>To stash or mark</value>
+  </data>
+  <data name="NeedFindInRaid" xml:space="preserve">
+    <value>Find in raid</value>
+  </data>
+  <data name="NeedOr" xml:space="preserve">
+    <value>{0} or {1}</value>
+  </data>
+  <data name="NeedOrMore" xml:space="preserve">
+    <value>{0} or {1} more</value>
+  </data>
+  <data name="FoundInRaid" xml:space="preserve">
+    <value>Found in raid</value>
+  </data>
 </root>

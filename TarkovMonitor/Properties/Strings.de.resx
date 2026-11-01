@@ -1163,4 +1163,25 @@
   <data name="ThisMap" xml:space="preserve">
     <value>Diese Karte</value>
   </data>
+  <data name="BringIntoRaid" xml:space="preserve">
+    <value>In diesen Raid mitnehmen</value>
+  </data>
+  <data name="NeedKeys" xml:space="preserve">
+    <value>Schlüssel</value>
+  </data>
+  <data name="NeedPlace" xml:space="preserve">
+    <value>Verstecken oder markieren</value>
+  </data>
+  <data name="NeedFindInRaid" xml:space="preserve">
+    <value>Im Raid finden</value>
+  </data>
+  <data name="NeedOr" xml:space="preserve">
+    <value>{0} oder {1}</value>
+  </data>
+  <data name="NeedOrMore" xml:space="preserve">
+    <value>{0} oder {1} weitere</value>
+  </data>
+  <data name="FoundInRaid" xml:space="preserve">
+    <value>Im Raid gefunden</value>
+  </data>
 </root>

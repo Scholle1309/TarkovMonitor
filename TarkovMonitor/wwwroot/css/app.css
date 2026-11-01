@@ -994,3 +994,10 @@ html body *::-webkit-scrollbar-corner {
     font-weight: 400;
     text-align: left;
 }
+
+.mud-tooltip .tm-tip__key {
+    font-size: 12px;
+    margin-right: 4px;
+    vertical-align: -1px;
+    color: #ffb300;
+}

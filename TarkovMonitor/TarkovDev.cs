@@ -138,6 +138,35 @@ namespace TarkovMonitor
         public static List<Task> Tasks => CurrentApiData.Tasks;
         public static List<Map> Maps => CurrentApiData.Maps;
         public static List<Item> Items => CurrentApiData.Items;
+
+        // Id lookup for items, rebuilt whenever new API data arrives.
+        private sealed record ItemIndex(ApiDataSnapshot Source, Dictionary<string, Item> ById);
+        private static ItemIndex? itemIndex;
+
+        /// <summary>The item with this id from the loaded item list, or null.</summary>
+        public static Item? FindItem(string? id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return null;
+            }
+            var data = CurrentApiData;
+            var index = Volatile.Read(ref itemIndex);
+            if (index == null || !ReferenceEquals(index.Source, data))
+            {
+                var byId = new Dictionary<string, Item>(data.Items.Count);
+                foreach (var item in data.Items)
+                {
+                    if (!string.IsNullOrEmpty(item.id))
+                    {
+                        byId.TryAdd(item.id, item);
+                    }
+                }
+                index = new ItemIndex(data, byId);
+                Volatile.Write(ref itemIndex, index);
+            }
+            return index.ById.TryGetValue(id, out var found) ? found : null;
+        }
         public static List<Trader> Traders => CurrentApiData.Traders;
         public static List<HideoutStation> Stations => CurrentApiData.Stations;
         public static List<PlayerLevel> PlayerLevels => CurrentApiData.PlayerLevels;
@@ -710,6 +739,14 @@ namespace TarkovMonitor
             /// <summary>Experience reward for completing the task.</summary>
             public int experience { get; set; }
             public List<TaskObjective> objectives { get; set; } = new();
+            /// <summary>Keys the task needs, per map (item ids).</summary>
+            public List<TaskNeededKeys> neededKeys { get; set; } = new();
+        }
+
+        public class TaskNeededKeys
+        {
+            public string? map { get; set; }
+            public List<string> keys { get; set; } = new();
         }
 
         public class TaskObjective
@@ -726,6 +763,15 @@ namespace TarkovMonitor
             public List<TaskZone> zones { get; set; } = new();
             /// <summary>Possible item locations drawn as markers on the Tarkov.dev map.</summary>
             public List<TaskPossibleLocation> possibleLocations { get; set; } = new();
+            /// <summary>Item ids to stash, find, hand over or sell; any one of them counts.</summary>
+            public List<string> items { get; set; } = new();
+            /// <summary>Weapon to build (buildWeapon objectives).</summary>
+            public string? item { get; set; }
+            /// <summary>Marker or camera to place (mark objectives).</summary>
+            public string? markerItem { get; set; }
+            /// <summary>Keys needed for the objective: every group is needed, any key of a group works.</summary>
+            public List<List<string>> requiredKeys { get; set; } = new();
+            public bool foundInRaid { get; set; }
 
             /// <summary>Ids of the maps on which Tarkov.dev draws a marker for this objective.</summary>
             public IEnumerable<string> MarkerMapIds =>
