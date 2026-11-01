@@ -19,14 +19,25 @@ window.mapHost = (() => {
     // stays where it was and only the visible part grows or shrinks.
     const resizing = { frame: null, width: 0, height: 0 };
 
+    // The app's own buttons and panels over the map.
+    const hostOverlays = ".map-host__fab, .map-tasks";
+
     function centreFrame() {
         const frame = resizing.frame;
         if (!frame) {
             return;
         }
         const area = frame.parentElement;
-        frame.style.left = Math.round((area.clientWidth - resizing.width) / 2) + "px";
-        frame.style.top = Math.round((area.clientHeight - resizing.height) / 2) + "px";
+        const left = Math.round((area.clientWidth - resizing.width) / 2);
+        const top = Math.round((area.clientHeight - resizing.height) / 2);
+        frame.style.left = left + "px";
+        frame.style.top = top + "px";
+        // Smaller window: the page is cropped, its controls move in to the visible edges.
+        post(frame.id, { type: "tarkov-monitor-resizing", on: true, x: Math.max(0, -left), y: Math.max(0, -top) });
+        // Larger window: the page cannot draw beyond itself, so the app's buttons move
+        // in to the page edges and both groups stay together.
+        const x = Math.max(0, left), y = Math.max(0, top);
+        document.querySelectorAll(hostOverlays).forEach(element => { element.style.translate = (-x) + "px " + (-y) + "px"; });
     }
 
     return {
@@ -45,7 +56,6 @@ window.mapHost = (() => {
                 frame.style.width = resizing.width + "px";
                 frame.style.height = resizing.height + "px";
                 centreFrame();
-                frame.contentWindow && frame.contentWindow.postMessage({ type: "tarkov-monitor-resizing", on: true }, targetOrigin);
                 window.addEventListener("resize", centreFrame);
             } else {
                 window.removeEventListener("resize", centreFrame);
@@ -56,7 +66,8 @@ window.mapHost = (() => {
                 frame.style.top = "";
                 frame.style.width = "";
                 frame.style.height = "";
-                frame.contentWindow && frame.contentWindow.postMessage({ type: "tarkov-monitor-resizing", on: false }, targetOrigin);
+                post(frame.id, { type: "tarkov-monitor-resizing", on: false });
+                document.querySelectorAll(hostOverlays).forEach(element => { element.style.translate = ""; });
             }
         },
         // Highlight the markers of a task on the map (empty text clears the highlight).

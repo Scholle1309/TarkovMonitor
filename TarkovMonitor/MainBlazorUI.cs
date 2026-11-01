@@ -98,9 +98,14 @@ namespace TarkovMonitor
             + " { font-family: Roboto, \"Segoe UI\", sans-serif !important; }"
             // The site's settings panel advertises Tarkov Monitor for the player position; this is it.
             + "html body .leaflet-control-map-settings-player-location-help { display: none !important; }"
-            // While the app window is dragged to a new size the page keeps its size, so its
-            // corner controls would sit off the visible edges; they hide until the drag ends.
-            + "html.tm-resizing .leaflet-control-container { visibility: hidden !important; }"
+            // While the app window is dragged to a new size the page keeps its size, centred;
+            // the app sends how far it is cropped and the corner controls and open panels
+            // move in by that much, so they stay at the visible edges.
+            + "html.tm-resizing .leaflet-control-container .leaflet-top.leaflet-left { translate: var(--tm-ix) var(--tm-iy); }"
+            + "html.tm-resizing .leaflet-control-container .leaflet-top.leaflet-right { translate: calc(-1 * var(--tm-ix)) var(--tm-iy); }"
+            + "html.tm-resizing .leaflet-control-container .leaflet-bottom.leaflet-left, html.tm-resizing .id-wrapper { translate: var(--tm-ix) calc(-1 * var(--tm-iy)); }"
+            + "html.tm-resizing .leaflet-control-container .leaflet-bottom.leaflet-right { translate: calc(-1 * var(--tm-ix)) calc(-1 * var(--tm-iy)); }"
+            + "html.tm-resizing .leaflet-control-layers-list, html.tm-resizing .leaflet-control-map-settings-list, html.tm-resizing .leaflet-control-icon-search-list { translate: calc(-1 * var(--tm-ix)) calc(-1 * var(--tm-iy)); }"
             // The area around the map follows the app's navy theme instead of the site's grey.
             + "html body { background-color: #132440 !important; background-image: none !important; }"
             // The site's loading bars (react-spinners) carry their gold in an inline style.
@@ -493,6 +498,8 @@ namespace TarkovMonitor
             + "   collapsePanels(null);"
             + "  } else if (event.data.type === 'tarkov-monitor-resizing') {"
             + "   document.documentElement.classList.toggle('tm-resizing', !!event.data.on);"
+            + "   document.documentElement.style.setProperty('--tm-ix', (event.data.x || 0) + 'px');"
+            + "   document.documentElement.style.setProperty('--tm-iy', (event.data.y || 0) + 'px');"
             + "  } else if (event.data.type === 'tarkov-monitor-markers') {"
             + "   tmSetMarkers(event.data.markers || []);"
             + "  } else if (event.data.type === 'tarkov-monitor-place') {"
