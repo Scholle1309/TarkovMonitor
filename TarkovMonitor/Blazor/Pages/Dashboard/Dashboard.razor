@@ -341,7 +341,7 @@ else
 
             <div class="dash-card">
                 <span class="dash-src">Logs</span>
-                <h2>@LocalizationService.GetString("QuestActivity") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("QuestActivityHint"), questDone, questStarted, questFailed)</span></h2>
+                <h2>@LocalizationService.GetString("QuestActivity") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("QuestActivityHint"), QuestRangeLabel(), questDone, questStarted, questFailed)</span></h2>
                 @if (questEvents.Count == 0)
                 {
                     <div class="dash-empty">@LocalizationService.GetString("NoQuestEventsYet")</div>
@@ -616,13 +616,18 @@ else
         {
             var (questProfile, sessionMode) = TaskStateService.ResolveProfile();
             questEvents = QuestLogStore.GetRecentEvents(questProfile, sessionMode, DateTime.Now.AddDays(-7));
-            // The game logs the same status change more than once at times; keep one per few minutes.
-            questEvents = questEvents
-                .Where((entry, index) => index == 0
-                    || entry.TaskId != questEvents[index - 1].TaskId
-                    || entry.Status != questEvents[index - 1].Status
-                    || (questEvents[index - 1].Time - entry.Time).TotalMinutes > 5)
-                .ToList();
+            // The game logs every status change twice, a few seconds apart, and several
+            // tasks change at once; keep one event per task and status within a few minutes.
+            var kept = new List<QuestLogEntry>();
+            foreach (var entry in questEvents)
+            {
+                if (!kept.Any(other => other.TaskId == entry.TaskId && other.Status == entry.Status
+                    && Math.Abs((other.Time - entry.Time).TotalMinutes) <= 5))
+                {
+                    kept.Add(entry);
+                }
+            }
+            questEvents = kept;
         }
         catch
         {
@@ -631,6 +636,23 @@ else
         questDone = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Finished);
         questStarted = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Started);
         questFailed = questEvents.Count(entry => entry.Status == TarkovMonitor.TaskStatus.Failed);
+    }
+
+    // "7 days", or what cut the week short: "Since Prestige 1", "Since reset", "Since history start".
+    private string QuestRangeLabel()
+    {
+        if (HistoryStart.QuestStart is not { } start || start <= DateTime.Now.AddDays(-7))
+        {
+            return string.Format(LocalizationService.GetString("RaidsPerDayDays"), 7);
+        }
+        var periods = HistoryStart.Periods;
+        if (periods.Count > 0 && periods[^1].FromLocal is { } from && Math.Abs((from - start).TotalSeconds) < 1)
+        {
+            return periods[^1].OpenedBy == RunBoundaryKind.Prestige
+                ? string.Format(LocalizationService.GetString("RaidsSincePrestige"), periods[^1].Level)
+                : LocalizationService.GetString("RaidsSinceReset");
+        }
+        return LocalizationService.GetString("RaidsSinceHistoryStart");
     }
 
     // ---- formatting helpers ----

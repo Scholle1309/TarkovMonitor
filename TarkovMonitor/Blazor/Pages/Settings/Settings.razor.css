@@ -601,12 +601,19 @@
 .tracker-status {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-auto-rows: 22px;
     align-items: center;
-    gap: 2px 12px;
+    gap: 4px 12px;
     margin: 8px 0 10px;
-    padding: 6px 10px;
+    padding: 8px 6px 8px 10px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.035);
+}
+
+.tracker-status ::deep .tracker-status__sync {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
 }
 
 .tracker-status__label {

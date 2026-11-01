@@ -766,7 +766,7 @@
     <value>Quest activity</value>
   </data>
   <data name="QuestActivityHint" xml:space="preserve">
-    <value>7 days: {0} done · {1} started · {2} failed</value>
+    <value>{0}: {1} done · {2} started · {3} failed</value>
   </data>
   <data name="NoQuestEventsYet" xml:space="preserve">
     <value>No quest events in the last 7 days.</value>

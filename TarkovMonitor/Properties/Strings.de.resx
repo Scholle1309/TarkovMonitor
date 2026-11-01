@@ -702,7 +702,7 @@
     <value>Quest-Aktivität</value>
   </data>
   <data name="QuestActivityHint" xml:space="preserve">
-    <value>7 Tage: {0} erledigt · {1} gestartet · {2} fehlgeschlagen</value>
+    <value>{0}: {1} erledigt · {2} gestartet · {3} fehlgeschlagen</value>
   </data>
   <data name="NoQuestEventsYet" xml:space="preserve">
     <value>Keine Quest-Ereignisse in den letzten 7 Tagen.</value>

@@ -136,10 +136,10 @@
                             <span>No EFT profile detected.</span>
                         }
                     </span>
-                    <span></span>
                     <span class="tracker-status__label">@LocalizationService.GetString("Progress")</span>
                     <span class="tracker-status__value">@TrackerSyncText</span>
-                    <MudTooltip Text="@LocalizationService.GetString("SyncNow")">
+                    @* The sync button spans both rows, centred on the right. *@
+                    <MudTooltip Text="@LocalizationService.GetString("SyncNow")" RootClass="tracker-status__sync">
                         <MudIconButton Icon="@Icons.Material.Filled.Sync" Size="Size.Small" Color="Color.Info" OnClick="SyncTrackerNow" Disabled="@syncingTracker" aria-label="@LocalizationService.GetString("SyncNow")" Class="tracker-status__action" />
                     </MudTooltip>
                 </div>
@@ -350,8 +350,6 @@
             <div class="tm-settings-section">@LocalizationService.GetString("MapTasksSection")</div>
             <MudSwitch @bind-Value="@MapHideUnacceptedTasksSwitch" Label="@LocalizationService.GetString("HideUnacceptedTasksOnMap")" Color="Color.Info" />
             <MudSwitch @bind-Value="@MapStrictAcceptedTasksSwitch" Label="@LocalizationService.GetString("StrictAcceptedTasksOnMap")" Color="Color.Info" />
-            <MudSwitch @bind-Value="@MapShowTakeAlongSwitch" Label="@LocalizationService.GetString("ShowTakeAlongOnMap")" Color="Color.Info" />
-            <MudSwitch @bind-Value="@MapShowFindInRaidSwitch" Label="@LocalizationService.GetString("ShowFindInRaidOnMap")" Color="Color.Info" />
             <div class="tm-settings-section">@LocalizationService.GetString("Other")</div>
             <MudSwitch @bind-Value="@AutomaticallyDeleteScreenshotsAfterRaid" Label="@LocalizationService.GetString("AutomaticallyDeleteScreenshotsAfterRaid")" Color="Color.Info" />
             <MudSelect @bind-Value="@MapOverrideSelect" T="string" Label="@LocalizationService.GetString("OfflineMap")" RelativeWidth="DropdownWidth.Adaptive" ShrinkLabel="true" HelperText="@LocalizationService.GetString("MapToUseForOfflineRaids")" AnchorOrigin="Origin.BottomLeft" PopoverFixed="false" Modal="false" MaxHeight="280" Margin="Margin.Dense" Dense="true" Class="tm-select tm-select--field" PopoverClass="tm-select-popover" ListClass="tm-select-list" xs="3">
@@ -746,8 +744,9 @@
 
     private async Task UpdateProfileName()
     {
+        // Also the profile remembered for the chosen mode while the game is closed.
         var profile = GameWatcher.CurrentProfile.Snapshot();
-        if (!eft.IsGameRunning || !profile.HasTarkovDevPlayerRoute)
+        if (!profile.HasTarkovDevPlayerRoute)
         {
             currentProfileName = "";
             return;
@@ -761,6 +760,7 @@
             && GameWatcher.CurrentProfile.SessionMode == profile.SessionMode)
         {
             currentProfileName = profileName;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -1196,7 +1196,8 @@
         "tarkovtracker.io",
         StringComparison.OrdinalIgnoreCase);
 
-    private bool HasCurrentProfileRoute => eft.IsGameRunning && GameWatcher.CurrentProfile.HasTarkovDevPlayerRoute;
+    // Also while the game is closed: then it is the profile remembered for the chosen mode.
+    private bool HasCurrentProfileRoute => GameWatcher.CurrentProfile.HasTarkovDevPlayerRoute;
 
     private string CurrentProfileUrl => HasCurrentProfileRoute
         ? $"https://tarkov.dev/players/{GameWatcher.CurrentProfile.TarkovDevPlayerMode}/{GameWatcher.CurrentProfile.AccountId}"
@@ -1754,24 +1755,6 @@
         set
         {
             Properties.Settings.Default.remoteId = value;
-            Properties.Settings.Default.Save();
-        }
-    }
-    public bool MapShowTakeAlongSwitch
-    {
-        get => Properties.Settings.Default.mapShowTakeAlong;
-        set
-        {
-            Properties.Settings.Default.mapShowTakeAlong = value;
-            Properties.Settings.Default.Save();
-        }
-    }
-    public bool MapShowFindInRaidSwitch
-    {
-        get => Properties.Settings.Default.mapShowFindInRaid;
-        set
-        {
-            Properties.Settings.Default.mapShowFindInRaid = value;
             Properties.Settings.Default.Save();
         }
     }
