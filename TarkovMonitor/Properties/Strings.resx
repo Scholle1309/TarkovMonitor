@@ -124,28 +124,28 @@
     <value>Notifications</value>
   </data>
   <data name="NotificationsPlaybackDevice" xml:space="preserve">
-    <value>Notification playback device</value>
+    <value>Playback device</value>
   </data>
   <data name="RaidStartingAudioNotification" xml:space="preserve">
-    <value>Raid start notification</value>
+    <value>Raid start</value>
   </data>
   <data name="MatchFoundAudioNotification" xml:space="preserve">
-    <value>Match found notification</value>
+    <value>Match found</value>
   </data>
   <data name="RestartTasksAudioReminder" xml:space="preserve">
-    <value>Task restart reminder</value>
+    <value>Task restart</value>
   </data>
   <data name="RunthroughPeriodAudioReminder" xml:space="preserve">
-    <value>Run-through reminder</value>
+    <value>Run-through</value>
   </data>
   <data name="AirFilterAudioReminders" xml:space="preserve">
-    <value>Air filter reminders</value>
+    <value>Air filter</value>
   </data>
   <data name="QuestItemReminderAudioNotification" xml:space="preserve">
-    <value>Quest item reminder</value>
+    <value>Quest items</value>
   </data>
   <data name="ScavCooldownReminders" xml:space="preserve">
-    <value>Scav cooldown reminders</value>
+    <value>Scav cooldown</value>
   </data>
   <data name="ScavKarma" xml:space="preserve">
     <value>Scav karma</value>
@@ -154,19 +154,19 @@
     <value>Run-through time (HH:MM:SS)</value>
   </data>
   <data name="WindowBehavior" xml:space="preserve">
-    <value>Window behavior</value>
+    <value>Window</value>
   </data>
   <data name="StartTarkovMonitorMinimized" xml:space="preserve">
-    <value>Start Tarkov Monitor minimized</value>
+    <value>Start minimized</value>
   </data>
   <data name="MinimizeToSystemTray" xml:space="preserve">
-    <value>Minimize to the system tray</value>
+    <value>Minimize to tray</value>
   </data>
   <data name="StayOnTop" xml:space="preserve">
     <value>Stay on top</value>
   </data>
   <data name="SkipTarkovDevSplashLogo" xml:space="preserve">
-    <value>Skip the Tarkov.dev splash logo</value>
+    <value>Skip splash screen</value>
   </data>
   <data name="DataCollection" xml:space="preserve">
     <value>Data collection</value>
@@ -199,19 +199,19 @@
     <value>Remote ID</value>
   </data>
   <data name="SwitchToTarkovDevMapOnRaidLoad" xml:space="preserve">
-    <value>Switch to the Tarkov.dev map when a raid loads</value>
+    <value>Switch to the raid map</value>
   </data>
   <data name="SwitchToTarkovDevMapOnPositionUpdate" xml:space="preserve">
-    <value>Switch to the Tarkov.dev map when your position updates (via screenshot)</value>
+    <value>Follow position updates (screenshot)</value>
   </data>
   <data name="AutomaticallyDeleteScreenshotsAfterRaid" xml:space="preserve">
-    <value>Delete raid screenshots automatically</value>
+    <value>Delete raid screenshots</value>
   </data>
   <data name="OfflineMap" xml:space="preserve">
     <value>Offline map</value>
   </data>
   <data name="MapToUseForOfflineRaids" xml:space="preserve">
-    <value>Map used for offline raids</value>
+    <value>Map for offline raids</value>
   </data>
   <data name="None" xml:space="preserve">
     <value>None</value>
@@ -421,7 +421,7 @@
     <value>Map ID</value>
   </data>
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
-    <value>Open the Maps tab when a raid loads and return to Messages when it ends</value>
+    <value>Open the Maps tab, back to messages after</value>
   </data>
   <data name="TarkovDevSettings" xml:space="preserve">
     <value>Tarkov.dev settings (language, map options)</value>
@@ -430,7 +430,7 @@
     <value>Back to the map</value>
   </data>
   <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
-    <value>Hide map markers of tasks the game logs show you never accepted</value>
+    <value>Hide tasks you never accepted</value>
   </data>
   <data name="Tasks" xml:space="preserve">
     <value>Tasks</value>
@@ -490,7 +490,7 @@
     <value>None of your accepted tasks can be done on this map.</value>
   </data>
   <data name="StrictAcceptedTasksOnMap" xml:space="preserve">
-    <value>Only count tasks as active on the map when the logs, tracker progress or you confirm they are accepted</value>
+    <value>Only show tasks confirmed as active</value>
   </data>
   <data name="ShowHiddenTasks" xml:space="preserve">
     <value>Show hidden and never-accepted tasks</value>
@@ -841,7 +841,7 @@
     <value>Quest history, raids and sales count from this point. It is set when you read past logs from a chosen session (Raw logs), on the first start of the tool, or here by hand.</value>
   </data>
   <data name="HistoryStartNone" xml:space="preserve">
-    <value>Not set: everything in the logs folder counts</value>
+    <value>Not set: all logs count</value>
   </data>
   <data name="Prestige" xml:space="preserve">
     <value>Prestige</value>
@@ -859,7 +859,7 @@
     <value>Prestiged on</value>
   </data>
   <data name="PrestigeNow" xml:space="preserve">
-    <value>Prestiged just now</value>
+    <value>Prestiged now</value>
   </data>
   <data name="SincePrestige" xml:space="preserve">
     <value>Since prestige</value>
@@ -1001,5 +1001,68 @@
   </data>
   <data name="UpdateNow" xml:space="preserve">
     <value>Update now</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="AlertsAndTimers" xml:space="preserve">
+    <value>Alerts and timers</value>
+  </data>
+  <data name="Raid" xml:space="preserve">
+    <value>Raid</value>
+  </data>
+  <data name="Reminders" xml:space="preserve">
+    <value>Reminders</value>
+  </data>
+  <data name="FloatingTimer" xml:space="preserve">
+    <value>Floating timer</value>
+  </data>
+  <data name="FloatingTimerShow" xml:space="preserve">
+    <value>Show during raids</value>
+  </data>
+  <data name="FloatingTimerRaidTime" xml:space="preserve">
+    <value>Raid time</value>
+  </data>
+  <data name="FloatingTimerRunthrough" xml:space="preserve">
+    <value>Run-through</value>
+  </data>
+  <data name="FloatingTimerHint" xml:space="preserve">
+    <value>Hidden on the Timers page. Keep at least one selected.</value>
+  </data>
+  <data name="PlaySound" xml:space="preserve">
+    <value>Play sound</value>
+  </data>
+  <data name="GameLogsAndHistory" xml:space="preserve">
+    <value>Game logs and history</value>
+  </data>
+  <data name="LogsFolderHint" xml:space="preserve">
+    <value>Only change this if your game logs are somewhere else.</value>
+  </data>
+  <data name="HistoryStartShortHint" xml:space="preserve">
+    <value>Raids, flea sales and quests count from this date. Reading past logs sets it.</value>
+  </data>
+  <data name="PrestigeLevelShort" xml:space="preserve">
+    <value>Prestige {0}</value>
+  </data>
+  <data name="SinceTime" xml:space="preserve">
+    <value>since {0}</value>
+  </data>
+  <data name="PrestigeFromLogs" xml:space="preserve">
+    <value>From the logs:</value>
+  </data>
+  <data name="PrestigeShortHint" xml:space="preserve">
+    <value>Task history and recommendations restart. Raids and sales keep counting.</value>
+  </data>
+  <data name="DuringRaid" xml:space="preserve">
+    <value>During a raid</value>
+  </data>
+  <data name="MapTasksSection" xml:space="preserve">
+    <value>Tasks on the map</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
   </data>
 </root>

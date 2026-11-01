@@ -66,28 +66,28 @@
     <value>Benachrichtigungen</value>
   </data>
   <data name="NotificationsPlaybackDevice" xml:space="preserve">
-    <value>Audiogerät für Benachrichtigungen</value>
+    <value>Audiogerät</value>
   </data>
   <data name="RaidStartingAudioNotification" xml:space="preserve">
-    <value>Audio-Benachrichtigung bei Raidbeginn</value>
+    <value>Raid-Start</value>
   </data>
   <data name="MatchFoundAudioNotification" xml:space="preserve">
-    <value>Audio-Benachrichtigung bei Spielsuche</value>
+    <value>Match gefunden</value>
   </data>
   <data name="RestartTasksAudioReminder" xml:space="preserve">
-    <value>Audio-Erinnerung zum Neustarten der Aufgaben</value>
+    <value>Aufgaben-Neustart</value>
   </data>
   <data name="RunthroughPeriodAudioReminder" xml:space="preserve">
-    <value>Audio-Erinnerung für Runthrough-Zeitraum</value>
+    <value>Run-through</value>
   </data>
   <data name="AirFilterAudioReminders" xml:space="preserve">
-    <value>Audio-Erinnerungen für Luftfilter</value>
+    <value>Luftfilter</value>
   </data>
   <data name="QuestItemReminderAudioNotification" xml:space="preserve">
-    <value>Audio-Benachrichtigung für Questgegenstände</value>
+    <value>Quest-Items</value>
   </data>
   <data name="ScavCooldownReminders" xml:space="preserve">
-    <value>Scav-Abklingzeit-Erinnerungen</value>
+    <value>Scav-Cooldown</value>
   </data>
   <data name="ScavKarma" xml:space="preserve">
     <value>Scav-Karma</value>
@@ -96,10 +96,10 @@
     <value>Runthrough-Zeit (HH:MM:SS)</value>
   </data>
   <data name="WindowBehavior" xml:space="preserve">
-    <value>Fensterverhalten</value>
+    <value>Fenster</value>
   </data>
   <data name="StartTarkovMonitorMinimized" xml:space="preserve">
-    <value>Tarkov Monitor minimiert starten</value>
+    <value>Minimiert starten</value>
   </data>
   <data name="MinimizeToSystemTray" xml:space="preserve">
     <value>In den Infobereich minimieren</value>
@@ -108,7 +108,7 @@
     <value>Immer im Vordergrund</value>
   </data>
   <data name="SkipTarkovDevSplashLogo" xml:space="preserve">
-    <value>Tarkov.dev-Logo überspringen</value>
+    <value>Startlogo überspringen</value>
   </data>
   <data name="DataCollection" xml:space="preserve">
     <value>Datenerfassung</value>
@@ -141,13 +141,13 @@
     <value>Remote-ID</value>
   </data>
   <data name="SwitchToTarkovDevMapOnRaidLoad" xml:space="preserve">
-    <value>Beim Raidstart zur Tarkov.dev-Karte wechseln</value>
+    <value>Zur Raid-Karte wechseln</value>
   </data>
   <data name="SwitchToTarkovDevMapOnPositionUpdate" xml:space="preserve">
-    <value>Bei Positionsupdate zur Tarkov.dev-Karte wechseln (via Screenshot)</value>
+    <value>Positionsupdates folgen (Screenshot)</value>
   </data>
   <data name="AutomaticallyDeleteScreenshotsAfterRaid" xml:space="preserve">
-    <value>Screenshots nach dem Raid automatisch löschen</value>
+    <value>Raid-Screenshots löschen</value>
   </data>
   <data name="OfflineMap" xml:space="preserve">
     <value>Offline-Karte</value>
@@ -357,7 +357,7 @@
     <value>Karten-ID</value>
   </data>
   <data name="ShowMapsTabDuringRaid" xml:space="preserve">
-    <value>Beim Raidstart den Karten-Tab öffnen und nach Raidende zurück zu Nachrichten</value>
+    <value>Karten-Tab öffnen, danach zurück zu Nachrichten</value>
   </data>
   <data name="TarkovDevSettings" xml:space="preserve">
     <value>Tarkov.dev-Einstellungen (Sprache, Kartenoptionen)</value>
@@ -366,7 +366,7 @@
     <value>Zurück zur Karte</value>
   </data>
   <data name="HideUnacceptedTasksOnMap" xml:space="preserve">
-    <value>Kartenmarker von Aufgaben ausblenden, die laut Spiel-Logs nie angenommen wurden</value>
+    <value>Nie angenommene Aufgaben ausblenden</value>
   </data>
   <data name="Tasks" xml:space="preserve">
     <value>Aufgaben</value>
@@ -426,7 +426,7 @@
     <value>Keine deiner angenommenen Aufgaben ist auf dieser Karte machbar.</value>
   </data>
   <data name="StrictAcceptedTasksOnMap" xml:space="preserve">
-    <value>Auf der Karte nur Aufgaben als aktiv zählen, deren Annahme Logs, Tracker-Fortschritt oder du bestätigen</value>
+    <value>Nur bestätigt aktive Aufgaben zeigen</value>
   </data>
   <data name="ShowHiddenTasks" xml:space="preserve">
     <value>Ausgeblendete und nie angenommene Aufgaben zeigen</value>
@@ -777,7 +777,7 @@
     <value>Quest-Historie, Raids und Verkäufe zählen ab diesem Zeitpunkt. Er wird gesetzt, wenn du alte Logs ab einer gewählten Sitzung einliest (Raw logs), beim ersten Start des Tools oder hier von Hand.</value>
   </data>
   <data name="HistoryStartNone" xml:space="preserve">
-    <value>Nicht gesetzt: alles im Logs-Ordner zählt</value>
+    <value>Nicht gesetzt: alle Logs zählen</value>
   </data>
   <data name="Prestige" xml:space="preserve">
     <value>Prestige</value>
@@ -937,5 +937,68 @@
   </data>
   <data name="UpdateNow" xml:space="preserve">
     <value>Jetzt updaten</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="Updates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="AlertsAndTimers" xml:space="preserve">
+    <value>Alarme und Timer</value>
+  </data>
+  <data name="Raid" xml:space="preserve">
+    <value>Raid</value>
+  </data>
+  <data name="Reminders" xml:space="preserve">
+    <value>Erinnerungen</value>
+  </data>
+  <data name="FloatingTimer" xml:space="preserve">
+    <value>Schwebender Timer</value>
+  </data>
+  <data name="FloatingTimerShow" xml:space="preserve">
+    <value>Im Raid anzeigen</value>
+  </data>
+  <data name="FloatingTimerRaidTime" xml:space="preserve">
+    <value>Raid-Zeit</value>
+  </data>
+  <data name="FloatingTimerRunthrough" xml:space="preserve">
+    <value>Run-through</value>
+  </data>
+  <data name="FloatingTimerHint" xml:space="preserve">
+    <value>Auf der Timer-Seite ausgeblendet. Mindestens einen auswählen.</value>
+  </data>
+  <data name="PlaySound" xml:space="preserve">
+    <value>Sound abspielen</value>
+  </data>
+  <data name="GameLogsAndHistory" xml:space="preserve">
+    <value>Spiel-Logs und Verlauf</value>
+  </data>
+  <data name="LogsFolderHint" xml:space="preserve">
+    <value>Nur ändern, wenn deine Spiel-Logs woanders liegen.</value>
+  </data>
+  <data name="HistoryStartShortHint" xml:space="preserve">
+    <value>Raids, Flohmarkt-Verkäufe und Quests zählen ab diesem Datum. Das Einlesen alter Logs setzt es.</value>
+  </data>
+  <data name="PrestigeLevelShort" xml:space="preserve">
+    <value>Prestige {0}</value>
+  </data>
+  <data name="SinceTime" xml:space="preserve">
+    <value>seit {0}</value>
+  </data>
+  <data name="PrestigeFromLogs" xml:space="preserve">
+    <value>Aus den Logs:</value>
+  </data>
+  <data name="PrestigeShortHint" xml:space="preserve">
+    <value>Aufgabenverlauf und Empfehlungen starten neu. Raids und Verkäufe zählen weiter.</value>
+  </data>
+  <data name="DuringRaid" xml:space="preserve">
+    <value>Im Raid</value>
+  </data>
+  <data name="MapTasksSection" xml:space="preserve">
+    <value>Aufgaben auf der Karte</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Sonstiges</value>
   </data>
 </root>
