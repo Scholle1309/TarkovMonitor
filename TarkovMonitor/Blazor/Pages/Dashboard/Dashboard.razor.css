@@ -117,7 +117,7 @@
 .dash-bar i {
     display: block;
     height: 100%;
-    background: #c7b485;
+    background: #8fb8f5;
 }
 
 .dash-bar--green {
@@ -196,7 +196,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #c7b485;
+    color: #8fb8f5;
 }
 
 .dash-card__sub {
@@ -443,8 +443,8 @@ button.dash-chip {
 }
 
 .dash-chip--on {
-    border-color: #c7b485;
-    color: #c7b485;
+    border-color: #8fb8f5;
+    color: #8fb8f5;
 }
 
 .dash-chip--pmc, .dash-chip--pve {
@@ -533,11 +533,11 @@ button.dash-chip {
     flex: 1;
     display: block;
     border-radius: 2px 2px 0 0;
-    background: #9a8866;
+    background: #5a83c2;
 }
 
 .dash-spark--hi {
-    background: #c7b485 !important;
+    background: #8fb8f5 !important;
 }
 
 .dash-spark__days {

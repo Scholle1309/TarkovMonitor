@@ -1,5 +1,5 @@
 ﻿.tarkov-dev-bg {
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAgMAAAANjH3HAAAADFBMVEUtLS8uLjAvLzEsKy2xgXVgAAAASElEQVR4Ae3QoQ3AAAwDQa9Qmu1DX5kk6lAdoEbBJk8tn4qHdtHyMi7qpspFM+y6iKJxEcvgctm5/IlBDGIQgxjEIAYxiME/H1nLq0bNJikRAAAAAElFTkSuQmCC)
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkAgMAAAANjH3HAAAADFBMVEUOFioPFysQGCwNFSli5MDpAAAASElEQVR4Ae3QoQ3AAAwDQa9Qmu1DX5kk6lAdoEbBJk8tn4qHdtHyMi7qpspFM+y6iKJxEcvgctm5/IlBDGIQgxjEIAYxiME/H1nLq0bNJikRAAAAAElFTkSuQmCC)
 }
 
 ::deep .app-main-content {
@@ -23,22 +23,22 @@
     margin-top: 6px;
     margin-bottom: 6px;
     border-left: 1px solid rgba(255, 255, 255, 0.05);
-    background: #252522;
+    background: #131d33;
 }
 
 ::deep .app-main-content::-webkit-scrollbar-thumb {
     min-height: 44px;
-    border: 3px solid #252522;
+    border: 3px solid #131d33;
     border-radius: 999px;
-    background: #8f825f;
+    background: #4d77b8;
 }
 
 ::deep .app-main-content::-webkit-scrollbar-thumb:hover {
-    background: #ad9d70;
+    background: #6b95d8;
 }
 
 ::deep .app-main-content::-webkit-scrollbar-thumb:active {
-    background: #c2b27e;
+    background: #6ea8ff;
 }
 
 .window-drag-region {
@@ -106,7 +106,7 @@
     height: 100vh !important;
     width: 175px !important;
     z-index: 1300;
-    border-right: 1px solid rgba(169, 154, 107, 0.32);
+    border-right: 1px solid rgba(102, 150, 226, 0.32);
 }
 
 ::deep .navigation-drawer-header {
@@ -157,7 +157,7 @@
 }
 
 .navigation-brand:focus-visible {
-    outline: 2px solid rgba(194, 178, 126, 0.85);
+    outline: 2px solid rgba(110, 168, 255, 0.85);
     outline-offset: -3px;
 }
 
@@ -183,20 +183,20 @@
 }
 
 ::deep .navigation-menu .mud-nav-link:focus-visible {
-    outline: 2px solid rgba(194, 178, 126, 0.85);
+    outline: 2px solid rgba(110, 168, 255, 0.85);
     outline-offset: -2px;
     color: #ffffff;
 }
 
 ::deep .navigation-menu .mud-nav-link.active:not(.mud-nav-link-disabled) {
-    border-left-color: #a99a6b;
-    background: #3b3a35;
+    border-left-color: #6690d4;
+    background: #1d2b47;
     color: #ffffff;
     font-weight: 600;
 }
 
 ::deep .navigation-menu .mud-nav-link.active:not(.mud-nav-link-disabled) .mud-nav-link-icon {
-    color: #c2b27e;
+    color: #6ea8ff;
 }
 
 ::deep .window-control {

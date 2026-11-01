@@ -102,7 +102,7 @@
 }
 
 .tasks-pick select option {
-    background: #2b2b2b;
+    background: #16213a;
     color: #fff;
 }
 
@@ -541,7 +541,7 @@
 }
 
 .task-row {
-    background: #2b2b2b;
+    background: #16213a;
     border-radius: 6px;
     padding: 6px 12px;
     border-left: 3px solid transparent;
@@ -640,7 +640,7 @@
 
 .task-status--hidden,
 .task-status--neveraccepted {
-    background: #444;
+    background: #263553;
     color: #bbb;
 }
 
@@ -652,7 +652,7 @@
 
 .task-row__details {
     grid-column: 1 / -1;
-    background: #333338;
+    background: #1a2640;
     border-radius: 6px;
     padding: 8px 14px 8px 40px;
     display: flex;

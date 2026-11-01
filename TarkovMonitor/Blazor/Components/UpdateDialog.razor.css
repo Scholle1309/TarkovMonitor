@@ -8,13 +8,13 @@
     overflow-y: auto;
     padding-right: 6px;
     scrollbar-width: thin;
-    scrollbar-color: rgba(194, 178, 126, 0.45) transparent;
+    scrollbar-color: rgba(110, 168, 255, 0.45) transparent;
 }
 
 .tm-update-release + .tm-update-release {
     margin-top: 14px;
     padding-top: 12px;
-    border-top: 1px solid rgba(194, 178, 126, 0.2);
+    border-top: 1px solid rgba(110, 168, 255, 0.2);
 }
 
 .tm-update-release__title {
@@ -24,7 +24,7 @@
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 4px;
-    color: #c2b27e;
+    color: #6ea8ff;
 }
 
 .tm-update-release__date,
@@ -35,7 +35,7 @@
 }
 
 .tm-update-release__body ::deep .tm-notes-heading {
-    color: #f8f2df;
+    color: #e3eeff;
     font-weight: 600;
     font-size: 0.9rem;
     margin: 8px 0 2px;
@@ -47,11 +47,11 @@
 }
 
 .tm-update-release__body ::deep li::marker {
-    color: #c2b27e;
+    color: #6ea8ff;
 }
 
 .tm-update-release__body ::deep a {
-    color: #c2b27e;
+    color: #6ea8ff;
 }
 
 .tm-update-release__body ::deep li,
@@ -66,8 +66,8 @@
     font-size: 0.8rem;
     padding: 0 4px;
     border-radius: 3px;
-    background: rgba(194, 178, 126, 0.12);
-    color: #e0d3a6;
+    background: rgba(110, 168, 255, 0.12);
+    color: #bcd6ff;
 }
 
 .tm-update-progress,

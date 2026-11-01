@@ -73,7 +73,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(47, 47, 45);
+            BackColor = Color.FromArgb(11, 18, 36);
             ClientSize = new Size(914, 667);
             Controls.Add(blazorWebView1);
             FormBorderStyle = FormBorderStyle.None;
