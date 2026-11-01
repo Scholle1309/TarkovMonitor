@@ -100,6 +100,9 @@ namespace TarkovMonitor
         public int Total => ByType.Values.Sum();
     }
 
+    /// <summary>One bar of the raids-per-day chart. Days before the period start are placeholders.</summary>
+    internal sealed record RaidDay(DateTime Day, int Count, bool InPeriod);
+
     internal sealed record MapQueueStats(string MapNameId, int Raids, double AverageSeconds, double BestSeconds, double WorstSeconds);
 
     internal sealed class DashboardStats
@@ -109,8 +112,15 @@ namespace TarkovMonitor
         public double AverageQueueSeconds { get; init; }
         public List<MapRaidCount> RaidsPerMap { get; init; } = new();
         public List<MapQueueStats> QueuePerMap { get; init; } = new();
-        /// <summary>Raid counts for the last 14 local days, oldest first.</summary>
-        public List<(DateTime Day, int Count)> RaidsPerDay { get; init; } = new();
+        /// <summary>
+        /// Raid counts for up to 14 local days, oldest first, ending today or at the end
+        /// of a past period. A period that started more recently begins at its first day.
+        /// </summary>
+        public List<RaidDay> RaidsPerDay { get; init; } = new();
+        /// <summary>The first counted day when the period starts inside the 14 days (later than the last day when nothing counts), else null.</summary>
+        public DateTime? RaidsPerDaySince { get; init; }
+        /// <summary>True when the chart ends today rather than at the end of a past period.</summary>
+        public bool RaidsPerDayEndsToday { get; init; } = true;
         public List<RaidRecord> RecentRaids { get; init; } = new();
         public RaidRecord? LastRaid { get; init; }
         public long RoublesAllTime { get; init; }
@@ -352,12 +362,47 @@ namespace TarkovMonitor
                     .OrderBy(entry => entry.AverageSeconds)
                     .ToList();
 
+                // The chart follows the selected period: it ends today or on the day a past
+                // period ended, and starts no earlier than the period (or the history start).
+                // Days before the start are not zero raids, they are not counted at all.
+                const int ChartDays = 14;
+                const int MinimumBars = 7;
                 var today = DateTime.Now.Date;
-                var perDay = new List<(DateTime, int)>();
-                for (var offset = 13; offset >= 0; offset--)
+                var lastDay = today;
+                if (toUtc.HasValue && toUtc.Value.ToLocalTime().Date < today)
                 {
-                    var day = today.AddDays(-offset);
-                    perDay.Add((day, raids.Count(raid => raid.TimeUtc.ToLocalTime().Date == day)));
+                    lastDay = toUtc.Value.ToLocalTime().Date;
+                }
+                DateTime? periodStart = null;
+                foreach (var bound in new[] { HistoryStart.ValueUtc, fromUtc })
+                {
+                    if (bound is { } utc && (periodStart is null || utc.ToLocalTime().Date > periodStart))
+                    {
+                        periodStart = utc.ToLocalTime().Date;
+                    }
+                }
+                var firstDay = lastDay.AddDays(-(ChartDays - 1));
+                DateTime? since = null;
+                if (periodStart is { } start && start > firstDay)
+                {
+                    // A period that lies wholly before the history start keeps 14 empty days.
+                    since = start;
+                    if (start <= lastDay)
+                    {
+                        firstDay = start.AddDays(-Math.Max(0, MinimumBars - 1 - (lastDay - start).Days));
+                    }
+                }
+                // A past period that ended before the history start has nothing counted at all.
+                if (toUtc.HasValue && HistoryStart.ValueUtc is { } historyUtc && toUtc.Value <= historyUtc)
+                {
+                    since = lastDay.AddDays(1);
+                    firstDay = lastDay.AddDays(-(ChartDays - 1));
+                }
+                var perDay = new List<RaidDay>();
+                for (var day = firstDay; day <= lastDay; day = day.AddDays(1))
+                {
+                    var inPeriod = since is null || day >= since.Value;
+                    perDay.Add(new RaidDay(day, inPeriod ? raids.Count(raid => raid.TimeUtc.ToLocalTime().Date == day) : 0, inPeriod));
                 }
 
                 var weekAgo = DateTime.UtcNow.AddDays(-7);
@@ -369,6 +414,8 @@ namespace TarkovMonitor
                     RaidsPerMap = perMap,
                     QueuePerMap = queuePerMap,
                     RaidsPerDay = perDay,
+                    RaidsPerDaySince = since,
+                    RaidsPerDayEndsToday = lastDay == today,
                     RecentRaids = raids.OrderByDescending(raid => raid.TimeUtc).Take(6).ToList(),
                     LastRaid = raids.OrderByDescending(raid => raid.TimeUtc).FirstOrDefault(),
                     RoublesAllTime = sales.Where(sale => sale.Currency == Roubles).Sum(sale => (long)sale.Price),

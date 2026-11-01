@@ -666,17 +666,11 @@
   <data name="TrackerNotLinked" xml:space="preserve">
     <value>Tarkov Tracker not linked</value>
   </data>
-  <data name="LastSync" xml:space="preserve">
-    <value>last sync {0}</value>
-  </data>
   <data name="TarkovDevData" xml:space="preserve">
     <value>Tarkov.dev data</value>
   </data>
   <data name="NoApiData" xml:space="preserve">
     <value>Tarkov.dev data not loaded</value>
-  </data>
-  <data name="DataCounts" xml:space="preserve">
-    <value>{0} tasks, {1} maps</value>
   </data>
   <data name="MapConnected" xml:space="preserve">
     <value>map connected</value>
@@ -737,9 +731,6 @@
   </data>
   <data name="RaidsPerDay" xml:space="preserve">
     <value>Raids per day</value>
-  </data>
-  <data name="Last14Days" xml:space="preserve">
-    <value>14 days · {0} raids</value>
   </data>
   <data name="RecentRaids" xml:space="preserve">
     <value>Recent raids</value>
@@ -1196,5 +1187,32 @@
   </data>
   <data name="Progress" xml:space="preserve">
     <value>Progress</value>
+  </data>
+  <data name="RaidsPerDayDays" xml:space="preserve">
+    <value>{0} days</value>
+  </data>
+  <data name="RaidsPerDayCount" xml:space="preserve">
+    <value>{0} · {1} raids</value>
+  </data>
+  <data name="RaidsSincePrestige" xml:space="preserve">
+    <value>Since Prestige {0}</value>
+  </data>
+  <data name="RaidsSinceReset" xml:space="preserve">
+    <value>Since reset</value>
+  </data>
+  <data name="RaidsSinceHistoryStart" xml:space="preserve">
+    <value>Since history start</value>
+  </data>
+  <data name="RaidsPerDayUntil" xml:space="preserve">
+    <value>{0} until {1}</value>
+  </data>
+  <data name="RaidsPerDayDaysUntil" xml:space="preserve">
+    <value>{0} days until {1}</value>
+  </data>
+  <data name="RaidsPerDayNoData" xml:space="preserve">
+    <value>No raids recorded in this period</value>
+  </data>
+  <data name="DataUpdated" xml:space="preserve">
+    <value>updated {0}</value>
   </data>
 </root>

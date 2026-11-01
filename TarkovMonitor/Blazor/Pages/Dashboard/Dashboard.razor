@@ -46,7 +46,7 @@ else
             @(trackerLinked ? LocalizationService.GetString("TrackerLinked") : LocalizationService.GetString("TrackerNotLinked"))
             @if (trackerLinked && TarkovTracker.LastProgressRetrievedUtc != null)
             {
-                <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("LastSync"), Ago(TarkovTracker.LastProgressRetrievedUtc.Value))</span>
+                <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("DataUpdated"), Ago(TarkovTracker.LastProgressRetrievedUtc.Value))</span>
             }
         </span>
         <span class="dash-pill">
@@ -54,7 +54,10 @@ else
             @if (apiLoaded)
             {
                 <b>@LocalizationService.GetString("TarkovDevData") @TarkovDev.LoadedProfileType.ToApiString().ToUpperInvariant()</b>
-                <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("DataCounts"), TarkovDev.Tasks.Count, TarkovDev.Maps.Count)@(TarkovDev.LastLoadedUtc != null ? " · " + Ago(TarkovDev.LastLoadedUtc.Value) : "")</span>
+                @if (TarkovDev.LastLoadedUtc != null)
+                {
+                    <span class="dash-pill__sub">· @string.Format(LocalizationService.GetString("DataUpdated"), Ago(TarkovDev.LastLoadedUtc.Value))</span>
+                }
             }
             else
             {
@@ -275,20 +278,27 @@ else
 
             <div class="dash-card">
                 <span class="dash-src">Logs</span>
-                <h2>@LocalizationService.GetString("RaidsPerDay") <span class="dash-card__sub">@string.Format(LocalizationService.GetString("Last14Days"), stats.RaidsPerDay.Sum(day => day.Count))</span></h2>
+                <h2>@LocalizationService.GetString("RaidsPerDay") <span class="dash-card__sub" title="@RaidsPerDayRange(stats)">@RaidsPerDayLabel(stats)</span></h2>
                 @{
                     var maxPerDay = Math.Max(1, stats.RaidsPerDay.Count > 0 ? stats.RaidsPerDay.Max(day => day.Count) : 1);
                 }
                 <div class="dash-spark">
                     @foreach (var day in stats.RaidsPerDay)
                     {
-                        <i class="@(day.Count == maxPerDay && day.Count > 0 ? "dash-spark--hi" : "")" style="@($"height: {Math.Max(4, 100.0 * day.Count / maxPerDay):F0}%")" title="@($"{day.Day:d}: {day.Count}")"></i>
+                        @if (!day.InPeriod)
+                        {
+                            <i class="dash-spark--off" title="@($"{day.Day:d}")"></i>
+                        }
+                        else
+                        {
+                            <i class="@(day.Count == maxPerDay && day.Count > 0 ? "dash-spark--hi" : "")" style="@($"height: {Math.Max(4, 100.0 * day.Count / maxPerDay):F0}%")" title="@($"{day.Day:d}: {day.Count}")"></i>
+                        }
                     }
                 </div>
                 <div class="dash-spark__days">
                     @foreach (var day in stats.RaidsPerDay)
                     {
-                        <span>@day.Day.Day</span>
+                        <span class="@(day.InPeriod ? "" : "dash-spark__day--off")">@day.Day.Day</span>
                     }
                 </div>
             </div>
@@ -351,6 +361,58 @@ else
 </div>
 
 @code {
+    // Says what the bars cover: "14 days", "Since Prestige 1", "Since reset" or
+    // "Since history start", and "until <date>" for a past period. The dates are in the tooltip.
+    private string RaidsPerDayLabel(DashboardStats data)
+    {
+        if (data.RaidsPerDay.Count == 0)
+        {
+            return "";
+        }
+        var last = data.RaidsPerDay[^1].Day;
+        // A finished period without any raid (for example its logs were deleted).
+        if (!data.RaidsPerDayEndsToday && data.RaidsPerDay.All(day => day.Count == 0))
+        {
+            return LocalizationService.GetString("RaidsPerDayNoData");
+        }
+        string range;
+        if (data.RaidsPerDaySince is { } since)
+        {
+            if (since > last)
+            {
+                return LocalizationService.GetString("RaidsPerDayNoData");
+            }
+            var reason = SinceReason(since);
+            range = data.RaidsPerDayEndsToday
+                ? reason
+                : string.Format(LocalizationService.GetString("RaidsPerDayUntil"), reason, last.ToString("M"));
+        }
+        else
+        {
+            range = data.RaidsPerDayEndsToday
+                ? string.Format(LocalizationService.GetString("RaidsPerDayDays"), data.RaidsPerDay.Count)
+                : string.Format(LocalizationService.GetString("RaidsPerDayDaysUntil"), data.RaidsPerDay.Count, last.ToString("M"));
+        }
+        return string.Format(LocalizationService.GetString("RaidsPerDayCount"), range, data.RaidsPerDay.Sum(day => day.Count));
+    }
+
+    private string SinceReason(DateTime since)
+    {
+        if (selectedPeriod is { FromLocal: { } from } period && from.Date == since)
+        {
+            return period.OpenedBy == RunBoundaryKind.Prestige
+                ? string.Format(LocalizationService.GetString("RaidsSincePrestige"), period.Level)
+                : LocalizationService.GetString("RaidsSinceReset");
+        }
+        return LocalizationService.GetString("RaidsSinceHistoryStart");
+    }
+
+    private static string RaidsPerDayRange(DashboardStats data)
+    {
+        var counted = data.RaidsPerDay.Where(day => day.InPeriod).ToList();
+        return counted.Count == 0 ? "" : $"{counted[0].Day:d} – {counted[^1].Day:d}";
+    }
+
     private RenderFragment MessagesCard => @<div class="dash-card dash-card--messages">
         <h2>@LocalizationService.GetString("Messages")</h2>
         <div class="dash__messages">
