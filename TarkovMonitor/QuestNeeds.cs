@@ -27,13 +27,35 @@ namespace TarkovMonitor
     /// </summary>
     public static class QuestNeeds
     {
-        /// <summary>The symbol for a kind of need (Material icon), so needs read at a glance without item pictures.</summary>
-        public static string Icon(QuestNeedKind kind) => kind switch
+        // Items that are installed rather than stashed, with their own symbols.
+        private const string WifiCamera = "5b4391a586f7745321235ab2";
+        private const string Ms2000Marker = "5991b51486f77447b112d44f";
+        private const string SignalJammer = "5ac78a9b86f7741cca0bbd8d";
+        private static readonly HashSet<string> InstalledItems = new() { WifiCamera, Ms2000Marker, SignalJammer };
+
+        /// <summary>The MS2000 marker drawn as a symbol: a small device with an antenna and signal arcs, tilted to fill the square.</summary>
+        public const string MarkerIcon =
+            "<g transform=\"rotate(45 12 12) translate(12 12) scale(1.25) translate(-12 -11.5)\">"
+            + "<path fill-rule=\"evenodd\" d=\"M9.5 9h5A1.5 1.5 0 0 1 16 10.5v9A1.5 1.5 0 0 1 14.5 21h-5A1.5 1.5 0 0 1 8 19.5v-9A1.5 1.5 0 0 1 9.5 9zM10.2 11v2.6h3.6V11z\"/>"
+            + "<path d=\"M11.3 3.2h1.4V9h-1.4z\"/>"
+            + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" d=\"M8.7 1.9a4.6 4.6 0 0 0 0 5.6M15.3 1.9a4.6 4.6 0 0 1 0 5.6\"/>"
+            + "</g>";
+
+        /// <summary>Stashing drawn as a symbol: an arrow pointing down into a box, using the whole square.</summary>
+        public const string StashIcon =
+            "<path d=\"M10.9 0.8h2.2v6.2h-2.2z\"/>"
+            + "<path d=\"M6.4 6.2h11.2L12 12.2z\"/>"
+            + "<path fill-rule=\"evenodd\" d=\"M3.2 13.2h17.6a1.2 1.2 0 0 1 1.2 1.2v7.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 21.5v-7.1a1.2 1.2 0 0 1 1.2-1.2zM8.8 15.8v2h6.4v-2z\"/>";
+
+        /// <summary>The symbol for a need (Material icons; stash and MS2000 drawn), so needs read at a glance without item pictures.</summary>
+        public static string Icon(QuestNeed need) => need.Kind switch
         {
             QuestNeedKind.Key => MudBlazor.Icons.Material.Filled.VpnKey,
-            QuestNeedKind.Place => MudBlazor.Icons.Material.Filled.AddLocationAlt,
+            QuestNeedKind.Place => StashIcon,
+            QuestNeedKind.Mark when need.Items.Any(item => item.id == WifiCamera) => MudBlazor.Icons.Material.Filled.PhotoCamera,
+            QuestNeedKind.Mark when need.Items.Any(item => item.id == Ms2000Marker) => MarkerIcon,
             QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.SettingsInputAntenna,
-            QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.Redeem,
+            QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.PanTool,
             _ => MudBlazor.Icons.Material.Filled.Build,
         };
 
@@ -57,6 +79,11 @@ namespace TarkovMonitor
                 "buildWeapon" => (QuestNeedKind.Build, Single(objective.item), 1),
                 _ => (QuestNeedKind.Key, new List<string>(), 0),
             };
+            // Cameras, markers and jammers are installed, also when the task calls it planting.
+            if (kind == QuestNeedKind.Place && ids.Count > 0 && ids.All(InstalledItems.Contains))
+            {
+                kind = QuestNeedKind.Mark;
+            }
             if (count > 0)
             {
                 var items = Resolve(ids);

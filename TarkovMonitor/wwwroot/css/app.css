@@ -996,7 +996,7 @@ html body *::-webkit-scrollbar-corner {
 }
 
 .mud-tooltip .tm-tip__key {
-    font-size: 14px;
+    font-size: 15px;
     margin-right: 4px;
     vertical-align: -1px;
     color: #8fb8f5;

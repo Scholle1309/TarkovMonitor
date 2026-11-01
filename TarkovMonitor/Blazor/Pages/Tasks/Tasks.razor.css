@@ -733,6 +733,13 @@
     gap: 4px;
 }
 
+/* A coloured edge (pinned, current map) stays visible next to the open content. */
+.task-row--pinned > .task-row__details,
+.task-row--current > .task-row__details {
+    margin-left: -12px;
+    padding-left: 0;
+}
+
 .task-objective {
     display: grid;
     grid-template-columns: 28px minmax(0, 1fr) auto 118px;
@@ -776,6 +783,23 @@
     cursor: help;
 }
 
+/* The whole left part of the row opens the task: the lead cell (or the needs tab),
+   the gap and the arrow, over the full height of the first line. */
+.task-row__lead {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: stretch;
+    margin: -6px 0 -6px -15px;
+    cursor: pointer;
+}
+
+.task-row > .task-row__toggle {
+    align-self: stretch;
+    margin: -6px 0 -6px -12px;
+    width: calc(100% + 12px);
+    padding-left: 12px;
+}
+
 /* Over the invisible left border too, unless the row shows a coloured edge (pinned, current map). */
 .task-row:not(.task-row--current):not(.task-row--pinned) > .task-row__needs-tab {
     margin-left: -15px;
@@ -798,7 +822,7 @@
 }
 
 ::deep .task-row__needs {
-    font-size: 19px !important;
+    font-size: 26px !important;
     color: #8fb8f5;
 }
 
@@ -851,7 +875,7 @@
 
 
 ::deep .task-need__kind {
-    font-size: 15px !important;
+    font-size: 16px !important;
     color: #8fb8f5;
 }
 

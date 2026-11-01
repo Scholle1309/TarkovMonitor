@@ -179,27 +179,29 @@
                 @{
                     // Keys or items the task needs: a tab left of the expand arrow, the tooltip lists them.
                     var taskNeeds = item.State == TaskState.Completed ? new List<QuestNeed>() : QuestNeeds.OfTask(item.Task);
-                    var tabKind = taskNeeds.Any(need => need.Kind == QuestNeedKind.Key) ? QuestNeedKind.Key : taskNeeds.FirstOrDefault()?.Kind ?? QuestNeedKind.Key;
+                    var tabNeed = taskNeeds.FirstOrDefault(need => need.Kind == QuestNeedKind.Key) ?? taskNeeds.FirstOrDefault();
+                    var tabKind = tabNeed?.Kind ?? QuestNeedKind.Key;
                 }
                 @if (taskNeeds.Count > 0)
                 {
-                    <div class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))">
+                    <div class="@("task-row__needs-tab" + (tabKind == QuestNeedKind.Key ? " task-row__needs-tab--key" : ""))" @onclick="() => ToggleExpanded(item.Task.id)">
                         <MudTooltip Placement="Placement.Right" Inline="false">
                             <TooltipContent>
                                 @foreach (var need in taskNeeds)
                                 {
-                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
+                                    <div class="tm-tip__text"><MudIcon Icon="@QuestNeeds.Icon(need)" Class="@("tm-tip__key" + (need.Kind == QuestNeedKind.Key ? "" : " tm-tip__key--item"))" />@(need.Count > 1 ? $"{need.Count}× " : "")@QuestNeeds.Label(need, LocalizationService.GetString)@(need.FoundInRaid ? " (FIR)" : "")</div>
                                 }
                             </TooltipContent>
                             <ChildContent>
-                                <MudIcon Icon="@QuestNeeds.Icon(tabKind)" Class="task-row__needs" />
+                                <MudIcon Icon="@QuestNeeds.Icon(tabNeed!)" Class="task-row__needs" />
                             </ChildContent>
                         </MudTooltip>
                     </div>
                 }
                 else
                 {
-                    <span></span>
+                    @* Empty lead cell: also opens the task, like the arrow next to it. *@
+                    <span class="task-row__lead" @onclick="() => ToggleExpanded(item.Task.id)"></span>
                 }
                 <button type="button" class="task-row__toggle" @onclick="() => ToggleExpanded(item.Task.id)">
                     <MudIcon Icon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
@@ -432,7 +434,7 @@
                                                     </TooltipContent>
                                                     <ChildContent>
                                                         <span class="@("task-need task-need--" + need.Kind.ToString().ToLowerInvariant())">
-                                                            <MudIcon Icon="@QuestNeeds.Icon(need.Kind)" Class="task-need__kind" />
+                                                            <MudIcon Icon="@QuestNeeds.Icon(need)" Class="task-need__kind" />
                                                             @if (need.Count > 1)
                                                             {
                                                                 <span class="task-need__count">@(need.Count)×</span>

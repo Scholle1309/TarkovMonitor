@@ -186,7 +186,7 @@
                                                     </TooltipContent>
                                                     <ChildContent>
                                                         <div class="map-need">
-                                                            <MudIcon Icon="@QuestNeeds.Icon(entry.Need.Kind)" Class="@("map-need__kind map-need__kind--" + entry.Need.Kind.ToString().ToLowerInvariant())" />
+                                                            <MudIcon Icon="@QuestNeeds.Icon(entry.Need)" Class="@("map-need__kind map-need__kind--" + entry.Need.Kind.ToString().ToLowerInvariant())" />
                                                             <span class="map-need__text">
                                                                 <span class="map-need__name">@QuestNeeds.Label(entry.Need, LocalizationService.GetString)</span>
                                                                 <small>@string.Join(", ", entry.Tasks)</small>
