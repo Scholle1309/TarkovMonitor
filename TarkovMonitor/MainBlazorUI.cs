@@ -2572,11 +2572,7 @@ namespace TarkovMonitor
             if (!e.RaidInfo.Reconnected && e.RaidInfo.RaidType != RaidType.Unknown)
             {
                 MonitorMessage monMessage = new($"Starting a {e.RaidInfo.RaidType} raid on {e.RaidInfo.Map?.name}.");
-                if (e.RaidInfo.Map != null && e.RaidInfo.StartedTime != null && e.RaidInfo.Map.HasGoons())
-                {
-                    AddGoonsButton(monMessage, e.RaidInfo);
-                }
-                else if (e.RaidInfo.Map == null)
+                if (e.RaidInfo.Map == null)
                 {
                     monMessage.Message = $"Starting a {e.RaidInfo.RaidType} raid. Choose a map:";
                     MonitorMessageSelect select = new();
@@ -2597,7 +2593,6 @@ namespace TarkovMonitor
                         monMessage.Message = $"Starting a {e.RaidInfo.RaidType} raid on {select.Selected.Text}.";
                         monMessage.Buttons.Clear();
                         monMessage.Selects.Clear();
-                        //AddGoonsButton(monMessage, e.RaidInfo); // offline raids have goons on all goons maps
                         if (e.RaidInfo.Map != null)
                         {
                             await FollowMapAsync(e.RaidInfo.Map);
@@ -2634,34 +2629,6 @@ namespace TarkovMonitor
                     messageLog.AddMessage($"Error submitting queue time: {ex.Message}", "exception");
 #endif
                 }
-            }
-        }
-
-        private void AddGoonsButton(MonitorMessage monMessage, RaidInfo raidInfo)
-        {
-            if (raidInfo.Map != null && raidInfo.StartedTime != null && raidInfo.Map.HasGoons())
-            {
-                MonitorMessageButton goonsButton = new("Report Goons", Icons.Material.Filled.Groups);
-                goonsButton.OnClick = async () => {
-                    var startedUtc = DateTime.UtcNow;
-                    try
-                    {
-                        await TarkovDev.PostGoonsSighting(raidInfo.Map?.nameId, (DateTime)raidInfo.StartedTime, Int32.Parse(raidInfo.Profile.AccountId), GameWatcher.CurrentProfile.Type);
-                        messageLog.AddMessage($"Reported Goons on {raidInfo.Map?.name}.", "info");
-                    }
-                    catch (Exception ex)
-                    {
-                        RecordException("The Goons report could not be submitted.", "TM-API-GOONS-001", "SubmitGoonsReport", ex, "TarkovDev", "Report", "https://manager.tarkov.dev/api", DiagnosticsService.ElapsedMilliseconds(startedUtc));
-                    }
-                    monMessage.Buttons.Remove(goonsButton);
-                };
-                goonsButton.Confirm = new(
-                    $"Report Goons on {raidInfo.Map?.name}",
-                    "<p>Submit a report only if you saw the Goons during this raid.</p><p><strong>Notice:</strong> By submitting a report, you consent to the collection of your IP address and EFT account ID for verification.</p>",
-                    "Submit report", "Cancel"
-                );
-                goonsButton.Timeout = TimeSpan.FromMinutes(120).TotalMilliseconds;
-                monMessage.Buttons.Add(goonsButton);
             }
         }
 
