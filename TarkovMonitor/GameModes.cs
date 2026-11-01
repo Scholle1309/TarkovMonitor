@@ -68,6 +68,42 @@ namespace TarkovMonitor
             }
         }
 
+        /// <summary>
+        /// Stores the most recent profile of each mode found in past logs. The mode
+        /// played last only changes when none is known yet.
+        /// </summary>
+        public static int RememberDiscovered(IEnumerable<DiscoveredEftProfile> discovered)
+        {
+            var latest = discovered
+                .Where(item => item.Profile.HasIdentity && All.Contains(item.Profile.SessionMode))
+                .GroupBy(item => item.Profile.SessionMode)
+                .Select(group => group.OrderByDescending(item => item.LastSeenUtc).First())
+                .ToList();
+            if (latest.Count == 0)
+            {
+                return 0;
+            }
+
+            int added;
+            lock (gate)
+            {
+                var profiles = Load();
+                added = latest.Count(item => !profiles.ContainsKey(item.Profile.SessionMode));
+                foreach (var item in latest)
+                {
+                    profiles[item.Profile.SessionMode] = item.Profile.Snapshot();
+                }
+                Properties.Settings.Default.knownProfiles = string.Join(";", profiles.Values.Select(item => $"{item.SessionMode}|{item.Id}|{item.AccountId}|{item.Type}"));
+                if (LastMode == EftSessionMode.Unknown)
+                {
+                    Properties.Settings.Default.lastTarkovSessionMode = latest.OrderByDescending(item => item.LastSeenUtc).First().Profile.SessionMode.ToString();
+                }
+                Properties.Settings.Default.Save();
+            }
+            Changed?.Invoke(null, EventArgs.Empty);
+            return added;
+        }
+
         private static Dictionary<EftSessionMode, Profile> Load()
         {
             var profiles = new Dictionary<EftSessionMode, Profile>();

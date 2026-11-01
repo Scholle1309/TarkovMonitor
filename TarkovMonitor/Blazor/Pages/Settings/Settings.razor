@@ -152,9 +152,6 @@
                             <span><MudButton Disabled="true" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.Add" Class="tracker-toolbar-button">Import API Token</MudButton></span>
                         </MudTooltip>
                     }
-                    <MudTooltip Text="@OrgProfileScanHelpText">
-                        <span><MudButton @onclick="ScanOrgProfiles" Variant="Variant.Text" Color="Color.Info" StartIcon="@Icons.Material.Filled.Search" Disabled="@(scanningOrgProfiles || !OrgKeyChangesEnabled)" Class="tracker-toolbar-button">Scan profiles</MudButton></span>
-                    </MudTooltip>
                     <MudButton @onclick="OpenTrackerSettings" Variant="Variant.Text" Color="Color.Info" StartIcon="@Icons.Material.Filled.OpenInNew" Class="tracker-toolbar-button">@LocalizationService.GetString("GetAToken")</MudButton>
                 </div>
 
@@ -381,6 +378,9 @@
             <MudText Typo="Typo.caption" Class="tm-settings-hint">@LocalizationService.GetString("HistoryStartShortHint")</MudText>
             <div class="tm-settings-inline mt-2">
                 <MudButton OnClick="ReadPastLogs" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.History">@LocalizationService.GetString("ReadPastLogs")</MudButton>
+                <MudTooltip Text="@LocalizationService.GetString("FindProfilesHint")">
+                    <MudButton OnClick="ScanOrgProfiles" Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.PersonSearch" Disabled="@scanningOrgProfiles">@LocalizationService.GetString("FindProfiles")</MudButton>
+                </MudTooltip>
                 <MudButton OnClick="ClearData" Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteSweep">@LocalizationService.GetString("ClearData")</MudButton>
             </div>
             <div class="tm-settings-section">@LocalizationService.GetString("Backup")</div>
@@ -1346,11 +1346,18 @@
         try
         {
             var discovered = await Task.Run(eft.DiscoverProfiles);
-            var updated = TarkovTracker.SaveDiscoveredOrgProfiles(discovered);
+            // The profiles feed the game mode switch; the token assignment only takes
+            // them while key changes are allowed.
+            GameModes.RememberDiscovered(discovered);
+            if (OrgKeyChangesEnabled)
+            {
+                TarkovTracker.SaveDiscoveredOrgProfiles(discovered);
+            }
+            var modes = string.Join(", ", discovered.Select(item => GameModes.Label(item.Profile.SessionMode)).Where(label => label != "").Distinct());
             messageLog.AddMessage(discovered.Count == 0
-                ? "No EFT profiles were found in past logs. Launch EFT once, then scan again."
-                : $"Found {discovered.Count} EFT profile{(discovered.Count == 1 ? "" : "s")} in past logs and updated {updated} saved profile record{(updated == 1 ? "" : "s")}.",
-                discovered.Count == 0 ? "warning" : "update");
+                ? LocalizationService.GetString("FindProfilesNone")
+                : string.Format(LocalizationService.GetString("FindProfilesFound"), discovered.Count, modes),
+                discovered.Count == 0 ? "warning" : "info");
         }
         catch (Exception ex)
         {

@@ -677,6 +677,20 @@ namespace TarkovMonitor
 
             eft.InitialReadComplete += (object? sender, ProfileEventArgs e) =>
             {
+                // Learn the profile of every game mode from past logs, so the title bar
+                // switch can show PVP or PVP Season before they are played live again.
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        GameModes.RememberDiscovered(eft.DiscoverProfiles());
+                    }
+                    catch
+                    {
+                        // Without it, modes become known when they are played.
+                    }
+                });
+
                 if (!e.Profile.HasTarkovDevPlayerRoute)
                 {
                     PublishNoActiveEftSessionNotice();
