@@ -807,9 +807,6 @@
   <data name="NoBossData" xml:space="preserve">
     <value>No boss data for this map.</value>
   </data>
-  <data name="GoonsLastSeen" xml:space="preserve">
-    <value>Goons last seen on {0}, {1}</value>
-  </data>
   <data name="LocalData" xml:space="preserve">
     <value>Local data</value>
   </data>
