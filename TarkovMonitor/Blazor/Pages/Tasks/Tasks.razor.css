@@ -725,7 +725,9 @@
     grid-column: 1 / -1;
     background: #1a2640;
     border-radius: 6px;
-    padding: 8px 14px 8px 74px;
+    /* Flush with the row sides; the checkboxes sit under the needs tab. */
+    margin: 0 -12px 0 -15px;
+    padding: 8px 14px 8px 3px;
     display: flex;
     flex-direction: column;
     gap: 4px;
