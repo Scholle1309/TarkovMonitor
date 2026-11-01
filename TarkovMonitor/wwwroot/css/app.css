@@ -1192,3 +1192,34 @@ html body *::-webkit-scrollbar-corner {
     flex: 1 1 0;
     min-width: 0;
 }
+
+/* The whole field reacts to a click (see js/fields.js), so the pointer says so:
+   a hand for selects and date pickers, the text cursor for editable text fields. */
+.tm-field:has(.mud-select),
+.tm-field:has(.mud-select) *,
+.tm-field:has(.mud-picker),
+.tm-field:has(.mud-picker) * {
+    cursor: pointer !important;
+}
+
+.tm-field:has(input:not([readonly])):not(:has(.mud-select)):not(:has(.mud-picker)):not(:has(.mud-slider)),
+.tm-field:has(input:not([readonly])):not(:has(.mud-select)):not(:has(.mud-picker)):not(:has(.mud-slider)) .tm-field__caption {
+    cursor: text;
+}
+
+/* Read-only text (logs folder) is not typed into; the slider grabs as a slider. */
+.tm-field:not(:has(.mud-select)):not(:has(.mud-picker)) input[readonly] {
+    cursor: default !important;
+}
+
+.tm-field .mud-slider,
+.tm-field .mud-slider * {
+    cursor: pointer;
+}
+
+.tm-field .mud-input-adornment,
+.tm-field .mud-input-adornment * ,
+.tm-field button,
+.tm-field button * {
+    cursor: pointer !important;
+}
