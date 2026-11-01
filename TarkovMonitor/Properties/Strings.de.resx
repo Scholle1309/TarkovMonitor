@@ -831,7 +831,7 @@
     <value>Marker auf {0}</value>
   </data>
   <data name="MarkersHint" xml:space="preserve">
-    <value>Deine eigenen Marker auf dieser Map. Klick zeigt den Marker; ein Klick auf den Pin in der Karte benennt oder löscht ihn.</value>
+    <value>Deine eigenen Marker auf dieser Map. Rechtsklick in die Karte setzt einen; Klick hier zeigt ihn, Klick auf den Pin bearbeitet oder löscht ihn.</value>
   </data>
   <data name="PlaceMarkerHint" xml:space="preserve">
     <value>Klicke in die Karte, um den Marker zu setzen.</value>
@@ -850,5 +850,11 @@
   </data>
   <data name="DeleteMarker" xml:space="preserve">
     <value>Marker löschen</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>Über</value>
+  </data>
+  <data name="Releases" xml:space="preserve">
+    <value>Releases auf GitHub</value>
   </data>
 </root>

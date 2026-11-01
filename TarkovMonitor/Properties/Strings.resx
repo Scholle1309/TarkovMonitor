@@ -895,7 +895,7 @@
     <value>Markers on {0}</value>
   </data>
   <data name="MarkersHint" xml:space="preserve">
-    <value>Your own markers on this map. Click one to show it; click a pin on the map to rename or delete it.</value>
+    <value>Your own markers on this map. Right-click the map to place one; click one here to show it, click a pin to edit or delete it.</value>
   </data>
   <data name="PlaceMarkerHint" xml:space="preserve">
     <value>Click on the map to place the marker.</value>
@@ -914,5 +914,11 @@
   </data>
   <data name="DeleteMarker" xml:space="preserve">
     <value>Delete marker</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="Releases" xml:space="preserve">
+    <value>Releases on GitHub</value>
   </data>
 </root>
