@@ -94,6 +94,13 @@ namespace TarkovMonitor
                     task_id TEXT NOT NULL,
                     kind TEXT NOT NULL,
                     PRIMARY KEY (profile_id, session_mode, task_id)
+                );
+                CREATE TABLE IF NOT EXISTS task_pins (
+                    profile_id TEXT NOT NULL,
+                    session_mode TEXT NOT NULL,
+                    task_id TEXT NOT NULL,
+                    pinned_at TEXT NOT NULL,
+                    PRIMARY KEY (profile_id, session_mode, task_id)
                 );";
             command.ExecuteNonQuery();
         }
@@ -125,6 +132,52 @@ namespace TarkovMonitor
                 command.ExecuteNonQuery();
             }
             Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Pins a task to the top of the task list and the map panel, per profile and mode.</summary>
+        public void SetPinned(string profileId, EftSessionMode sessionMode, string taskId, bool pinned)
+        {
+            if (string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(taskId))
+            {
+                return;
+            }
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = pinned
+                    ? "INSERT OR IGNORE INTO task_pins (profile_id, session_mode, task_id, pinned_at) VALUES (@profile, @mode, @task, @time);"
+                    : "DELETE FROM task_pins WHERE profile_id = @profile AND session_mode = @mode AND task_id = @task;";
+                command.Parameters.AddWithValue("@profile", profileId);
+                command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                command.Parameters.AddWithValue("@task", taskId);
+                command.Parameters.AddWithValue("@time", DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture));
+                command.ExecuteNonQuery();
+            }
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>Pinned task ids with the time they were pinned.</summary>
+        public Dictionary<string, DateTime> GetPins(string profileId, EftSessionMode sessionMode)
+        {
+            var result = new Dictionary<string, DateTime>();
+            if (string.IsNullOrEmpty(profileId))
+            {
+                return result;
+            }
+            lock (gate)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT task_id, pinned_at FROM task_pins WHERE profile_id = @profile AND session_mode = @mode;";
+                command.Parameters.AddWithValue("@profile", profileId);
+                command.Parameters.AddWithValue("@mode", sessionMode.ToString());
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    DateTime.TryParse(reader.GetString(1), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var time);
+                    result[reader.GetString(0)] = time;
+                }
+            }
+            return result;
         }
 
         public Dictionary<string, QuestOverride> GetOverrides(string profileId, EftSessionMode sessionMode)

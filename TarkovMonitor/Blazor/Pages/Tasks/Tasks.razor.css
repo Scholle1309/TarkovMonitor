@@ -385,7 +385,7 @@
 .tasks-cols,
 .task-row {
     display: grid;
-    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 170px;
+    grid-template-columns: 28px minmax(200px, 300px) 110px minmax(200px, 480px) 80px 90px 110px 200px;
     justify-content: start;
     gap: 12px;
     align-items: center;
@@ -590,6 +590,25 @@
 
 .task-row--current {
     border-left-color: #43a047;
+}
+
+.task-row--pinned {
+    border-left-color: #ffb300;
+}
+
+::deep .task-row__pinned {
+    vertical-align: -3px;
+    margin-right: 2px;
+    color: #ffb300;
+    transform: rotate(30deg);
+}
+
+.task-row__actions ::deep .task-row__pin-toggle {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.task-row__actions ::deep .task-row__pin-toggle--on {
+    color: #ffb300;
 }
 
 .task-row--muted {

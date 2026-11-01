@@ -1215,4 +1215,16 @@
   <data name="DataUpdated" xml:space="preserve">
     <value>updated {0}</value>
   </data>
+  <data name="PinTask" xml:space="preserve">
+    <value>Pin task</value>
+  </data>
+  <data name="UnpinTask" xml:space="preserve">
+    <value>Unpin task</value>
+  </data>
+  <data name="PinnedTasks" xml:space="preserve">
+    <value>Pinned</value>
+  </data>
+  <data name="ThisMap" xml:space="preserve">
+    <value>This map</value>
+  </data>
 </root>

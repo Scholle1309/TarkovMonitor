@@ -174,12 +174,16 @@
         @foreach (var item in group)
         {
             var isOpen = expanded.Contains(item.Task.id);
-            <div class="@("task-row" + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
+            <div class="@("task-row" + (currentMap != null && item.OnCurrentMap ? " task-row--current" : "") + (item.Pinned ? " task-row--pinned" : "") + (item.State is TaskState.Hidden or TaskState.NeverAccepted ? " task-row--muted" : ""))">
                 <button type="button" class="task-row__toggle" @onclick="() => ToggleExpanded(item.Task.id)">
                     <MudIcon Icon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" Size="Size.Small" />
                 </button>
                 <div class="task-row__title" @onclick="() => ToggleExpanded(item.Task.id)">
                     <div class="task-row__name">
+                        @if (item.Pinned)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.PushPin" Size="Size.Small" Class="task-row__pinned" />
+                        }
                         @if (item.HasMarkerOnCurrentMap && currentMap != null)
                         {
                             <MudIcon Icon="@Icons.Material.Filled.Place" Size="Size.Small" Class="task-row__pin" />
@@ -237,6 +241,16 @@
                 </div>
                 <div><span class="@("task-status task-status--" + item.State.ToString().ToLowerInvariant())">@StateLabel(item.State)</span></div>
                 <div class="task-row__actions">
+                    @if (item.State != TaskState.Completed)
+                    {
+                        <MudIconButton Icon="@(item.Pinned ? Icons.Material.Filled.PushPin : Icons.Material.Outlined.PushPin)" Size="Size.Small"
+                                       Class="@(item.Pinned ? "task-row__pin-toggle task-row__pin-toggle--on" : "task-row__pin-toggle")"
+                                       Title="@LocalizationService.GetString(item.Pinned ? "UnpinTask" : "PinTask")" OnClick="@(() => TaskStateService.SetPinned(item.Task.id, !item.Pinned))" />
+                    }
+                    else
+                    {
+                        <span class="task-row__reason-slot"></span>
+                    }
                     <MudIconButton Icon="@Icons.Material.Filled.MyLocation" Size="Size.Small" Color="@(item.MarkerMapIds.Count > 0 ? Color.Inherit : Color.Default)"
                                    Disabled="@(item.MarkerMapIds.Count == 0)" Title="@LocalizationService.GetString("ShowOnMap")" OnClick="@(() => ShowOnMap(item))" />
                     @if (item.Override != QuestOverride.None)
@@ -569,8 +583,11 @@
                 || item.Task.objectives.Any(objective => (objective.description ?? "").Contains(term, StringComparison.OrdinalIgnoreCase)));
         }
 
-        // The current-map group always stays on top; the chosen column orders inside it.
-        var grouped = query.OrderByDescending(item => currentMap != null && item.OnCurrentMap)
+        // Pinned tasks first (in the order they were pinned), then the current-map group;
+        // the chosen column orders inside each group.
+        var grouped = query.OrderByDescending(item => item.Pinned)
+            .ThenBy(item => item.Pinned ? item.PinnedAt : DateTime.MaxValue)
+            .ThenByDescending(item => currentMap != null && item.OnCurrentMap)
             .ThenBy(item => currentMap != null && item.OnCurrentMap && item.Maps.Count == 0 ? 1 : 0);
         Func<TaskView, IComparable> key = sort switch
         {

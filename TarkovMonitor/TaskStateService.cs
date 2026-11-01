@@ -32,6 +32,10 @@ namespace TarkovMonitor
         public HashSet<string> MarkerMapIds { get; init; } = new();
         public bool HasMarkerOnCurrentMap { get; init; }
         public DateTime? AcceptedAt { get; init; }
+        /// <summary>Pinned by the user; never set for completed tasks.</summary>
+        public bool Pinned { get; init; }
+        /// <summary>When the task was pinned, to keep pins in the order they were set.</summary>
+        public DateTime PinnedAt { get; init; }
     }
 
     public record TaskRecommendation(TaskView View, List<TarkovDev.Task> DirectUnlocks, int TotalUnlocks)
@@ -239,6 +243,7 @@ namespace TarkovMonitor
             }
             var evidence = GetAcceptedEvidence(tasks);
             var overrides = questLogStore.GetOverrides(profileId, sessionMode);
+            var pins = questLogStore.GetPins(profileId, sessionMode);
             var strict = Properties.Settings.Default.mapStrictAcceptedTasks;
             var hidden = questLogStore.ComputeHiddenTaskIds(profileId, sessionMode, tasks, completed, evidence, strict);
             var playerLevel = progress?.playerLevel ?? 0;
@@ -325,6 +330,9 @@ namespace TarkovMonitor
                     MarkerMapIds = markerMapIds,
                     HasMarkerOnCurrentMap = currentMapId != null && markerMapIds.Contains(currentMapId),
                     AcceptedAt = own?.Started,
+                    // A completed task drops its pin from every list.
+                    Pinned = state != TaskState.Completed && pins.ContainsKey(task.id),
+                    PinnedAt = pins.TryGetValue(task.id, out var pinnedAt) ? pinnedAt : default,
                 });
             }
             return result;
@@ -387,6 +395,13 @@ namespace TarkovMonitor
         public Task SetObjectiveAsync(string objectiveId, bool? complete, int? count)
         {
             return TarkovTracker.SetObjectiveProgress(objectiveId, complete, count);
+        }
+
+        /// <summary>Pins or unpins a task for the active profile and mode.</summary>
+        public void SetPinned(string taskId, bool pinned)
+        {
+            var (profileId, sessionMode) = ResolveProfile();
+            questLogStore.SetPinned(profileId, sessionMode, taskId, pinned);
         }
 
         /// <summary>Manual decision by the user for the active profile.</summary>

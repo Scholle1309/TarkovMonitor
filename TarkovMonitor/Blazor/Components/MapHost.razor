@@ -140,11 +140,21 @@
                     }
                     @foreach (var view in mapTasks)
                     {
-                        @if (view.Maps.Count == 0 && mapTasks.IndexOf(view) == mapTasks.FindIndex(candidate => candidate.Maps.Count == 0))
+                        @* Sections: pinned tasks first, then this map, then tasks that can be done anywhere. *@
+                        var index = mapTasks.IndexOf(view);
+                        @if (view.Pinned && index == 0)
+                        {
+                            <div class="map-tasks__section map-tasks__section--pinned map-tasks__section--first">@LocalizationService.GetString("PinnedTasks")</div>
+                        }
+                        else if (!view.Pinned && view.Maps.Count > 0 && index == mapTasks.FindIndex(candidate => !candidate.Pinned && candidate.Maps.Count > 0) && mapTasks.Any(candidate => candidate.Pinned))
+                        {
+                            <div class="map-tasks__section">@LocalizationService.GetString("ThisMap")</div>
+                        }
+                        else if (!view.Pinned && view.Maps.Count == 0 && index == mapTasks.FindIndex(candidate => !candidate.Pinned && candidate.Maps.Count == 0))
                         {
                             <div class="map-tasks__section">@LocalizationService.GetString("AnyLocation")</div>
                         }
-                        <div class="@("map-task" + (highlightedTaskId == view.Task.id ? " map-task--highlighted" : "") + (view.HasMarkerOnCurrentMap ? "" : " map-task--no-marker"))"
+                        <div class="@("map-task" + (view.Pinned ? " map-task--pinned" : "") + (highlightedTaskId == view.Task.id ? " map-task--highlighted" : "") + (view.HasMarkerOnCurrentMap ? "" : " map-task--no-marker"))"
                              title="@(view.HasMarkerOnCurrentMap ? "" : LocalizationService.GetString("NoMarkerOnMap"))" @onclick="() => HighlightTask(view)">
                             <div class="map-task__title">
                                 <span class="map-task__name">
@@ -163,7 +173,15 @@
                                         @view.Task.name
                                     }
                                 </span>
-                                <span class="map-task__trader">@view.TraderName</span>
+                                <span class="map-task__side">
+                                    <span class="map-task__trader">@view.TraderName</span>
+                                    @* The pin must not select the row. *@
+                                    <button type="button" class="@("map-task__pin-toggle" + (view.Pinned ? " map-task__pin-toggle--on" : ""))"
+                                            title="@LocalizationService.GetString(view.Pinned ? "UnpinTask" : "PinTask")"
+                                            @onclick="() => TaskStateService.SetPinned(view.Task.id, !view.Pinned)" @onclick:stopPropagation>
+                                        <MudIcon Icon="@(view.Pinned ? Icons.Material.Filled.PushPin : Icons.Material.Outlined.PushPin)" Style="font-size: 16px;" />
+                                    </button>
+                                </span>
                             </div>
                             @foreach (var objective in view.Task.objectives.Where(objective => IsOnCurrentMap(objective)))
                             {
@@ -324,10 +342,13 @@
         var sessionReady = GameWatcher.CurrentProfile.Snapshot() is { HasIdentity: true } profile && profile.SessionMode != EftSessionMode.Unknown;
         try
         {
-            // Tasks bound to this map first, tasks that can be done anywhere after them.
+            // Pinned tasks first (only those for this map or any location), then tasks bound
+            // to this map, then tasks that can be done anywhere.
             mapTasks = !sessionReady ? new List<TaskView>() : TaskStateService.GetTasks()
                 .Where(view => view.State == TaskState.Accepted && view.OnCurrentMap)
-                .OrderBy(view => view.Maps.Count == 0 ? 1 : 0)
+                .OrderByDescending(view => view.Pinned)
+                .ThenBy(view => view.Pinned ? view.PinnedAt : DateTime.MaxValue)
+                .ThenBy(view => view.Maps.Count == 0 ? 1 : 0)
                 .ThenBy(view => view.TraderName)
                 .ThenBy(view => view.Task.name)
                 .ToList();

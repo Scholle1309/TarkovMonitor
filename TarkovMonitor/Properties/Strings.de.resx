@@ -1151,4 +1151,16 @@
   <data name="DataUpdated" xml:space="preserve">
     <value>aktualisiert {0}</value>
   </data>
+  <data name="PinTask" xml:space="preserve">
+    <value>Aufgabe anheften</value>
+  </data>
+  <data name="UnpinTask" xml:space="preserve">
+    <value>Aufgabe lösen</value>
+  </data>
+  <data name="PinnedTasks" xml:space="preserve">
+    <value>Angeheftet</value>
+  </data>
+  <data name="ThisMap" xml:space="preserve">
+    <value>Diese Karte</value>
+  </data>
 </root>
