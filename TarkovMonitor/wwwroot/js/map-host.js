@@ -13,10 +13,11 @@ window.mapHost = (() => {
         return true;
     }
 
-    // While the window is dragged to a new size, the embedded page keeps its size and
-    // scale and stays centred in the current area; nothing is stretched or reflowed.
-    // Leaflet keeps the map centre when it is resized at the end, so the map content
-    // stays where it was and only the visible part grows or shrinks.
+    // While the window is dragged to a new size, the embedded page is made as large as
+    // the screen once, when the drag starts, and is then only cropped: growing the
+    // window reveals map that is already drawn, shrinking it hides some, and nothing
+    // is stretched or reflowed until the drag ends. Leaflet keeps the map centre on
+    // both reflows, so the content stays where it is.
     const resizing = { frame: null, width: 0, height: 0 };
 
     // The app's own buttons and panels over the map.
@@ -48,9 +49,10 @@ window.mapHost = (() => {
                 return;
             }
             if (on) {
+                const area = frame.parentElement;
                 resizing.frame = frame;
-                resizing.width = frame.clientWidth;
-                resizing.height = frame.clientHeight;
+                resizing.width = Math.max(window.screen.availWidth, area.clientWidth);
+                resizing.height = Math.max(window.screen.availHeight, area.clientHeight);
                 frame.parentElement.style.overflow = "hidden";
                 frame.style.position = "absolute";
                 frame.style.width = resizing.width + "px";

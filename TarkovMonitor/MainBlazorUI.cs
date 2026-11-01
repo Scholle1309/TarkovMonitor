@@ -476,6 +476,20 @@ namespace TarkovMonitor
             + " window.tarkovMonitorOnMap = function (map) {"
             + "  if (tmMap === map) { return; }"
             + "  tmMap = map; tmMarkers = {};"
+            // Three more zoom levels than the site allows, also when it sets its limit again
+            // later. Tile layers keep their native
+            // resolution and are scaled up beyond it; without raising their own limit
+            // they would disappear at the new levels.
+            + "  if (!map._tmZoomExtended) {"
+            + "   map._tmZoomExtended = true;"
+            + "   var tmMaxZoom = (map.options.maxZoom !== undefined ? map.options.maxZoom : map.getMaxZoom()) + 3;"
+            + "   var tmRaiseLayer = function (layer) { if (layer instanceof L.GridLayer && (layer.options.maxZoom === undefined || layer.options.maxZoom < tmMaxZoom)) { if (layer.options.maxNativeZoom === undefined) { layer.options.maxNativeZoom = layer.options.maxZoom; } layer.options.maxZoom = tmMaxZoom; } };"
+            + "   map.eachLayer(tmRaiseLayer);"
+            + "   map.on('layeradd', function (event) { tmRaiseLayer(event.layer); });"
+            + "   var tmBaseSetMaxZoom = map.setMaxZoom;"
+            + "   map.setMaxZoom = function (zoom) { tmMaxZoom = zoom + 3; map.eachLayer(tmRaiseLayer); return tmBaseSetMaxZoom.call(map, tmMaxZoom); };"
+            + "   map.setMaxZoom(tmMaxZoom - 3);"
+            + "  }"
             + "  tmLayer = L.layerGroup().addTo(map);"
             + "  var place = function (latlng) {"
             + "   tmSetPlacing(false);"
