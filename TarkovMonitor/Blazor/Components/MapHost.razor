@@ -72,10 +72,12 @@
                         {
                             continue;
                         }
-                        var hidden = hiddenCategories.Contains(category.Id);
+                        var shownCount = inCategory.Count(IsShown);
+                        var hidden = shownCount == 0;
                         var folded = foldedCategories.Contains(category.Id);
                         <div class="@("map-markers__cat" + (hidden ? " map-markers__cat--off" : ""))">
-                            <input type="checkbox" checked="@(!hidden)" title="@LocalizationService.GetString(hidden ? "ShowCategory" : "HideCategory")" @onchange="() => ToggleCategory(category.Id)" />
+                            <input type="checkbox" class="@(shownCount > 0 && shownCount < inCategory.Count ? "map-markers__check--partial" : "")" checked="@(shownCount == inCategory.Count)"
+                                   title="@LocalizationService.GetString(hidden ? "ShowCategory" : "HideCategory")" @onchange="() => ToggleCategory(category.Id)" />
                             <button type="button" class="map-markers__fold" @onclick="() => ToggleFold(category.Id)">@(folded ? "+" : "–")</button>
                             <span class="map-markers__cat-name" @onclick="() => ToggleFold(category.Id)">@category.Name</span>
                             <span class="map-markers__cat-count">@inCategory.Count</span>
@@ -84,7 +86,9 @@
                         {
                             @foreach (var marker in inCategory)
                             {
-                                <div class="@("map-markers__item" + (hidden ? " map-markers__item--off" : ""))" @onclick="() => ShowMarker(marker)">
+                                var markerShown = IsShown(marker);
+                                <div class="@("map-markers__item" + (markerShown ? "" : " map-markers__item--off"))" @onclick="() => ShowMarker(marker)">
+                                    <input type="checkbox" checked="@markerShown" @onchange="() => ToggleMarker(marker)" @onclick:stopPropagation />
                                     <span class="map-markers__icon">
                                         @if (MarkerIcons.IsKnown(marker.Icon))
                                         {
@@ -406,6 +410,8 @@
                     noSymbols = LocalizationService.GetString("NoSymbolFound"),
                     save = LocalizationService.GetString("Save"),
                     delete = LocalizationService.GetString("Delete"),
+                    edit = LocalizationService.GetString("EditMarker"),
+                    unnamed = LocalizationService.GetString("UnnamedMarker"),
                 },
             });
         }
@@ -571,11 +577,11 @@
             tasksPanelOpen = false;
             bossesPanelOpen = false;
             CloseFramePanels();
-            if (ReadHiddenCategories().Contains(marker.Category))
-            {
-                await ToggleCategory(marker.Category);
-            }
             LoadMarkers();
+            if (!IsShown(marker))
+            {
+                await ToggleMarker(marker);
+            }
             StateHasChanged();
             for (var attempt = 0; attempt < 20 && !MapsService.FrameLoaded; attempt++)
             {
@@ -706,14 +712,48 @@
         }
     }
 
-    // A marker of a hidden category is put back on the map before it is shown.
+    // A hidden marker is put back on the map before it is shown.
     private async Task ShowMarker(MapMarker marker)
     {
-        if (hiddenCategories.Contains(marker.Category))
+        if (!IsShown(marker))
         {
-            await ToggleCategory(marker.Category);
+            await ToggleMarker(marker);
         }
         FocusMarker(marker);
+    }
+
+    // Shown on the map: its category is on and the marker itself is not switched off.
+    private HashSet<string> hiddenMarkers = new();
+
+    private bool IsShown(MapMarker marker) => !hiddenCategories.Contains(marker.Category) && !hiddenMarkers.Contains(marker.Id);
+
+    private static HashSet<string> ReadHiddenMarkers() =>
+        new((Properties.Settings.Default.hiddenMarkers ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+    private async Task SaveVisibility(HashSet<string> categories, HashSet<string> single)
+    {
+        Properties.Settings.Default.hiddenMarkerCategories = string.Join(",", categories);
+        Properties.Settings.Default.hiddenMarkers = string.Join(",", single);
+        Properties.Settings.Default.Save();
+        LoadMarkers();
+        await SendMarkers(markersMap);
+    }
+
+    // One marker on or off. In a switched-off category only this marker comes back.
+    private async Task ToggleMarker(MapMarker marker)
+    {
+        var categories = ReadHiddenCategories();
+        var single = ReadHiddenMarkers();
+        if (categories.Remove(marker.Category))
+        {
+            single.UnionWith(allMapMarkers.Where(other => other.Category == marker.Category && other.Id != marker.Id).Select(other => other.Id));
+            single.Remove(marker.Id);
+        }
+        else if (!single.Remove(marker.Id))
+        {
+            single.Add(marker.Id);
+        }
+        await SaveVisibility(categories, single);
     }
     private string markersMap = "";
 
@@ -723,17 +763,23 @@
     private string CategoryColor(MapMarker marker) =>
         markerCategories.FirstOrDefault(category => category.Id == marker.Category)?.Color ?? marker.Color;
 
+    // The category box: all markers on when not all of them are shown, otherwise all off.
     private async Task ToggleCategory(string id)
     {
-        var hidden = ReadHiddenCategories();
-        if (!hidden.Remove(id))
+        var categories = ReadHiddenCategories();
+        var single = ReadHiddenMarkers();
+        var inCategory = allMapMarkers.Where(marker => marker.Category == id).ToList();
+        var allShown = !categories.Contains(id) && inCategory.All(marker => !single.Contains(marker.Id));
+        single.ExceptWith(inCategory.Select(marker => marker.Id));
+        if (allShown)
         {
-            hidden.Add(id);
+            categories.Add(id);
         }
-        Properties.Settings.Default.hiddenMarkerCategories = string.Join(",", hidden);
-        Properties.Settings.Default.Save();
-        LoadMarkers();
-        await SendMarkers(markersMap);
+        else
+        {
+            categories.Remove(id);
+        }
+        await SaveVisibility(categories, single);
     }
 
     // A change in the Markers tab (or an import) reaches the open map at once.
@@ -779,6 +825,7 @@
             var mode = HistoryStart.CurrentMode;
             markerCategories = Stats.GetMarkerCategories();
             hiddenCategories = ReadHiddenCategories();
+            hiddenMarkers = ReadHiddenMarkers();
             // A marker whose category is gone counts as "other".
             var known = markerCategories.Select(category => category.Id).ToHashSet();
             allMapMarkers = Stats.GetMarkers(markersMap)
@@ -787,7 +834,7 @@
                 .ToList();
             var order = markerCategories.Select(category => category.Id).ToList();
             markers = allMapMarkers
-                .Where(marker => !hiddenCategories.Contains(marker.Category))
+                .Where(IsShown)
                 .OrderBy(marker => order.IndexOf(marker.Category) is var index && index >= 0 ? index : int.MaxValue)
                 .ToList();
         }
@@ -812,8 +859,9 @@
         var mode = HistoryStart.CurrentMode;
         var categories = Stats.GetMarkerCategories();
         var hidden = ReadHiddenCategories();
-        // Markers take the colour of their category; hidden categories stay off the map.
-        var payload = list.Where(marker => marker.ShownIn(mode) && !hidden.Contains(marker.Category))
+        var hiddenSingle = ReadHiddenMarkers();
+        // Markers take the colour of their category; hidden categories and markers stay off the map.
+        var payload = list.Where(marker => marker.ShownIn(mode) && !hidden.Contains(marker.Category) && !hiddenSingle.Contains(marker.Id))
             .Select(marker => new
             {
                 id = marker.Id, map = marker.Map, lat = marker.Lat, lng = marker.Lng, label = marker.Label, description = marker.Description, icon = marker.Icon,

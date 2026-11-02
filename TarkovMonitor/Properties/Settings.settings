@@ -41,6 +41,9 @@
     <Setting Name="hiddenMarkerCategories" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="hiddenMarkers" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
     <Setting Name="mapShowTakeAlong" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>

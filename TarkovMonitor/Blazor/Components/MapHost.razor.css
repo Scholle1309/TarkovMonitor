@@ -150,7 +150,8 @@
     padding-top: 2px;
 }
 
-.map-markers__cat input[type="checkbox"] {
+.map-markers__cat input[type="checkbox"],
+.map-markers__item input[type="checkbox"] {
     -webkit-appearance: none;
     appearance: none;
     flex: none;
@@ -165,11 +166,18 @@
     transition: background 0.1s, border-color 0.1s;
 }
 
-.map-markers__cat input[type="checkbox"]:hover {
+.map-markers__cat input[type="checkbox"]:hover,
+.map-markers__item input[type="checkbox"]:hover {
     border-color: rgba(255, 255, 255, 0.8);
 }
 
-.map-markers__cat input[type="checkbox"]:checked {
+.map-markers__cat input[type="checkbox"].map-markers__check--partial {
+    border-color: #2196f3;
+    background: rgba(33, 150, 243, 0.5);
+}
+
+.map-markers__cat input[type="checkbox"]:checked,
+.map-markers__item input[type="checkbox"]:checked {
     border-color: #2196f3;
     background: #2196f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 13px 13px no-repeat;
 }
@@ -214,8 +222,9 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
-.map-markers__item--off {
-    opacity: 0.45;
+.map-markers__item--off .map-markers__icon,
+.map-markers__item--off .map-markers__text {
+    opacity: 0.5;
 }
 
 .map-markers__icon {
@@ -223,13 +232,14 @@
     align-items: center;
     justify-content: center;
     flex: none;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    margin-left: 10px;
 }
 
 .map-markers__icon img {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     object-fit: contain;
 }
 
