@@ -57,6 +57,11 @@
     margin-top: 8px;
 }
 
+/* Delete on the left, Cancel and Save on the right. */
+.mk-panel__spacer {
+    flex: 1;
+}
+
 .mk-code {
     padding: 8px 10px;
     border-radius: 6px;
@@ -207,15 +212,19 @@
 }
 
 .mk-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: 18px 26px minmax(0, 1fr) max-content max-content max-content;
+    gap: 4px 10px;
     margin-top: 8px;
+}
+
+.mk-list > * {
+    grid-column: 1 / -1;
 }
 
 .mk-row {
     display: grid;
-    grid-template-columns: 18px 26px minmax(0, 1fr) 130px 170px 104px;
+    grid-template-columns: subgrid;
     align-items: center;
     gap: 10px;
     padding: 6px 10px;
@@ -225,7 +234,8 @@
 
 /* Own check boxes in the app style: rounded square, blue with a white tick when on. */
 .mk-row input[type="checkbox"],
-.mk-row--head input[type="checkbox"] {
+.mk-row--head input[type="checkbox"],
+.mk-mode input[type="checkbox"] {
     -webkit-appearance: none;
     appearance: none;
     flex-shrink: 0;
@@ -241,18 +251,21 @@
 }
 
 .mk-row input[type="checkbox"]:hover,
-.mk-row--head input[type="checkbox"]:hover {
+.mk-row--head input[type="checkbox"]:hover,
+.mk-mode input[type="checkbox"]:hover {
     border-color: rgba(255, 255, 255, 0.8);
 }
 
 .mk-row input[type="checkbox"]:checked,
-.mk-row--head input[type="checkbox"]:checked {
+.mk-row--head input[type="checkbox"]:checked,
+.mk-mode input[type="checkbox"]:checked {
     border-color: #2196f3;
     background: #2196f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 13px 13px no-repeat;
 }
 
 .mk-row input[type="checkbox"]:focus-visible,
-.mk-row--head input[type="checkbox"]:focus-visible {
+.mk-row--head input[type="checkbox"]:focus-visible,
+.mk-mode input[type="checkbox"]:focus-visible {
     outline: 2px solid rgba(110, 168, 255, 0.85);
     outline-offset: 1px;
 }
@@ -268,7 +281,6 @@
 }
 
 .mk-row--import {
-    grid-template-columns: 18px 26px minmax(0, 1fr) 130px 170px;
     cursor: pointer;
 }
 
@@ -331,6 +343,8 @@
 }
 
 .mk-chip {
+    justify-self: start;
+    max-width: 170px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -360,11 +374,54 @@
     background: #1a2640;
 }
 
+.mk-editor__grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 400px) minmax(0, 520px);
+    gap: 8px 18px;
+    align-items: start;
+}
+
+.mk-editor__fields,
+.mk-editor__symbols {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+/* Delete sits under the fields and symbols, not at the far edge of the page. */
+.mk-editor .mk-panel__actions {
+    max-width: 938px;
+}
+
+@media (max-width: 900px) {
+    .mk-editor__grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .mk-symbols {
     display: grid;
     grid-template-columns: repeat(auto-fill, 32px);
     gap: 4px;
-    margin-top: 8px;
+    max-height: 104px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.mk-symbols::-webkit-scrollbar {
+    width: 8px;
+}
+
+.mk-symbols::-webkit-scrollbar-thumb {
+    background: rgba(110, 168, 255, 0.45);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.mk-symbols::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .mk-symbol {
@@ -403,7 +460,17 @@
 }
 
 .mk-modes {
-    margin-right: auto;
-    color: rgba(255, 255, 255, 0.45);
-    font-size: var(--tm-fs-sm);
+    display: flex;
+    gap: 16px;
+    padding: 2px 2px 0;
+}
+
+.mk-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    line-height: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--tm-fs-md);
+    cursor: pointer;
 }

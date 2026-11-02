@@ -74,44 +74,57 @@
                 @foreach (var category in categories)
                 {
                     var count = markers.Count(marker => marker.Category == category.Id);
-                    <button type="button" class="@("mk-cat" + (editingCategory == category.Id ? " mk-cat--on" : ""))" @onclick="() => editingCategory = editingCategory == category.Id ? null : category.Id">
-                        <span class="mk-chip__dot" style="@($"background: {category.Color}")"></span>
-                        <span>@category.Name</span>
+                    var isEdited = draft != null && draft.Id == category.Id;
+                    @* While a category is edited, its chip shows the unsaved name and colour. *@
+                    <button type="button" class="@("mk-cat" + (isEdited ? " mk-cat--on" : ""))" @onclick="() => EditCategory(category)">
+                        <span class="mk-chip__dot" style="@($"background: {(isEdited ? draftColor : category.Color)}")"></span>
+                        <span>@(isEdited ? draftName : category.Name)</span>
                         <span class="mk-cat__count">@count</span>
                     </button>
                 }
-                <button type="button" class="mk-cat mk-cat--add" @onclick="AddCategory">
-                    <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
-                    <span>@LocalizationService.GetString("NewCategory")</span>
+                <button type="button" class="@("mk-cat mk-cat--add" + (draftIsNew ? " mk-cat--on" : ""))" @onclick="AddCategory">
+                    @if (draftIsNew)
+                    {
+                        <span class="mk-chip__dot" style="@($"background: {draftColor}")"></span>
+                        <span>@draftName</span>
+                    }
+                    else
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Add" Size="Size.Small" />
+                        <span>@LocalizationService.GetString("NewCategory")</span>
+                    }
                 </button>
             </div>
-            @if (categories.FirstOrDefault(category => category.Id == editingCategory) is { } edited)
+            @if (draft != null)
             {
+                @* Changes stay a draft until Save; Cancel drops them. *@
                 <div class="mk-panel mk-cat-editor">
                     <div class="tm-field tm-field--wide">
                         <span class="tm-field__caption">@LocalizationService.GetString("MarkerName")</span>
-                        <input class="mk-input" value="@edited.Name" maxlength="30" @onchange="e => RenameCategory(edited, e.Value as string)" />
+                        <input class="mk-input" value="@draftName" maxlength="30" @oninput="e => draftName = e.Value as string ?? string.Empty" />
                     </div>
                     <div class="mk-colors">
                         @foreach (var color in PresetColors)
                         {
-                            <button type="button" class="@("mk-swatch" + (string.Equals(color, edited.Color, StringComparison.OrdinalIgnoreCase) ? " mk-swatch--on" : ""))" style="@($"background: {color}")" title="@color" @onclick="() => RecolorCategory(edited, color)"></button>
+                            <button type="button" class="@("mk-swatch" + (string.Equals(color, draftColor, StringComparison.OrdinalIgnoreCase) ? " mk-swatch--on" : ""))" style="@($"background: {color}")" title="@color" @onclick="() => SetDraftColor(color)"></button>
                         }
                         @* Any colour: the colour wheel, or a hex value. *@
                         <label class="mk-swatch mk-swatch--wheel" title="@LocalizationService.GetString("CustomColor")">
-                            <input type="color" value="@edited.Color" @onchange="e => RecolorCategory(edited, e.Value as string)" />
+                            <input type="color" value="@draftColor" @onchange="e => SetDraftColor(e.Value as string)" />
                         </label>
                         <div class="tm-field mk-hex">
                             <span class="tm-field__caption">Hex</span>
-                            <input class="mk-input" value="@edited.Color" maxlength="7" @onchange="e => RecolorCategory(edited, e.Value as string)" />
+                            <input class="mk-input" value="@draftColor" maxlength="7" @onchange="e => SetDraftColor(e.Value as string)" />
                         </div>
                     </div>
-                    <div class="mk-panel__actions">
-                        @if (edited.Id != MarkerCategory.OtherId)
+                    <div class="mk-panel__actions mk-panel__actions--split">
+                        @if (!draftIsNew && draft.Id != MarkerCategory.OtherId)
                         {
-                            <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="() => DeleteCategory(edited)">@LocalizationService.GetString("DeleteCategory")</MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteCategory">@LocalizationService.GetString("DeleteCategory")</MudButton>
                         }
-                        <MudButton Variant="Variant.Text" OnClick="() => editingCategory = null">@LocalizationService.GetString("Close")</MudButton>
+                        <span class="mk-panel__spacer"></span>
+                        <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Close" OnClick="CloseCategoryEditor">@LocalizationService.GetString("Cancel")</MudButton>
+                        <MudButton Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveCategory" Disabled="@(string.IsNullOrWhiteSpace(draftName))">@LocalizationService.GetString("Save")</MudButton>
                     </div>
                 </div>
             }
@@ -179,42 +192,57 @@
                         @if (isOpen)
                         {
                             <div class="mk-panel mk-editor">
-                                <div class="tm-field tm-field--wide">
-                                    <span class="tm-field__caption">@LocalizationService.GetString("MarkerName")</span>
-                                    <input class="mk-input" value="@marker.Label" maxlength="40" @onchange="e => SetLabel(marker, e.Value as string)" />
-                                </div>
-                                <div class="tm-field tm-field--wide mt-2">
-                                    <span class="tm-field__caption">@LocalizationService.GetString("MarkerDescription")</span>
-                                    <input class="mk-input" value="@marker.Description" maxlength="300" @onchange="e => SetDescription(marker, e.Value as string)" />
-                                </div>
-                                <div class="tm-field tm-field--wide mt-2">
-                                    <span class="tm-field__caption">@LocalizationService.GetString("MarkerCategory")</span>
-                                    <MudSelect T="string" Value="@marker.Category" ValueChanged="(string value) => SetCategory(marker, value)" ToStringFunc="CategoryFilterLabel"
-                                               Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="320"
-                                               Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
-                                        @foreach (var option in categories)
-                                        {
-                                            <MudSelectItem T="string" Value="@option.Id">@option.Name</MudSelectItem>
-                                        }
-                                    </MudSelect>
-                                </div>
-                                <div class="tm-field tm-field--wide mt-2">
-                                    <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="tm-field__icon" />
-                                    <input class="mk-input" placeholder="@LocalizationService.GetString("SearchSymbols")" @bind="symbolSearch" @bind:event="oninput" />
-                                </div>
-                                <div class="mk-symbols">
-                                    @if (string.IsNullOrWhiteSpace(symbolSearch))
-                                    {
-                                        <button type="button" class="@("mk-symbol" + (string.IsNullOrEmpty(marker.Icon) ? " mk-symbol--on" : ""))" title="@LocalizationService.GetString("None")" @onclick="() => SetIcon(marker, string.Empty)"><span class="mk-symbol__dot"></span></button>
-                                    }
-                                    @foreach (var icon in Symbols())
-                                    {
-                                        <button type="button" class="@("mk-symbol" + (icon.Key == marker.Icon ? " mk-symbol--on" : ""))" title="@icon.Name" @onclick="() => SetIcon(marker, icon.Key)"><img src="@icon.Url" alt="" /></button>
-                                    }
+                                @* Text on the left, symbols on the right, so nothing stretches across the page. *@
+                                <div class="mk-editor__grid">
+                                    <div class="mk-editor__fields">
+                                        <div class="tm-field tm-field--wide">
+                                            <span class="tm-field__caption">@LocalizationService.GetString("MarkerName")</span>
+                                            <input class="mk-input" value="@marker.Label" maxlength="40" @onchange="e => SetLabel(marker, e.Value as string)" />
+                                        </div>
+                                        <div class="tm-field tm-field--wide">
+                                            <span class="tm-field__caption">@LocalizationService.GetString("MarkerDescription")</span>
+                                            <input class="mk-input" value="@marker.Description" maxlength="300" @onchange="e => SetDescription(marker, e.Value as string)" />
+                                        </div>
+                                        <div class="tm-field tm-field--wide">
+                                            <span class="tm-field__caption">@LocalizationService.GetString("MarkerCategory")</span>
+                                            <MudSelect T="string" Value="@marker.Category" ValueChanged="(string value) => SetCategory(marker, value)" ToStringFunc="CategoryFilterLabel"
+                                                       Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" PopoverFixed="false" Modal="false" MaxHeight="320"
+                                                       Class="tm-field__control" PopoverClass="tm-select-popover" ListClass="tm-select-list">
+                                                @foreach (var option in categories)
+                                                {
+                                                    <MudSelectItem T="string" Value="@option.Id">@option.Name</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </div>
+                                        <div class="mk-modes">
+                                            @foreach (var mode in ModeOptions)
+                                            {
+                                                <label class="mk-mode">
+                                                    <input type="checkbox" checked="@HasMode(marker, mode.Value)" @onchange="e => SetMode(marker, mode.Value, e.Value is true)" />
+                                                    <span>@mode.Label</span>
+                                                </label>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="mk-editor__symbols">
+                                        <div class="tm-field tm-field--wide">
+                                            <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="tm-field__icon" />
+                                            <input class="mk-input" placeholder="@LocalizationService.GetString("SearchSymbols")" @bind="symbolSearch" @bind:event="oninput" />
+                                        </div>
+                                        <div class="mk-symbols">
+                                            @if (string.IsNullOrWhiteSpace(symbolSearch))
+                                            {
+                                                <button type="button" class="@("mk-symbol" + (string.IsNullOrEmpty(marker.Icon) ? " mk-symbol--on" : ""))" title="@LocalizationService.GetString("None")" @onclick="() => SetIcon(marker, string.Empty)"><span class="mk-symbol__dot"></span></button>
+                                            }
+                                            @foreach (var icon in Symbols())
+                                            {
+                                                <button type="button" class="@("mk-symbol" + (icon.Key == marker.Icon ? " mk-symbol--on" : ""))" title="@icon.Name" @onclick="() => SetIcon(marker, icon.Key)"><img src="@icon.Url" alt="" /></button>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="mk-panel__actions">
-                                    <span class="mk-modes">@ModesLabel(marker)</span>
-                                    <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="() => DeleteMarker(marker)">@LocalizationService.GetString("DeleteMarker")</MudButton>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="() => DeleteMarker(marker)">@LocalizationService.GetString("DeleteMarker")</MudButton>
                                 </div>
                             </div>
                         }
@@ -246,7 +274,6 @@
     private string categoryFilter = "";
     private string search = "";
     private string symbolSearch = "";
-    private string? editingCategory;
     private string? editingMarker;
     private string? shareCode;
     private int shareCount;
@@ -344,12 +371,27 @@
         }
     };
 
-    private static string ModesLabel(MapMarker marker)
+    // The game modes a marker shows in; none stored means all of them.
+    private static readonly (string Value, string Label)[] ModeOptions = { ("PVE", "PVE"), ("Regular", "PVP"), ("Seasonal", "PVP Season") };
+
+    private static string[] ModesOf(MapMarker marker)
     {
         var modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        return modes.Length == 0 || modes.Length >= 3
-            ? "PVE · PVP · PVP Season"
-            : string.Join(" · ", modes.Select(mode => mode switch { "Regular" => "PVP", "Seasonal" => "PVP Season", _ => mode }));
+        return modes.Length == 0 ? ModeOptions.Select(mode => mode.Value).ToArray() : modes;
+    }
+
+    private static bool HasMode(MapMarker marker, string mode) => ModesOf(marker).Contains(mode);
+
+    private void SetMode(MapMarker marker, string mode, bool on)
+    {
+        var current = ModesOf(marker);
+        var modes = ModeOptions.Select(option => option.Value).Where(value => value == mode ? on : current.Contains(value)).ToArray();
+        // At least one mode stays on; an empty list would mean all of them again.
+        if (modes.Length == 0)
+        {
+            return;
+        }
+        UpdateMarker(marker, marker with { Modes = string.Join(",", modes) });
     }
 
     // ---- selection and sharing ----
@@ -503,40 +545,77 @@
         }
     }
 
+    // The category being edited: a copy of an existing one or a new one, saved only on Save.
+    private MarkerCategory? draft;
+    private bool draftIsNew;
+    private string draftName = "";
+    private string draftColor = "";
+
+    private void EditCategory(MarkerCategory category)
+    {
+        if (draft != null && draft.Id == category.Id)
+        {
+            CloseCategoryEditor();
+            return;
+        }
+        draft = category;
+        draftIsNew = false;
+        draftName = category.Name;
+        draftColor = category.Color;
+    }
+
     private void AddCategory()
     {
+        if (draftIsNew)
+        {
+            CloseCategoryEditor();
+            return;
+        }
         var used = categories.Select(category => category.Color).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var color = PresetColors.FirstOrDefault(preset => !used.Contains(preset)) ?? PresetColors[0];
         var sort = categories.Count == 0 ? 0 : categories.Max(category => category.Sort) + 1;
-        var category = new MarkerCategory("c" + Guid.NewGuid().ToString("N")[..10], LocalizationService.GetString("NewCategory"), color, sort);
-        Stats.SaveMarkerCategory(category);
-        editingCategory = category.Id;
+        draft = new MarkerCategory("c" + Guid.NewGuid().ToString("N")[..10], LocalizationService.GetString("NewCategory"), color, sort);
+        draftIsNew = true;
+        draftName = draft.Name;
+        draftColor = color;
     }
 
-    private void RenameCategory(MarkerCategory category, string? name)
-    {
-        var clean = (name ?? "").Trim();
-        if (clean.Length > 0 && clean != category.Name)
-        {
-            Stats.SaveMarkerCategory(category with { Name = clean });
-        }
-    }
-
-    private void RecolorCategory(MarkerCategory category, string? color)
+    private void SetDraftColor(string? color)
     {
         var clean = (color ?? "").Trim().ToLowerInvariant();
         if (clean.Length == 6 && !clean.StartsWith('#'))
         {
             clean = "#" + clean;
         }
-        if (MarkerShare.IsColor(clean) && !string.Equals(clean, category.Color, StringComparison.OrdinalIgnoreCase))
+        if (MarkerShare.IsColor(clean))
         {
-            Stats.SaveMarkerCategory(category with { Color = clean });
+            draftColor = clean;
         }
     }
 
-    private async Task DeleteCategory(MarkerCategory category)
+    private void SaveCategory()
     {
+        if (draft == null || string.IsNullOrWhiteSpace(draftName))
+        {
+            return;
+        }
+        Stats.SaveMarkerCategory(draft with { Name = draftName.Trim(), Color = draftColor });
+        CloseCategoryEditor();
+    }
+
+    private void CloseCategoryEditor()
+    {
+        draft = null;
+        draftIsNew = false;
+    }
+
+    private async Task DeleteCategory()
+    {
+        if (draft == null || draftIsNew || draft.Id == MarkerCategory.OtherId)
+        {
+            return;
+        }
+        var category = draft;
         var count = markers.Count(marker => marker.Category == category.Id);
         var other = categories.FirstOrDefault(entry => entry.Id == MarkerCategory.OtherId)?.Name ?? "Other";
         var confirm = await DialogService.ShowMessageBoxAsync(
@@ -545,7 +624,7 @@
             yesText: LocalizationService.GetString("DeleteCategory"), cancelText: LocalizationService.GetString("Cancel"));
         if (confirm == true)
         {
-            editingCategory = null;
+            CloseCategoryEditor();
             if (categoryFilter == category.Id)
             {
                 categoryFilter = "";
