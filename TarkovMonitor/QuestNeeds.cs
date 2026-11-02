@@ -33,19 +33,13 @@ namespace TarkovMonitor
         private const string SignalJammer = "5ac78a9b86f7741cca0bbd8d";
         private static readonly HashSet<string> InstalledItems = new() { WifiCamera, Ms2000Marker, SignalJammer };
 
-        /// <summary>The MS2000 marker drawn as a symbol: a small device with an antenna and signal arcs, tilted to fill the square.</summary>
+        /// <summary>The MS2000 marker and the signal jammer drawn as a symbol: a small device with three straight antennas, tilted to fill the square.</summary>
         public const string MarkerIcon =
             "<g transform=\"rotate(45 12 12) translate(12 12) scale(1.25) translate(-12 -11.5)\">"
             + "<path fill-rule=\"evenodd\" d=\"M9.5 9h5A1.5 1.5 0 0 1 16 10.5v9A1.5 1.5 0 0 1 14.5 21h-5A1.5 1.5 0 0 1 8 19.5v-9A1.5 1.5 0 0 1 9.5 9zM10.2 11v2.6h3.6V11z\"/>"
             + "<path d=\"M11.3 3.2h1.4V9h-1.4z\"/>"
-            + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" d=\"M8.7 1.9a4.6 4.6 0 0 0 0 5.6M15.3 1.9a4.6 4.6 0 0 1 0 5.6\"/>"
+            + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.4\" stroke-linecap=\"round\" d=\"M9.4 9.2L6.4 3.8M14.6 9.2l3-5.4\"/>"
             + "</g>";
-
-        /// <summary>The signal jammer drawn as a symbol: a box with three straight antennas on top, the middle one upright, the outer two angled.</summary>
-        public const string JammerIcon =
-            "<path fill-rule=\"evenodd\" d=\"M7.5 12h9A1.5 1.5 0 0 1 18 13.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5v-7A1.5 1.5 0 0 1 7.5 12zM9 15v2.6h6V15z\"/>"
-            + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M12 12V2.5M8.6 12L4.4 4.2M15.4 12l4.2-7.8\"/>"
-            + "<circle cx=\"12\" cy=\"2.3\" r=\"1.5\"/><circle cx=\"4.3\" cy=\"4\" r=\"1.5\"/><circle cx=\"19.7\" cy=\"4\" r=\"1.5\"/>";
 
         /// <summary>Stashing drawn as a symbol: an arrow pointing down into a box, using the whole square.</summary>
         public const string StashIcon =
@@ -60,7 +54,7 @@ namespace TarkovMonitor
             QuestNeedKind.Place => StashIcon,
             QuestNeedKind.Mark when need.Items.Any(item => item.id == WifiCamera) => MudBlazor.Icons.Material.Filled.PhotoCamera,
             QuestNeedKind.Mark when need.Items.Any(item => item.id == Ms2000Marker) => MarkerIcon,
-            QuestNeedKind.Mark when need.Items.Any(item => item.id == SignalJammer) => JammerIcon,
+            QuestNeedKind.Mark when need.Items.Any(item => item.id == SignalJammer) => MarkerIcon,
             QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.SettingsInputAntenna,
             QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.PanTool,
             _ => MudBlazor.Icons.Material.Filled.Build,
