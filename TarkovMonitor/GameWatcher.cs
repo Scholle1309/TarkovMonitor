@@ -11,6 +11,8 @@ namespace TarkovMonitor
     internal class GameWatcher
     {
         private Process? process;
+        // When the log last named the session mode; tells a restarted game's session from the one before.
+        private DateTime sessionSeenAt = DateTime.MinValue;
         private const string GameStoppingMarker = "EFT.NetworkGame`1:GameStopping()";
         private string outputLogTail = "";
         private readonly System.Timers.Timer processTimer;
@@ -775,6 +777,13 @@ namespace TarkovMonitor
                         }
                         var rawSessionMode = modeMatch.Groups["mode"].Value;
                         var sessionMode = ResolveSessionMode(rawSessionMode);
+                        if (showingStoredProfile)
+                        {
+                            // The game's own session takes over from the remembered profile.
+                            showingStoredProfile = false;
+                            CurrentProfile.Id = "";
+                            CurrentProfile.AccountId = "";
+                        }
                         if (sessionMode == EftSessionMode.Unknown)
                         {
                             CurrentProfile.Id = "";
@@ -796,6 +805,7 @@ namespace TarkovMonitor
                         CurrentProfile.SessionMode = sessionMode;
                         CurrentProfile.Type = ResolveProfileType(sessionMode);
                         raidInfo.Profile = CurrentProfile.Snapshot();
+                        sessionSeenAt = eventDate;
                         continue;
                     }
                     // Profile selection messages have changed names across EFT versions.
@@ -1316,6 +1326,14 @@ namespace TarkovMonitor
                     }
                     //DebugMessage?.Invoke(this, new DebugEventArgs("EFT exited."));
                     process = null;
+                    // After a crash the game may already run again, and have reported its
+                    // session, before this poll sees the old process gone. That session stays.
+                    var restarted = FindGameStartedBefore(sessionSeenAt);
+                    if (restarted != null)
+                    {
+                        process = restarted;
+                        return;
+                    }
                     CurrentProfile = new();
                     raidInfo = new();
                     GameStopped?.Invoke(this, EventArgs.Empty);
@@ -1329,14 +1347,9 @@ namespace TarkovMonitor
                     process = null;
                     return;
                 }
-                if (showingStoredProfile)
-                {
-                    // A remembered profile must not stand in for the game's own one;
-                    // the game reports its profile once a mode is picked.
-                    showingStoredProfile = false;
-                    CurrentProfile = new();
-                    ProfileChanged?.Invoke(this, new(CurrentProfile));
-                }
+                // A remembered profile stays on screen until the game reports its own
+                // session (mode, then profile); clearing it here emptied the app until
+                // a mode was picked. It is read-only and is replaced by the game's.
                 GameStarted?.Invoke(this, new EventArgs());
                 process = processes.First();
 
@@ -1344,6 +1357,29 @@ namespace TarkovMonitor
             {
                 ExceptionThrown?.Invoke(this, new(ex, "watching for EFT process"));
             }
+        }
+
+        /// <summary>A running game that was started before the given time, or null.</summary>
+        private static Process? FindGameStartedBefore(DateTime time)
+        {
+            Process? found = null;
+            foreach (var candidate in Process.GetProcessesByName("EscapeFromTarkov"))
+            {
+                try
+                {
+                    if (found == null && !candidate.HasExited && candidate.StartTime <= time)
+                    {
+                        found = candidate;
+                        continue;
+                    }
+                }
+                catch
+                {
+                    // Start time unreadable: not known to be the new game.
+                }
+                candidate.Dispose();
+            }
+            return found;
         }
 
         private string GetLatestLogFolder()
