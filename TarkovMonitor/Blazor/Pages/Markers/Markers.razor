@@ -16,6 +16,7 @@
                 <div class="mk-head__actions">
                     <MudButton Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.ContentPaste" OnClick="OpenImport">@LocalizationService.GetString("ImportCode")</MudButton>
                     <MudButton Variant="Variant.Outlined" Color="Color.Info" StartIcon="@Icons.Material.Filled.Share" OnClick="ShareSelected" Disabled="@(selected.Count == 0)">@string.Format(LocalizationService.GetString("ShareSelected"), selected.Count)</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteSelected" Disabled="@(selected.Count == 0)">@string.Format(LocalizationService.GetString("DeleteSelected"), selected.Count)</MudButton>
                 </div>
             </div>
 
@@ -130,7 +131,7 @@
             }
 
             @* ---- markers ---- *@
-            <div class="tm-settings-section">@LocalizationService.GetString("MarkersTab")</div>
+            <div class="tm-settings-section">@LocalizationService.GetString("MarkersTab")<span class="mk-section-count">@string.Format(LocalizationService.GetString("MarkersShown"), Shown().Count, markers.Count)</span></div>
             <div class="mk-filters">
                 <div class="tm-field">
                     <MudSelect T="string" @bind-Value="mapFilter" Variant="Variant.Text" Underline="false" Margin="Margin.None" Dense="true" ToStringFunc="MapFilterLabel"
@@ -166,10 +167,15 @@
             {
                 var shown = Shown();
                 <div class="mk-list">
-                    <label class="mk-row mk-row--head">
+                    @* Column headers like the task list: first click sorts, second click flips the direction. *@
+                    <div class="mk-row mk-row--cols">
                         <input type="checkbox" checked="@(shown.Count > 0 && shown.All(marker => selected.Contains(marker.Id)))" @onchange="e => SelectAll(shown, e.Value is true)" />
-                        <span>@string.Format(LocalizationService.GetString("MarkersShown"), shown.Count, markers.Count)</span>
-                    </label>
+                        <span></span>
+                        @SortHeader(MarkerSort.Name, LocalizationService.GetString("ColumnMarker"))
+                        @SortHeader(MarkerSort.Map, LocalizationService.GetString("Map"))
+                        @SortHeader(MarkerSort.Category, LocalizationService.GetString("MarkerCategory"))
+                        <span class="mk-col mk-col--right">@LocalizationService.GetString("ColumnActions")</span>
+                    </div>
                     @foreach (var marker in shown)
                     {
                         var category = CategoryOf(marker);
@@ -187,6 +193,7 @@
                                 <MudIconButton Icon="@Icons.Material.Filled.Map" Size="Size.Small" Title="@LocalizationService.GetString("ShowOnMap")" OnClick="() => MapsService.RequestShowMarker(marker)" />
                                 <MudIconButton Icon="@Icons.Material.Filled.Share" Size="Size.Small" Title="@LocalizationService.GetString("ShareCode")" OnClick="() => ShowCode(new List<MapMarker> { marker })" />
                                 <MudIconButton Icon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.Edit)" Size="Size.Small" Title="@LocalizationService.GetString("EditMarker")" OnClick="() => editingMarker = isOpen ? null : marker.Id" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Class="mk-row__delete" Title="@LocalizationService.GetString("DeleteMarker")" OnClick="() => DeleteMarker(marker)" />
                             </span>
                         </div>
                         @if (isOpen)
@@ -199,9 +206,9 @@
                                             <span class="tm-field__caption">@LocalizationService.GetString("MarkerName")</span>
                                             <input class="mk-input" value="@marker.Label" maxlength="40" @onchange="e => SetLabel(marker, e.Value as string)" />
                                         </div>
-                                        <div class="tm-field tm-field--wide">
+                                        <div class="tm-field tm-field--wide mk-field--area">
                                             <span class="tm-field__caption">@LocalizationService.GetString("MarkerDescription")</span>
-                                            <input class="mk-input" value="@marker.Description" maxlength="300" @onchange="e => SetDescription(marker, e.Value as string)" />
+                                            <textarea class="mk-input mk-input--area" rows="2" maxlength="300" value="@marker.Description" @onchange="e => SetDescription(marker, e.Value as string)"></textarea>
                                         </div>
                                         <div class="tm-field tm-field--wide">
                                             <span class="tm-field__caption">@LocalizationService.GetString("MarkerCategory")</span>
@@ -327,10 +334,47 @@
                 || marker.Label.Contains(words, StringComparison.OrdinalIgnoreCase)
                 || marker.Description.Contains(words, StringComparison.OrdinalIgnoreCase)
                 || MapName(marker.Map).Contains(words, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(marker => MapName(marker.Map))
-            .ThenBy(marker => order.IndexOf(marker.Category))
-            .ThenBy(marker => marker.Label)
+            .OrderBy(marker => marker, Comparer<MapMarker>.Create((a, b) => Compare(a, b, order)))
             .ToList();
+    }
+
+    private enum MarkerSort { Name, Map, Category }
+
+    private MarkerSort sort = MarkerSort.Map;
+    private bool sortDescending;
+
+    // The chosen column first, the others keep the order inside it.
+    private int Compare(MapMarker a, MapMarker b, List<string> order)
+    {
+        var byName = StringComparer.CurrentCultureIgnoreCase.Compare(DisplayName(a), DisplayName(b));
+        var byMap = StringComparer.CurrentCultureIgnoreCase.Compare(MapName(a.Map), MapName(b.Map));
+        var byCategory = order.IndexOf(a.Category).CompareTo(order.IndexOf(b.Category));
+        var first = sort switch { MarkerSort.Name => byName, MarkerSort.Category => byCategory, _ => byMap };
+        if (first != 0)
+        {
+            return sortDescending ? -first : first;
+        }
+        return sort switch
+        {
+            MarkerSort.Name => byMap != 0 ? byMap : byCategory,
+            MarkerSort.Category => byMap != 0 ? byMap : byName,
+            _ => byCategory != 0 ? byCategory : byName,
+        };
+    }
+
+    private RenderFragment SortHeader(MarkerSort column, string label) => __builder =>
+    {
+        var active = sort == column;
+        <button type="button" class="@("mk-col mk-col--sortable" + (active ? " mk-col--active" : ""))" title="@LocalizationService.GetString("SortBy")" @onclick="() => SortBy(column)">
+            <span>@label</span>
+            <MudIcon Icon="@(active && sortDescending ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)" Size="Size.Small" Class="@("mk-col__arrow" + (active ? "" : " mk-col__arrow--idle"))" />
+        </button>
+    };
+
+    private void SortBy(MarkerSort column)
+    {
+        sortDescending = sort == column && !sortDescending;
+        sort = column;
     }
 
     private IEnumerable<MarkerIcon> Symbols()
@@ -530,6 +574,30 @@
             return;
         }
         Stats.SaveMarker(after);
+    }
+
+    private string DisplayName(MapMarker marker) => string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label;
+
+    private async Task DeleteSelected()
+    {
+        var chosen = markers.Where(marker => selected.Contains(marker.Id)).ToList();
+        if (chosen.Count == 0)
+        {
+            return;
+        }
+        var confirm = await DialogService.ShowMessageBoxAsync(
+            string.Format(LocalizationService.GetString("DeleteSelected"), chosen.Count),
+            string.Format(LocalizationService.GetString("DeleteMarkersConfirm"), chosen.Count),
+            yesText: LocalizationService.GetString("Delete"), cancelText: LocalizationService.GetString("Cancel"));
+        if (confirm == true)
+        {
+            editingMarker = null;
+            selected.Clear();
+            foreach (var marker in chosen)
+            {
+                Stats.DeleteMarker(marker.Id);
+            }
+        }
     }
 
     private async Task DeleteMarker(MapMarker marker)

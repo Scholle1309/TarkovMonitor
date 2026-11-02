@@ -58,9 +58,9 @@
                         <MudIcon Icon="@Icons.Material.Filled.Tune" Size="Size.Small" />
                     </button>
                 </div>
-                @* One block per category that has markers on this map: the header shows or hides
-                   them on the map (eye), the markers follow below. *@
-                <div class="map-tasks__list">
+                @* Laid out like the site's layer list: per category a header with a checkbox
+                   (shown on the map or not) and a fold toggle, the markers as tiles below. *@
+                <div class="map-tasks__list map-markers__list">
                     @if (allMapMarkers.Count == 0)
                     {
                         <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoMarkersYet")</MudText>
@@ -73,41 +73,36 @@
                             continue;
                         }
                         var hidden = hiddenCategories.Contains(category.Id);
+                        var folded = foldedCategories.Contains(category.Id);
                         <div class="@("map-markers__cat" + (hidden ? " map-markers__cat--off" : ""))">
-                            <span class="map-markers__cat-dot" style="@($"background: {category.Color}")"></span>
-                            <span class="map-markers__cat-name">@category.Name</span>
+                            <input type="checkbox" checked="@(!hidden)" title="@LocalizationService.GetString(hidden ? "ShowCategory" : "HideCategory")" @onchange="() => ToggleCategory(category.Id)" />
+                            <button type="button" class="map-markers__fold" @onclick="() => ToggleFold(category.Id)">@(folded ? "+" : "–")</button>
+                            <span class="map-markers__cat-name" @onclick="() => ToggleFold(category.Id)">@category.Name</span>
                             <span class="map-markers__cat-count">@inCategory.Count</span>
-                            <button type="button" class="map-markers__cat-eye" @onclick="() => ToggleCategory(category.Id)"
-                                    title="@LocalizationService.GetString(hidden ? "ShowCategory" : "HideCategory")">
-                                <MudIcon Icon="@(hidden ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)" Size="Size.Small" />
-                            </button>
                         </div>
-                        @if (!hidden)
+                        @if (!folded)
                         {
                             @foreach (var marker in inCategory)
                             {
-                                <div class="map-task map-marker" @onclick="() => FocusMarker(marker)">
-                                    <div class="map-task__title">
-                                        <span class="map-task__name">
-                                            <span class="map-marker__dot" style="@($"background: {category.Color}")">
-                                                @if (MarkerIcons.IsKnown(marker.Icon))
-                                                {
-                                                    <img src="@MarkerIcons.UrlOf(marker.Icon)" alt="" />
-                                                }
-                                                else
-                                                {
-                                                    @marker.Icon
-                                                }
-                                            </span>
-                                            @(string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label)
-                                        </span>
-                                        <span class="map-marker__delete" title="@LocalizationService.GetString("DeleteMarker")" @onclick="() => DeleteMarker(marker)" @onclick:stopPropagation><MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /></span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(marker.Description))
-                                    {
-                                        <div class="map-task__objective"><span>@marker.Description</span></div>
-                                    }
-                                    <div class="map-marker__modes">@ModesLabel(marker)</div>
+                                <div class="@("map-markers__item" + (hidden ? " map-markers__item--off" : ""))" @onclick="() => ShowMarker(marker)">
+                                    <span class="map-markers__icon">
+                                        @if (MarkerIcons.IsKnown(marker.Icon))
+                                        {
+                                            <img src="@MarkerIcons.UrlOf(marker.Icon)" alt="" />
+                                        }
+                                        else
+                                        {
+                                            <span class="map-markers__pin" style="@($"background: {category.Color}")">@marker.Icon</span>
+                                        }
+                                    </span>
+                                    <span class="map-markers__text">
+                                        <span class="map-markers__name">@(string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label)</span>
+                                        @if (!string.IsNullOrEmpty(marker.Description))
+                                        {
+                                            <small>@marker.Description</small>
+                                        }
+                                    </span>
+                                    <span class="map-marker__delete" title="@LocalizationService.GetString("DeleteMarker")" @onclick="() => DeleteMarker(marker)" @onclick:stopPropagation><MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /></span>
                                 </div>
                             }
                         }
@@ -700,6 +695,26 @@
     private List<MapMarker> allMapMarkers = new();
     private List<MarkerCategory> markerCategories = new();
     private HashSet<string> hiddenCategories = new();
+    // Folded only for this session, like the site's layer groups.
+    private readonly HashSet<string> foldedCategories = new();
+
+    private void ToggleFold(string id)
+    {
+        if (!foldedCategories.Remove(id))
+        {
+            foldedCategories.Add(id);
+        }
+    }
+
+    // A marker of a hidden category is put back on the map before it is shown.
+    private async Task ShowMarker(MapMarker marker)
+    {
+        if (hiddenCategories.Contains(marker.Category))
+        {
+            await ToggleCategory(marker.Category);
+        }
+        FocusMarker(marker);
+    }
     private string markersMap = "";
 
     private static HashSet<string> ReadHiddenCategories() =>
@@ -815,16 +830,6 @@
         {
             // Frame not reachable yet; the page asks again when its map is ready.
         }
-    }
-
-    private static string ModesLabel(MapMarker marker)
-    {
-        var modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        if (modes.Length == 0 || modes.Length >= 3)
-        {
-            return "PVE · PVP · PVP Season";
-        }
-        return string.Join(" · ", modes.Select(mode => mode switch { "Regular" => "PVP", "Seasonal" => "PVP Season", _ => mode }));
     }
 
     private void FocusMarker(MapMarker marker)

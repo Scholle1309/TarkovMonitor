@@ -518,6 +518,9 @@
   <data name="ColumnStatus" xml:space="preserve">
     <value>Status</value>
   </data>
+  <data name="ColumnMarker" xml:space="preserve">
+    <value>Marker</value>
+  </data>
   <data name="ColumnActions" xml:space="preserve">
     <value>Aktionen</value>
   </data>
@@ -1282,6 +1285,12 @@
   </data>
   <data name="ImportCode" xml:space="preserve">
     <value>Code einfügen</value>
+  </data>
+  <data name="DeleteSelected" xml:space="preserve">
+    <value>Auswahl löschen ({0})</value>
+  </data>
+  <data name="DeleteMarkersConfirm" xml:space="preserve">
+    <value>{0} Marker werden gelöscht.</value>
   </data>
   <data name="ShareSelected" xml:space="preserve">
     <value>Auswahl teilen ({0})</value>
