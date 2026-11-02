@@ -41,19 +41,26 @@ namespace TarkovMonitor
             + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" d=\"M8.7 1.9a4.6 4.6 0 0 0 0 5.6M15.3 1.9a4.6 4.6 0 0 1 0 5.6\"/>"
             + "</g>";
 
+        /// <summary>The signal jammer drawn as a symbol: a box with three straight antennas on top, the middle one upright, the outer two angled.</summary>
+        public const string JammerIcon =
+            "<path fill-rule=\"evenodd\" d=\"M7.5 12h9A1.5 1.5 0 0 1 18 13.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20.5v-7A1.5 1.5 0 0 1 7.5 12zM9 15v2.6h6V15z\"/>"
+            + "<path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" d=\"M12 12V2.5M8.6 12L4.4 4.2M15.4 12l4.2-7.8\"/>"
+            + "<circle cx=\"12\" cy=\"2.3\" r=\"1.5\"/><circle cx=\"4.3\" cy=\"4\" r=\"1.5\"/><circle cx=\"19.7\" cy=\"4\" r=\"1.5\"/>";
+
         /// <summary>Stashing drawn as a symbol: an arrow pointing down into a box, using the whole square.</summary>
         public const string StashIcon =
             "<path d=\"M10.9 0.8h2.2v6.2h-2.2z\"/>"
             + "<path d=\"M6.4 6.2h11.2L12 12.2z\"/>"
             + "<path fill-rule=\"evenodd\" d=\"M3.2 13.2h17.6a1.2 1.2 0 0 1 1.2 1.2v7.1a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 21.5v-7.1a1.2 1.2 0 0 1 1.2-1.2zM8.8 15.8v2h6.4v-2z\"/>";
 
-        /// <summary>The symbol for a need (Material icons; stash and MS2000 drawn), so needs read at a glance without item pictures.</summary>
+        /// <summary>The symbol for a need (Material icons; stash, MS2000 and jammer drawn), so needs read at a glance without item pictures.</summary>
         public static string Icon(QuestNeed need) => need.Kind switch
         {
             QuestNeedKind.Key => MudBlazor.Icons.Material.Filled.VpnKey,
             QuestNeedKind.Place => StashIcon,
             QuestNeedKind.Mark when need.Items.Any(item => item.id == WifiCamera) => MudBlazor.Icons.Material.Filled.PhotoCamera,
             QuestNeedKind.Mark when need.Items.Any(item => item.id == Ms2000Marker) => MarkerIcon,
+            QuestNeedKind.Mark when need.Items.Any(item => item.id == SignalJammer) => JammerIcon,
             QuestNeedKind.Mark => MudBlazor.Icons.Material.Filled.SettingsInputAntenna,
             QuestNeedKind.HandOver => MudBlazor.Icons.Material.Filled.PanTool,
             _ => MudBlazor.Icons.Material.Filled.Build,
