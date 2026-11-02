@@ -214,7 +214,6 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
     gap: 8px;
-    max-width: 972px;
 }
 
 .mk-search {
@@ -227,19 +226,18 @@
     font-size: var(--tm-fs-md);
 }
 
-/* As wide as its columns need, like the task list, instead of across the whole page. */
 .mk-list {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    width: fit-content;
-    max-width: 100%;
     margin-top: 8px;
 }
 
 .mk-row {
     display: grid;
-    grid-template-columns: 18px 26px minmax(200px, 420px) 130px 170px minmax(136px, 1fr);
+    /* Fixed columns from the left, as on the task list, instead of spreading over the whole row. */
+    grid-template-columns: 18px 26px minmax(200px, 420px) 130px 170px 136px;
+    justify-content: start;
     align-items: center;
     gap: 10px;
     padding: 6px 10px;
