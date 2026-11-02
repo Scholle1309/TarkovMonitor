@@ -802,6 +802,14 @@ namespace TarkovMonitor
             {
                 e.EnvironmentOptions ??= new CoreWebView2EnvironmentOptions();
                 e.EnvironmentOptions.Language = ToBrowserLanguage(Properties.Settings.Default.language);
+                // One web view profile however the app is started (start script, shortcut,
+                // updater): tarkov.dev keeps its map settings there. Without this, a start
+                // without the start script's variable opened an empty profile. The variable
+                // still wins, so a second instance can use its own profile.
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER")))
+                {
+                    e.UserDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TarkovMonitor-Dev");
+                }
             };
             blazorWebView1.HostPage = "wwwroot\\index.html";
             var serviceProvider = services.BuildServiceProvider();
