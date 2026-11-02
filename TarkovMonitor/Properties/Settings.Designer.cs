@@ -169,6 +169,18 @@ namespace TarkovMonitor.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string hiddenMarkerCategories {
+            get {
+                return ((string)(this["hiddenMarkerCategories"]));
+            }
+            set {
+                this["hiddenMarkerCategories"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool mapShowTakeAlong {
             get {

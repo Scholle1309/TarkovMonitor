@@ -1,0 +1,409 @@
+.tm-settings-section {
+    margin: 0.9rem 0 0.4rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    color: #8fb8f5;
+    font-size: var(--tm-fs-sm);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mk-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.mk-head__actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Share code, import and editors: one inset panel style. */
+.mk-panel {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.mk-panel__title {
+    margin-bottom: 6px;
+    font-size: var(--tm-fs-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8fb8f5;
+}
+
+.mk-panel__note {
+    margin: 6px 0;
+    font-size: var(--tm-fs-md);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.mk-panel__note--bad {
+    color: #ff8a75;
+}
+
+.mk-panel__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.mk-code {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: var(--tm-fs-sm);
+    color: #8fb8f5;
+    word-break: break-all;
+    max-height: 120px;
+    overflow-y: auto;
+    user-select: all;
+}
+
+.mk-paste {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: var(--tm-fs-sm);
+    resize: vertical;
+    outline: none;
+}
+
+.mk-paste:focus {
+    border-color: #4f8fef;
+}
+
+/* Plain inputs inside the shared field frame. */
+.mk-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.88);
+    font: inherit;
+    font-size: var(--tm-fs-md);
+}
+
+.mk-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* ---- categories ---- */
+.mk-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mk-cat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255, 255, 255, 0.88);
+    font: inherit;
+    font-size: var(--tm-fs-md);
+    cursor: pointer;
+}
+
+.mk-cat:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.mk-cat--on {
+    border-color: #4f8fef;
+    background: #1d2b47;
+}
+
+.mk-cat--add {
+    border-style: dashed;
+    color: #6ea8ff;
+}
+
+.mk-cat__count {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: var(--tm-fs-xs);
+}
+
+.mk-colors {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.mk-swatch {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.mk-swatch--on {
+    border-color: #fff;
+}
+
+/* The colour wheel: a native colour input inside a rainbow circle. */
+.mk-swatch--wheel {
+    position: relative;
+    overflow: hidden;
+    background: conic-gradient(#e53935, #fdd835, #43a047, #00acc1, #1e88e5, #8e24aa, #e53935);
+}
+
+.mk-swatch--wheel input {
+    position: absolute;
+    inset: -6px;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    opacity: 0;
+    cursor: pointer;
+}
+
+.mk-hex {
+    width: 120px;
+}
+
+/* ---- markers ---- */
+.mk-filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
+    gap: 8px;
+}
+
+.mk-search {
+    min-width: 0;
+}
+
+.mk-empty {
+    padding: 14px 4px;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: var(--tm-fs-md);
+}
+
+.mk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.mk-row {
+    display: grid;
+    grid-template-columns: 18px 26px minmax(0, 1fr) 130px 170px 104px;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #16213a;
+}
+
+/* Own check boxes in the app style: rounded square, blue with a white tick when on. */
+.mk-row input[type="checkbox"],
+.mk-row--head input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    box-sizing: border-box;
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    transition: background-color 0.1s, border-color 0.1s;
+}
+
+.mk-row input[type="checkbox"]:hover,
+.mk-row--head input[type="checkbox"]:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.mk-row input[type="checkbox"]:checked,
+.mk-row--head input[type="checkbox"]:checked {
+    border-color: #2196f3;
+    background: #2196f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 13px 13px no-repeat;
+}
+
+.mk-row input[type="checkbox"]:focus-visible,
+.mk-row--head input[type="checkbox"]:focus-visible {
+    outline: 2px solid rgba(110, 168, 255, 0.85);
+    outline-offset: 1px;
+}
+
+.mk-row--head {
+    display: flex;
+    gap: 10px;
+    background: transparent;
+    padding: 2px 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-sm);
+    cursor: pointer;
+}
+
+.mk-row--import {
+    grid-template-columns: 18px 26px minmax(0, 1fr) 130px 170px;
+    cursor: pointer;
+}
+
+.mk-row--muted {
+    opacity: 0.5;
+}
+
+.mk-row--open {
+    border-radius: 6px 6px 0 0;
+    background: #1a2640;
+}
+
+.mk-row__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.mk-row__name {
+    color: #e3eeff;
+    font-size: var(--tm-fs-md);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mk-row__text small {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mk-row__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+.mk-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: var(--tm-fs-sm);
+}
+
+.mk-dot ::deep img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.8));
+}
+
+.mk-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: var(--tm-fs-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mk-chip__dot {
+    flex-shrink: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.mk-editor {
+    margin-top: 0;
+    border-radius: 0 0 6px 6px;
+    border-top: 0;
+    background: #1a2640;
+}
+
+.mk-symbols {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 32px);
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.mk-symbol {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+}
+
+.mk-symbol:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mk-symbol img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.mk-symbol--on {
+    border-color: #4f8fef;
+    background: rgba(79, 143, 239, 0.22);
+}
+
+.mk-symbol__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.mk-modes {
+    margin-right: auto;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: var(--tm-fs-sm);
+}

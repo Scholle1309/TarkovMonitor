@@ -63,6 +63,39 @@ namespace TarkovMonitor
 
         public static List<MapMarker> GetMarkers(string map) => Database.Value.GetMarkers(map);
 
+        /// <summary>Every marker on every map, for the Markers tab and share codes.</summary>
+        public static List<MapMarker> GetAllMarkers() => Database.Value.GetMarkers(null);
+
+        /// <summary>Marker categories in their order; the "other" category always exists.</summary>
+        public static List<MarkerCategory> GetMarkerCategories() => Database.Value.GetCategories();
+
+        public static void SaveMarkerCategory(MarkerCategory category)
+        {
+            Database.Value.SaveCategory(category);
+            MarkersChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        /// <summary>Deletes a category; its markers move to "other", which cannot be deleted.</summary>
+        public static void DeleteMarkerCategory(string id)
+        {
+            if (id == MarkerCategory.OtherId)
+            {
+                return;
+            }
+            Database.Value.DeleteCategory(id);
+            MarkersChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        /// <summary>Saves several markers at once (an import) with one change notification.</summary>
+        public static void SaveMarkers(IEnumerable<MapMarker> markers)
+        {
+            foreach (var marker in markers)
+            {
+                Database.Value.SaveMarker(marker);
+            }
+            MarkersChanged?.Invoke(null, EventArgs.Empty);
+        }
+
         public static void SaveMarker(MapMarker marker)
         {
             Database.Value.SaveMarker(marker);
@@ -87,10 +120,17 @@ namespace TarkovMonitor
 
     /// <summary>A marker the player placed on a map (Leaflet coordinates of the Tarkov.dev map).</summary>
     /// <summary>Modes is a comma list of EftSessionMode names the marker is shown in (empty = all).</summary>
-    public sealed record MapMarker(string Id, string Map, double Lat, double Lng, string Label, string Description, string Icon, string Color, string Modes)
+    public sealed record MapMarker(string Id, string Map, double Lat, double Lng, string Label, string Description, string Icon, string Color, string Modes, string Category = MarkerCategory.OtherId)
     {
         public bool ShownIn(EftSessionMode mode) => mode == EftSessionMode.Unknown || string.IsNullOrEmpty(Modes)
             || Modes.Split(',', StringSplitOptions.RemoveEmptyEntries).Contains(mode.ToString(), StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>A marker category: name and colour, kept in the user's order. Markers take its colour.</summary>
+    public sealed record MarkerCategory(string Id, string Name, string Color, int Sort)
+    {
+        /// <summary>The fallback category; it can be renamed and recoloured but not deleted.</summary>
+        public const string OtherId = "other";
     }
 
     internal sealed record FleaSaleRecord(string ItemId, string? Buyer, int Count, string Currency, int Price, DateTime TimeUtc);
@@ -487,33 +527,66 @@ namespace TarkovMonitor
                 : null;
         }
 
-        internal List<MapMarker> GetMarkers(string map)
+        internal List<MapMarker> GetMarkers(string? map)
         {
             var result = new List<MapMarker>();
             lock (gate)
             {
-                using var command = CreateCommand("SELECT id, map, lat, lng, label, description, icon, color, modes FROM map_markers WHERE map = @map ORDER BY created;",
-                    parameters: new Dictionary<string, object?> { ["map"] = map });
+                using var command = map == null
+                    ? CreateCommand("SELECT id, map, lat, lng, label, description, icon, color, modes, category FROM map_markers ORDER BY created;")
+                    : CreateCommand("SELECT id, map, lat, lng, label, description, icon, color, modes, category FROM map_markers WHERE map = @map ORDER BY created;",
+                        parameters: new Dictionary<string, object?> { ["map"] = map });
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
                     result.Add(new MapMarker(reader.GetString(0), reader.GetString(1), reader.GetDouble(2), reader.GetDouble(3),
                         reader.IsDBNull(4) ? "" : reader.GetString(4), reader.IsDBNull(5) ? "" : reader.GetString(5),
                         reader.IsDBNull(6) ? "" : reader.GetString(6), reader.IsDBNull(7) ? "#e53935" : reader.GetString(7),
-                        reader.IsDBNull(8) ? "" : reader.GetString(8)));
+                        reader.IsDBNull(8) ? "" : reader.GetString(8),
+                        reader.IsDBNull(9) || string.IsNullOrEmpty(reader.GetString(9)) ? MarkerCategory.OtherId : reader.GetString(9)));
                 }
             }
             return result;
         }
 
+        internal List<MarkerCategory> GetCategories()
+        {
+            var result = new List<MarkerCategory>();
+            lock (gate)
+            {
+                using var command = CreateCommand("SELECT id, name, color, sort FROM marker_categories ORDER BY sort, name;");
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(new MarkerCategory(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetInt32(3)));
+                }
+            }
+            return result;
+        }
+
+        internal void SaveCategory(MarkerCategory category)
+        {
+            ExecuteNonQuery("INSERT INTO marker_categories (id, name, color, sort) VALUES (@id, @name, @color, @sort)"
+                + " ON CONFLICT(id) DO UPDATE SET name = excluded.name, color = excluded.color, sort = excluded.sort;",
+                new Dictionary<string, object?> { ["id"] = category.Id, ["name"] = category.Name, ["color"] = category.Color, ["sort"] = category.Sort });
+        }
+
+        internal void DeleteCategory(string id)
+        {
+            ExecuteNonQuery("UPDATE map_markers SET category = @other WHERE category = @id;",
+                new Dictionary<string, object?> { ["id"] = id, ["other"] = MarkerCategory.OtherId });
+            ExecuteNonQuery("DELETE FROM marker_categories WHERE id = @id;", new Dictionary<string, object?> { ["id"] = id });
+        }
+
         internal void SaveMarker(MapMarker marker)
         {
-            ExecuteNonQuery("INSERT INTO map_markers (id, map, lat, lng, label, description, icon, color, modes) VALUES (@id, @map, @lat, @lng, @label, @description, @icon, @color, @modes)"
-                + " ON CONFLICT(id) DO UPDATE SET map = excluded.map, lat = excluded.lat, lng = excluded.lng, label = excluded.label, description = excluded.description, icon = excluded.icon, color = excluded.color, modes = excluded.modes;",
+            ExecuteNonQuery("INSERT INTO map_markers (id, map, lat, lng, label, description, icon, color, modes, category) VALUES (@id, @map, @lat, @lng, @label, @description, @icon, @color, @modes, @category)"
+                + " ON CONFLICT(id) DO UPDATE SET map = excluded.map, lat = excluded.lat, lng = excluded.lng, label = excluded.label, description = excluded.description, icon = excluded.icon, color = excluded.color, modes = excluded.modes, category = excluded.category;",
                 new Dictionary<string, object?>
                 {
                     ["id"] = marker.Id, ["map"] = marker.Map, ["lat"] = marker.Lat, ["lng"] = marker.Lng,
                     ["label"] = marker.Label, ["description"] = marker.Description, ["icon"] = marker.Icon, ["color"] = marker.Color, ["modes"] = marker.Modes,
+                    ["category"] = string.IsNullOrEmpty(marker.Category) ? MarkerCategory.OtherId : marker.Category,
                 });
         }
 
@@ -527,6 +600,7 @@ namespace TarkovMonitor
             var commands = new[]
             {
                 "CREATE TABLE IF NOT EXISTS map_markers (id TEXT PRIMARY KEY, map TEXT NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL, label TEXT, description TEXT, icon TEXT, color TEXT, modes TEXT, created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
+                "CREATE TABLE IF NOT EXISTS marker_categories (id TEXT PRIMARY KEY, name TEXT NOT NULL, color TEXT NOT NULL, sort INTEGER NOT NULL DEFAULT 0);",
                 "CREATE TABLE IF NOT EXISTS flea_sales (id INTEGER PRIMARY KEY, profile_id VARCHAR(24), item_id CHAR(24), buyer VARCHAR(14), count INT, currency CHAR(24), price INT, time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
                 "CREATE TABLE IF NOT EXISTS raids (id INTEGER PRIMARY KEY, profile_id VARCHAR(24), map VARCHAR(24), raid_type INT, queue_time DECIMAL(6,2), raid_id VARCHAR(24), time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, ended TIMESTAMP);",
             };
@@ -541,8 +615,43 @@ namespace TarkovMonitor
             EnsureColumn("raids", "profile_id", "VARCHAR(24)");
             EnsureColumn("flea_sales", "profile_id", "VARCHAR(24)");
             EnsureColumn("raids", "ended", "TIMESTAMP");
+            EnsureColumn("map_markers", "category", "TEXT");
+            SeedMarkerCategories();
             // An older release wrote the map object's type name instead of its id; those rows have no usable map.
             ExecuteNonQuery("UPDATE raids SET map = NULL WHERE map LIKE 'TarkovMonitor.%';");
+        }
+
+        // Ready-made categories for a fresh start, in the app language; all of them can be
+        // renamed, recoloured or deleted, except that "other" stays. Markers from before
+        // categories existed get the category matching their old colour.
+        private void SeedMarkerCategories()
+        {
+            using (var count = CreateCommand("SELECT COUNT(*) FROM marker_categories;"))
+            {
+                if (Convert.ToInt32(count.ExecuteScalar(), CultureInfo.InvariantCulture) > 0)
+                {
+                    return;
+                }
+            }
+            var german = (Properties.Settings.Default.language ?? "").StartsWith("de", StringComparison.OrdinalIgnoreCase);
+            var defaults = new[]
+            {
+                ("loot", german ? "Loot" : "Loot", "#fdd835"),
+                ("keys", german ? "Schlüssel und Türen" : "Keys and doors", "#1e88e5"),
+                ("extracts", german ? "Extracts" : "Extracts", "#43a047"),
+                ("danger", german ? "Gefahr" : "Danger", "#e53935"),
+                ("quests", german ? "Quests" : "Quests", "#8e24aa"),
+                (MarkerCategory.OtherId, german ? "Sonstiges" : "Other", "#9e9e9e"),
+            };
+            for (var index = 0; index < defaults.Length; index++)
+            {
+                var (id, name, color) = defaults[index];
+                SaveCategory(new MarkerCategory(id, name, color, index));
+            }
+            ExecuteNonQuery("UPDATE map_markers SET category = CASE lower(color)"
+                + " WHEN '#e53935' THEN 'danger' WHEN '#fb8c00' THEN 'loot' WHEN '#fdd835' THEN 'loot'"
+                + " WHEN '#43a047' THEN 'extracts' WHEN '#1e88e5' THEN 'keys' WHEN '#8e24aa' THEN 'quests'"
+                + " ELSE 'other' END WHERE category IS NULL OR category = '';");
         }
 
         private void EnsureColumn(string tableName, string columnName, string definition)

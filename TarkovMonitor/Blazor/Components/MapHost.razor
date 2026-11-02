@@ -7,6 +7,7 @@
 @inject QuestLogStore QuestLogStore
 @inject LocalizationService LocalizationService
 @inject MessageLog MessageLog
+@inject NavigationManager Navigation
 @implements IDisposable
 
 @* Lives in the layout so the Tarkov.dev page stays loaded (and connected) while other tabs are shown. *@
@@ -53,25 +54,63 @@
                         <MudIcon Icon="@Icons.Material.Filled.AddLocation" Size="Size.Small" />
                         <span>@(placing ? LocalizationService.GetString("CancelPlacing") : LocalizationService.GetString("PlaceMarker"))</span>
                     </button>
+                    <button type="button" class="map-markers__manage" title="@LocalizationService.GetString("ManageMarkers")" @onclick="@(() => Navigation.NavigateTo("/markers"))">
+                        <MudIcon Icon="@Icons.Material.Filled.Tune" Size="Size.Small" />
+                    </button>
                 </div>
+                @* One block per category that has markers on this map: the header shows or hides
+                   them on the map (eye), the markers follow below. *@
                 <div class="map-tasks__list">
-                    @if (markers.Count == 0)
+                    @if (allMapMarkers.Count == 0)
                     {
                         <MudText Typo="Typo.body2" Class="map-tasks__empty">@LocalizationService.GetString("NoMarkersYet")</MudText>
                     }
-                    @foreach (var marker in markers)
+                    @foreach (var category in markerCategories)
                     {
-                        <div class="map-task map-marker" @onclick="() => FocusMarker(marker)">
-                            <div class="map-task__title">
-                                <span class="map-task__name"><span class="map-marker__dot" style="@($"background: {marker.Color}")">@marker.Icon</span>@(string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label)</span>
-                                <span class="map-marker__delete" title="@LocalizationService.GetString("DeleteMarker")" @onclick="() => DeleteMarker(marker)" @onclick:stopPropagation><MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /></span>
-                            </div>
-                            @if (!string.IsNullOrEmpty(marker.Description))
-                            {
-                                <div class="map-task__objective"><span>@marker.Description</span></div>
-                            }
-                            <div class="map-marker__modes">@ModesLabel(marker)</div>
+                        var inCategory = allMapMarkers.Where(marker => marker.Category == category.Id).ToList();
+                        if (inCategory.Count == 0)
+                        {
+                            continue;
+                        }
+                        var hidden = hiddenCategories.Contains(category.Id);
+                        <div class="@("map-markers__cat" + (hidden ? " map-markers__cat--off" : ""))">
+                            <span class="map-markers__cat-dot" style="@($"background: {category.Color}")"></span>
+                            <span class="map-markers__cat-name">@category.Name</span>
+                            <span class="map-markers__cat-count">@inCategory.Count</span>
+                            <button type="button" class="map-markers__cat-eye" @onclick="() => ToggleCategory(category.Id)"
+                                    title="@LocalizationService.GetString(hidden ? "ShowCategory" : "HideCategory")">
+                                <MudIcon Icon="@(hidden ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)" Size="Size.Small" />
+                            </button>
                         </div>
+                        @if (!hidden)
+                        {
+                            @foreach (var marker in inCategory)
+                            {
+                                <div class="map-task map-marker" @onclick="() => FocusMarker(marker)">
+                                    <div class="map-task__title">
+                                        <span class="map-task__name">
+                                            <span class="map-marker__dot" style="@($"background: {category.Color}")">
+                                                @if (MarkerIcons.IsKnown(marker.Icon))
+                                                {
+                                                    <img src="@MarkerIcons.UrlOf(marker.Icon)" alt="" />
+                                                }
+                                                else
+                                                {
+                                                    @marker.Icon
+                                                }
+                                            </span>
+                                            @(string.IsNullOrEmpty(marker.Label) ? LocalizationService.GetString("UnnamedMarker") : marker.Label)
+                                        </span>
+                                        <span class="map-marker__delete" title="@LocalizationService.GetString("DeleteMarker")" @onclick="() => DeleteMarker(marker)" @onclick:stopPropagation><MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" /></span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(marker.Description))
+                                    {
+                                        <div class="map-task__objective"><span>@marker.Description</span></div>
+                                    }
+                                    <div class="map-marker__modes">@ModesLabel(marker)</div>
+                                </div>
+                            }
+                        }
                     }
                 </div>
             </div>
@@ -359,6 +398,20 @@
                     takeAlong = LocalizationService.GetString("ShowTakeAlongOnMap"),
                     findInRaid = LocalizationService.GetString("ShowFindInRaidOnMap"),
                 },
+                // For the marker dialog inside the map.
+                categories = Stats.GetMarkerCategories().Select(category => new { id = category.Id, name = category.Name, color = category.Color }).ToList(),
+                icons = MarkerIcons.All.Select(icon => new { key = icon.Key, name = icon.Name, keywords = icon.Keywords }).ToList(),
+                markerLabels = new
+                {
+                    name = LocalizationService.GetString("MarkerName"),
+                    description = LocalizationService.GetString("MarkerDescription"),
+                    category = LocalizationService.GetString("MarkerCategory"),
+                    searchSymbols = LocalizationService.GetString("SearchSymbols"),
+                    none = LocalizationService.GetString("None"),
+                    noSymbols = LocalizationService.GetString("NoSymbolFound"),
+                    save = LocalizationService.GetString("Save"),
+                    delete = LocalizationService.GetString("Delete"),
+                },
             });
         }
         catch
@@ -472,8 +525,10 @@
         TarkovTracker.ProgressChanged += OnQuestDataChanged;
         TarkovTracker.ObjectiveProgressChanged += OnQuestDataChanged;
         Properties.Settings.Default.PropertyChanged += OnSettingChanged;
+        Stats.MarkersChanged += OnMarkersChanged;
         MapsService.PositionUpdated += OnPositionUpdated;
         MapsService.HighlightRequested += OnHighlightRequested;
+        MapsService.MarkerFocusRequested += OnMarkerFocusRequested;
         eft.GameStarted += OnQuestDataChanged;
         eft.GameStopped += OnQuestDataChanged;
         eft.ProfileChanged += OnProfileChanged;
@@ -507,6 +562,38 @@
                     return;
                 }
                 await SendSearch(view.Task.name);
+            }
+        });
+    }
+
+    // The Markers tab asked to show a marker: open the markers panel and point at it once
+    // the page (possibly switching maps) has received its markers.
+    private void OnMarkerFocusRequested(object? sender, MapMarker marker)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            markersPanelOpen = true;
+            tasksPanelOpen = false;
+            bossesPanelOpen = false;
+            CloseFramePanels();
+            if (ReadHiddenCategories().Contains(marker.Category))
+            {
+                await ToggleCategory(marker.Category);
+            }
+            LoadMarkers();
+            StateHasChanged();
+            for (var attempt = 0; attempt < 20 && !MapsService.FrameLoaded; attempt++)
+            {
+                await Task.Delay(500);
+            }
+            foreach (var delay in new[] { 800, 1500, 2500 })
+            {
+                await Task.Delay(delay);
+                if (!markersPanelOpen)
+                {
+                    return;
+                }
+                FocusMarker(marker);
             }
         });
     }
@@ -610,7 +697,41 @@
     private bool markersPanelOpen;
     private bool placing;
     private List<MapMarker> markers = new();
+    private List<MapMarker> allMapMarkers = new();
+    private List<MarkerCategory> markerCategories = new();
+    private HashSet<string> hiddenCategories = new();
     private string markersMap = "";
+
+    private static HashSet<string> ReadHiddenCategories() =>
+        new((Properties.Settings.Default.hiddenMarkerCategories ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries));
+
+    private string CategoryColor(MapMarker marker) =>
+        markerCategories.FirstOrDefault(category => category.Id == marker.Category)?.Color ?? marker.Color;
+
+    private async Task ToggleCategory(string id)
+    {
+        var hidden = ReadHiddenCategories();
+        if (!hidden.Remove(id))
+        {
+            hidden.Add(id);
+        }
+        Properties.Settings.Default.hiddenMarkerCategories = string.Join(",", hidden);
+        Properties.Settings.Default.Save();
+        LoadMarkers();
+        await SendMarkers(markersMap);
+    }
+
+    // A change in the Markers tab (or an import) reaches the open map at once.
+    private void OnMarkersChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            LoadMarkers();
+            await SendFrameSettings();
+            await SendMarkers(string.IsNullOrEmpty(markersMap) ? MapsService.CurrentMapName : markersMap);
+            StateHasChanged();
+        });
+    }
 
     private void ToggleMarkersPanel()
     {
@@ -641,11 +762,24 @@
         try
         {
             var mode = HistoryStart.CurrentMode;
-            markers = Stats.GetMarkers(markersMap).Where(marker => marker.ShownIn(mode)).ToList();
+            markerCategories = Stats.GetMarkerCategories();
+            hiddenCategories = ReadHiddenCategories();
+            // A marker whose category is gone counts as "other".
+            var known = markerCategories.Select(category => category.Id).ToHashSet();
+            allMapMarkers = Stats.GetMarkers(markersMap)
+                .Where(marker => marker.ShownIn(mode))
+                .Select(marker => known.Contains(marker.Category) ? marker : marker with { Category = MarkerCategory.OtherId })
+                .ToList();
+            var order = markerCategories.Select(category => category.Id).ToList();
+            markers = allMapMarkers
+                .Where(marker => !hiddenCategories.Contains(marker.Category))
+                .OrderBy(marker => order.IndexOf(marker.Category) is var index && index >= 0 ? index : int.MaxValue)
+                .ToList();
         }
         catch
         {
             markers = new List<MapMarker>();
+            allMapMarkers = new List<MapMarker>();
         }
     }
 
@@ -661,8 +795,17 @@
             list = new List<MapMarker>();
         }
         var mode = HistoryStart.CurrentMode;
-        var payload = list.Where(marker => marker.ShownIn(mode))
-            .Select(marker => new { id = marker.Id, map = marker.Map, lat = marker.Lat, lng = marker.Lng, label = marker.Label, description = marker.Description, icon = marker.Icon, color = marker.Color, modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries) })
+        var categories = Stats.GetMarkerCategories();
+        var hidden = ReadHiddenCategories();
+        // Markers take the colour of their category; hidden categories stay off the map.
+        var payload = list.Where(marker => marker.ShownIn(mode) && !hidden.Contains(marker.Category))
+            .Select(marker => new
+            {
+                id = marker.Id, map = marker.Map, lat = marker.Lat, lng = marker.Lng, label = marker.Label, description = marker.Description, icon = marker.Icon,
+                category = marker.Category,
+                color = categories.FirstOrDefault(category => category.Id == marker.Category)?.Color ?? marker.Color,
+                modes = marker.Modes.Split(',', StringSplitOptions.RemoveEmptyEntries),
+            })
             .ToList();
         try
         {
@@ -700,8 +843,8 @@
     public async Task OnFrameMapReady(string map)
     {
         placing = false;
-        await SendMarkers(string.IsNullOrEmpty(map) ? MapsService.CurrentMapName : map);
         await SendFrameSettings();
+        await SendMarkers(string.IsNullOrEmpty(map) ? MapsService.CurrentMapName : map);
         await InvokeAsync(() =>
         {
             if (markersPanelOpen)
@@ -748,7 +891,8 @@
                     data.TryGetProperty("description", out var description) ? description.GetString() ?? "" : "",
                     data.TryGetProperty("icon", out var icon) ? icon.GetString() ?? "" : "",
                     data.TryGetProperty("color", out var color) ? color.GetString() ?? "#e53935" : "#e53935",
-                    modes));
+                    modes,
+                    data.TryGetProperty("category", out var category) && !string.IsNullOrEmpty(category.GetString()) ? category.GetString()! : MarkerCategory.OtherId));
             }
         }
         catch
@@ -978,8 +1122,10 @@
         TarkovTracker.ProgressChanged -= OnQuestDataChanged;
         TarkovTracker.ObjectiveProgressChanged -= OnQuestDataChanged;
         Properties.Settings.Default.PropertyChanged -= OnSettingChanged;
+        Stats.MarkersChanged -= OnMarkersChanged;
         MapsService.PositionUpdated -= OnPositionUpdated;
         MapsService.HighlightRequested -= OnHighlightRequested;
+        MapsService.MarkerFocusRequested -= OnMarkerFocusRequested;
         eft.GameStarted -= OnQuestDataChanged;
         eft.GameStopped -= OnQuestDataChanged;
         eft.ProfileChanged -= OnProfileChanged;

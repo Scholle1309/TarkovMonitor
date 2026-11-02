@@ -371,6 +371,25 @@ namespace TarkovMonitor
             HighlightRequested?.Invoke(this, view);
         }
 
+        /// <summary>Raised when another tab asks the map to show one of the player's markers.</summary>
+        public event EventHandler<MapMarker>? MarkerFocusRequested;
+
+        /// <summary>Show the Maps tab on the marker's map and open the marker there.</summary>
+        public void RequestShowMarker(MapMarker marker)
+        {
+            RequestFrame();
+            NavigationRequested?.Invoke(this, new MapsNavigationRequestedEventArgs(MapsRoute, onlyFromMaps: false));
+            if (!string.Equals(ShownMap?.normalizedName, marker.Map, StringComparison.OrdinalIgnoreCase))
+            {
+                var target = TarkovDev.Maps.Find(map => string.Equals(map.normalizedName, marker.Map, StringComparison.OrdinalIgnoreCase));
+                if (target != null)
+                {
+                    _ = NavigateAsync(target);
+                }
+            }
+            MarkerFocusRequested?.Invoke(this, marker);
+        }
+
         /// <summary>Keep the newest position so it can be replayed after a (re)load.</summary>
         public void RememberPosition(JsonObject positionMessage)
         {

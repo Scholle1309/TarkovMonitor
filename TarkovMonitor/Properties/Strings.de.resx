@@ -1229,4 +1229,103 @@
   <data name="FormatLanguage" xml:space="preserve">
     <value>Wie Sprache</value>
   </data>
+  <data name="MarkersTab" xml:space="preserve">
+    <value>Marker</value>
+  </data>
+  <data name="ManageMarkers" xml:space="preserve">
+    <value>Marker verwalten</value>
+  </data>
+  <data name="ShowCategory" xml:space="preserve">
+    <value>Auf der Karte zeigen</value>
+  </data>
+  <data name="HideCategory" xml:space="preserve">
+    <value>Auf der Karte ausblenden</value>
+  </data>
+  <data name="MarkerName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="MarkerDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="MarkerCategory" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="SearchSymbols" xml:space="preserve">
+    <value>Symbole suchen</value>
+  </data>
+  <data name="NoSymbolFound" xml:space="preserve">
+    <value>Kein Symbol gefunden</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Kategorien</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>Neue Kategorie</value>
+  </data>
+  <data name="CustomColor" xml:space="preserve">
+    <value>Beliebige Farbe</value>
+  </data>
+  <data name="DeleteCategory" xml:space="preserve">
+    <value>Kategorie löschen</value>
+  </data>
+  <data name="DeleteCategoryConfirm" xml:space="preserve">
+    <value>Marker in „{0}“ ({1}) wandern nach „{2}“.</value>
+  </data>
+  <data name="ImportCode" xml:space="preserve">
+    <value>Code einfügen</value>
+  </data>
+  <data name="ShareSelected" xml:space="preserve">
+    <value>Auswahl teilen ({0})</value>
+  </data>
+  <data name="ShareCode" xml:space="preserve">
+    <value>Share-Code</value>
+  </data>
+  <data name="ShareCodeFor" xml:space="preserve">
+    <value>Share-Code für {0} Marker</value>
+  </data>
+  <data name="CopyCode" xml:space="preserve">
+    <value>Code kopieren</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Kopiert</value>
+  </data>
+  <data name="PasteCodeHint" xml:space="preserve">
+    <value>Share-Code hier einfügen (TMM1:…)</value>
+  </data>
+  <data name="InvalidCode" xml:space="preserve">
+    <value>Das ist kein Marker-Code.</value>
+  </data>
+  <data name="CodeMarkersFound" xml:space="preserve">
+    <value>{0} Marker gefunden · {1} schon vorhanden</value>
+  </data>
+  <data name="ImportMarkers" xml:space="preserve">
+    <value>{0} Marker übernehmen</value>
+  </data>
+  <data name="AlreadyExists" xml:space="preserve">
+    <value>Schon vorhanden</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>Alle Kategorien</value>
+  </data>
+  <data name="SearchMarkers" xml:space="preserve">
+    <value>Name, Beschreibung oder Karte suchen</value>
+  </data>
+  <data name="NoMarkersAnywhere" xml:space="preserve">
+    <value>Noch keine Marker. Rechtsklick auf die Karte oder „Marker setzen“ im Marker-Panel der Karte.</value>
+  </data>
+  <data name="MarkersShown" xml:space="preserve">
+    <value>{0} von {1} Markern</value>
+  </data>
+  <data name="EditMarker" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
 </root>

@@ -131,6 +131,88 @@
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
 }
 
+.map-markers__manage {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+}
+
+.map-markers__manage:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.map-markers__cat {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 6px;
+    padding: 6px 2px 2px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: var(--tm-fs-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.map-markers__cat:first-child {
+    margin-top: 0;
+    border-top: 0;
+}
+
+.map-markers__cat--off {
+    color: rgba(255, 255, 255, 0.38);
+}
+
+.map-markers__cat-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.map-markers__cat-eye {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.map-markers__cat-eye:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.map-markers__cat-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.map-markers__cat-count {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--tm-fs-xs);
+}
+
+.map-marker__dot img {
+    width: 13px;
+    height: 13px;
+    object-fit: contain;
+}
+
 .map-marker__modes {
     margin-top: 3px;
     font-size: var(--tm-fs-xs);

@@ -11,7 +11,7 @@
         }
         const field = event.target.closest(".tm-field");
         // Clicks on the control, its buttons or a slider keep their own behaviour.
-        if (!field || event.target.closest(".mud-input-control, .mud-input-adornment, button, .mud-slider, a")) {
+        if (!field || event.target.closest(".mud-input-control, .mud-input-adornment, button, .mud-slider, a, input, textarea, select, label")) {
             return null;
         }
         return field;
@@ -29,7 +29,7 @@
         if (!field) {
             return;
         }
-        const input = field.querySelector(".mud-input-control input");
+        const input = field.querySelector(".mud-input-control input") || field.querySelector("input:not([type=color])");
         if (!input) {
             return;
         }
@@ -41,3 +41,6 @@
         }, 0);
     }, true);
 })();
+
+// Copies text (a marker share code) to the clipboard.
+window.tmCopyText = (text) => navigator.clipboard.writeText(text);
