@@ -655,9 +655,17 @@
     place-content: center;
 }
 
+/* The name opens the task over the full height of the first line, including the
+   row's top and bottom padding and the gap to the arrow. */
 .task-row__title {
     min-width: 0;
     cursor: pointer;
+    align-self: stretch;
+    margin: -6px 0 -6px -12px;
+    padding: 6px 0 6px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .task-row__name {
