@@ -997,7 +997,24 @@ namespace TarkovMonitor
                     }
                     if (eventLine.Contains("Got notification | UserMatchOver"))
                     {
-                        RaidExited?.Invoke(this, new RaidExitedEventArgs { Map = jsonNode?["location"]?.ToString() ?? throw new Exception("Error parsing raid location"), RaidId = jsonNode?["shortId"]?.ToString() });
+                        var overRaidId = jsonNode?["shortId"]?.ToString();
+                        RaidExited?.Invoke(this, new RaidExitedEventArgs { Map = jsonNode?["location"]?.ToString() ?? throw new Exception("Error parsing raid location"), RaidId = overRaidId });
+                        var isCurrentRaid = string.IsNullOrEmpty(overRaidId) || string.IsNullOrEmpty(raidInfo.RaidId) || overRaidId == raidInfo.RaidId;
+                        if (!isCurrentRaid)
+                        {
+                            // A raid we already left is over; the raid we are in (or loading) is untouched.
+                            continue;
+                        }
+                        if (!e.InitialRead && raidInfo.StartedTime != null && raidInfo.EndedTime == null)
+                        {
+                            // The match-over notice can arrive before the profile reload that normally
+                            // ends the raid. End it here; the profile line then only reports the profile,
+                            // and the next game init still sees the ended raid for the post-raid menus.
+                            // Not on the initial read: old raids must not raise end or post-raid events.
+                            raidInfo.EndedTime = eventDate;
+                            RaidEnded?.Invoke(this, new(raidInfo, CurrentProfile));
+                            continue;
+                        }
                         raidInfo = new()
                         {
                             Profile = CurrentProfile,
